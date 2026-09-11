@@ -2,7 +2,11 @@ import { useRef, useCallback } from 'react';
 import { saveTextFile, loadTextFile } from '../utils/fileUtils';
 import { fileSystem, isNative } from '../utils/fileSystem';
 import { parseNote } from '../utils/metadataParser';
-import { readManifest, loadSegmentTexts } from '../utils/manifest';
+import { findSegmentEntry, normalizeManifestFileName, readManifest, loadSegmentTexts } from '../utils/manifest';
+import { assessSaveEligibility } from '../utils/saveSafety.mjs';
+
+const sameFileName = (left, right) => normalizeManifestFileName(left) === normalizeManifestFileName(right);
+const pathEndsWithFile = (path, fileName) => normalizeManifestFileName(path).endsWith(normalizeManifestFileName(fileName));
 
 /**
  * useFileOperations
@@ -37,17 +41,45 @@ export function useFileOperations({
   saveProjectHandle,
   setProjectHandle,
   setUsageStats,
+  activeFileHandleRef,
+  externalConflictRef,
+  onExternalConflict,
+  baselineFileHandleRef,
+  saveReviewGateRef,
+  onSaveBlocked,
+  onFileBaselineEstablished,
 }) {
   const handleSaveFileRef = useRef(null);
   const isSavingRef = useRef(false);
 
   const handleSaveFile = useCallback(async () => {
-    if (isSavingRef.current) return;
+    if (isSavingRef.current) return false;
+    if (externalConflictRef?.current) {
+      showToast('⚠️ 外部更新を検知しています。再読込するまで保存しません。');
+      return false;
+    }
+    if (activeFileHandle && projectHandle) {
+      const eligibility = assessSaveEligibility({
+        activeFileHandle,
+        baselineFileHandle: baselineFileHandleRef?.current,
+        reviewGate: saveReviewGateRef?.current,
+      });
+      if (!eligibility.allowed) {
+        onSaveBlocked?.(eligibility.reason);
+        showToast(eligibility.reason === 'review-required'
+          ? '⚠️ 復元内容の確認が終わるまで保存しません。'
+          : '⚠️ この本文の保存先を安全に確認できないため、保存しません。');
+        return false;
+      }
+    }
     isSavingRef.current = true;
     try {
       if (activeFileHandle && projectHandle) {
         const { metadata } = parseNote(text);
-        const options = { disableJournal: settings?.enableJournaling === false };
+        const options = {
+          disableJournal: settings?.enableJournaling === false,
+          expectedContent: lastSavedTextRef.current,
+        };
         await fileSystem.writeFile(activeFileHandle, text, options);
 
         // Trigger Auto-Organize
@@ -58,18 +90,33 @@ export function useFileOperations({
         }
         setLastSaved(new Date());
         lastSavedTextRef.current = text;
+        if (baselineFileHandleRef) baselineFileHandleRef.current = newHandle || activeFileHandle;
         showToast('💾 保存しました');
+        return true;
       } else {
         // Fallback to download
         saveTextFile(text);
+        return true;
       }
     } catch (error) {
       console.error('Failed to save file:', error);
-      showToast('ファイルの保存に失敗しました。');
+      if (String(error?.message || error).includes('EXTERNAL_MODIFICATION')) {
+        if (externalConflictRef) externalConflictRef.current = true;
+        try {
+          const externalText = await fileSystem.readFile(activeFileHandle);
+          onExternalConflict?.({ fileHandle: activeFileHandle, nexusText: text, externalText });
+        } catch (readError) {
+          console.error('Failed to read externally updated file:', readError);
+        }
+        showToast('🚨 Codexなどによる外部更新を検知しました。NEXUSからの保存を停止しました。');
+      } else {
+        showToast('ファイルの保存に失敗しました。');
+      }
+      return false;
     } finally {
       isSavingRef.current = false;
     }
-  }, [text, activeFileHandle, projectHandle, autoOrganizeFile, setActiveFileHandle, refreshMaterials, setLastSaved, lastSavedTextRef, showToast, settings?.enableJournaling]);
+  }, [text, activeFileHandle, projectHandle, autoOrganizeFile, setActiveFileHandle, refreshMaterials, setLastSaved, lastSavedTextRef, showToast, settings?.enableJournaling, externalConflictRef, onExternalConflict, baselineFileHandleRef, saveReviewGateRef, onSaveBlocked]);
 
   // Keep ref in sync
   handleSaveFileRef.current = handleSaveFile;
@@ -118,7 +165,7 @@ export function useFileOperations({
     try {
       let targetHandle = fileHandle;
       if (!targetHandle && fileName && allMaterialFiles) {
-        const found = allMaterialFiles.find(f => f.name === fileName || (f.handle && typeof f.handle === 'string' && f.handle.endsWith(fileName)));
+        const found = allMaterialFiles.find(f => sameFileName(f.name, fileName) || (f.handle && typeof f.handle === 'string' && pathEndsWithFile(f.handle, fileName)));
         if (found) {
           targetHandle = found.handle;
         } else {
@@ -161,9 +208,14 @@ export function useFileOperations({
 
       // 通常のファイル読み込み
       const content = await fileSystem.readFile(targetHandle);
+      if (externalConflictRef) externalConflictRef.current = false;
+      if (activeFileHandleRef) activeFileHandleRef.current = targetHandle;
       setText(content);
       if (setDebouncedText) setDebouncedText(content);
       lastSavedTextRef.current = content;
+      if (baselineFileHandleRef) baselineFileHandleRef.current = targetHandle;
+      if (saveReviewGateRef) saveReviewGateRef.current = null;
+      onFileBaselineEstablished?.();
       // Bug A 対策: ファイル読み込み時に最新メタデータを Ref に保持する
       const { metadata } = parseNote(content);
       if (latestMetadataRef) latestMetadataRef.current = metadata;
@@ -176,7 +228,7 @@ export function useFileOperations({
         if (options.path) {
           filePath = options.path;
         } else {
-          const matched = allMaterialFiles.find(f => f.name === fileName);
+          const matched = allMaterialFiles.find(f => sameFileName(f.name, fileName));
           if (matched) filePath = matched.path;
         }
 
@@ -198,6 +250,7 @@ export function useFileOperations({
           }
         }, 100);
       }
+      return { fileHandle: targetHandle, fileName: name, content };
     } catch (error) {
       console.error('Failed to open file:', error);
       if (error.message === 'CLOUD_SYNC_TIMEOUT') {
@@ -212,25 +265,27 @@ export function useFileOperations({
         showToast(`ファイルを開けませんでした: ${error.message || error}`);
       }
     }
-  }, [allMaterialFiles, projectHandle, showToast, setText, setDebouncedText, lastSavedTextRef, latestMetadataRef, setActiveFileHandle, setActiveTab, setUsageStats, editorRef, requestConfirm, handleLaunchOneDrive, setProjectHandle, saveProjectHandle, setIsProjectMode]);
+  }, [allMaterialFiles, projectHandle, showToast, setText, setDebouncedText, lastSavedTextRef, latestMetadataRef, setActiveFileHandle, setActiveTab, setUsageStats, editorRef, requestConfirm, handleLaunchOneDrive, setProjectHandle, saveProjectHandle, setIsProjectMode, activeFileHandleRef, externalConflictRef, baselineFileHandleRef, saveReviewGateRef, onFileBaselineEstablished]);
 
-  const handleOpenSegmentFile = useCallback(async (fileName, localOffset) => {
+  const handleOpenSegmentFile = useCallback(async (fileName, localOffset, nexusPath = '') => {
+    const normalizedNexusPath = String(nexusPath || '').replace(/\\/g, '/').replace(/\/$/, '');
     // まず既存の allMaterialFiles から検索
     const found = allMaterialFiles?.find(f =>
-      f.name === fileName ||
-      (f.handle && typeof f.handle === 'string' && f.handle.endsWith(fileName))
+      (sameFileName(f.name, fileName) || (f.handle && typeof f.handle === 'string' && pathEndsWithFile(f.handle, fileName))) &&
+      (!normalizedNexusPath || String(f.handle || f.path || '').replace(/\\/g, '/').includes(`${normalizedNexusPath}/`))
     );
 
     if (found) {
-      await handleOpenFile(found.handle, fileName);
+      return await handleOpenFile(found.handle, fileName, { position: localOffset, path: found.path });
     } else {
       // フォールバック: .nexus/segments/ から直接読み込む
       try {
         const entries = await fileSystem.readDirectory(projectHandle);
         let loaded = false;
+        const targetNexusName = normalizedNexusPath.split('/').pop();
 
         for (const entry of (entries || [])) {
-          if (entry.kind === 'directory' && entry.name.endsWith('.nexus')) {
+          if (entry.kind === 'directory' && entry.name.endsWith('.nexus') && (!targetNexusName || entry.name === targetNexusName)) {
             const nexusDirHandle = entry.handle || entry;
             const nexusEntries = await fileSystem.readDirectory(nexusDirHandle);
             const segDir = nexusEntries.find(e => e.name === 'segments' && e.kind === 'directory');
@@ -238,13 +293,13 @@ export function useFileOperations({
             if (segDir) {
               const segDirHandle = segDir.handle || segDir;
               const segEntries = await fileSystem.readDirectory(segDirHandle);
-              const targetFile = segEntries.find(e => e.name === fileName);
+              const targetFile = findSegmentEntry(segEntries, fileName);
 
               if (targetFile) {
                 const fileHandle = targetFile.handle || targetFile;
-                await handleOpenFile(fileHandle, fileName);
+                const opened = await handleOpenFile(fileHandle, fileName, { position: localOffset });
                 loaded = true;
-                break;
+                return opened;
               }
             }
           }
@@ -261,16 +316,7 @@ export function useFileOperations({
       }
     }
 
-    // カーソル位置をリトライ付きで設定（エディタのレンダリング完了を待つ）
-    const tryJump = (attempts = 0) => {
-      if (editorRef?.current?.jumpToIndex) {
-        editorRef.current.jumpToIndex(localOffset);
-      } else if (attempts < 10) {
-        setTimeout(() => tryJump(attempts + 1), 150);
-      }
-    };
-    setTimeout(() => tryJump(0), 150);
-  }, [handleOpenFile, allMaterialFiles, projectHandle, showToast, editorRef]);
+  }, [handleOpenFile, allMaterialFiles, projectHandle, showToast]);
 
 
   const handleDuplicateFile = useCallback(async (handleToDup = activeFileHandle) => {
@@ -417,8 +463,9 @@ export function useFileOperations({
           }
         }
       } catch (manifestErr) {
-        console.warn('[batchExport] manifest detection failed, falling back to filename sort:', manifestErr);
-        // manifestMerged は null のまま → 従来ロジックへ
+        console.error('[batchExport] manifest export aborted:', manifestErr);
+        showToast(`作品の構成ファイルを確認できないため、書き出しを中止しました。${manifestErr.message ? ` ${manifestErr.message}` : ''}`, 'error');
+        return;
       }
 
       // manifest から結合できた場合はそれを使う

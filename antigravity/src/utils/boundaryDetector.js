@@ -37,48 +37,54 @@ export function findBoundaryCandidates(text, options = {}) {
     };
 
     if (includeChapter) {
-        // ■ detector
+        // ■ / ◇ detector: 行頭（BOM・空白は許可）にある記号を章区切りとして扱う。
         let match;
-        const squareRegex = /^■.*/gm;
-        while ((match = squareRegex.exec(text)) !== null) {
+        const symbolChapterRegex = /^[\uFEFF \t\u3000]*[■◇]+.*/gm;
+        while ((match = symbolChapterRegex.exec(text)) !== null) {
             const offset = match.index;
             const fullLine = match[0];
-            const titleCandidate = fullLine.substring(1).trim();
-            addCandidate(offset, 'chapter', '■', titleCandidate, 0.95);
+            const markerMatch = fullLine.match(/[■◇]+/);
+            const marker = markerMatch ? markerMatch[0] : '';
+            const markerIndex = markerMatch ? markerMatch.index : 0;
+            const titleCandidate = fullLine.substring(markerIndex + marker.length).trim();
+            addCandidate(offset, 'chapter', marker, titleCandidate, 0.95);
         }
 
         // 第N章 detector
-        const chapterRegex = /^第[0-9０-９一二三四五六七八九十百千万零]+[章話幕].*/gm;
+        const chapterRegex = /^[\uFEFF \t\u3000]*第[0-9０-９一二三四五六七八九十百千万零〇壱弐参]+[章話幕部篇編].*/gm;
         while ((match = chapterRegex.exec(text)) !== null) {
             const offset = match.index;
             const fullLine = match[0];
-            const markerMatch = fullLine.match(/^第[0-9０-９一二三四五六七八九十百千万零]+[章話幕]/);
+            const markerMatch = fullLine.match(/第[0-9０-９一二三四五六七八九十百千万零〇壱弐参]+[章話幕部篇編]/);
             const marker = markerMatch ? markerMatch[0] : '';
-            const titleCandidate = fullLine.substring(marker.length).trim();
+            const markerEnd = markerMatch ? markerMatch.index + marker.length : 0;
+            const titleCandidate = fullLine.substring(markerEnd).replace(/^[\s\u3000:：―—-]+/, '').trim();
             addCandidate(offset, 'chapter', marker, titleCandidate, 0.9);
         }
 
         // 序章・終章などの特殊な章タイトル detector
-        const specialChapterRegex = /^(序章|終章|終局|幕間|あとがき|プロローグ|エピローグ|番外編).*/gm;
+        const specialChapterRegex = /^[\uFEFF \t\u3000]*(序章|終章|終局|幕間|あとがき|プロローグ|エピローグ|番外編).*/gm;
         while ((match = specialChapterRegex.exec(text)) !== null) {
             const offset = match.index;
             const fullLine = match[0];
-            const markerMatch = fullLine.match(/^(序章|終章|終局|幕間|あとがき|プロローグ|エピローグ|番外編)/);
+            const markerMatch = fullLine.match(/(序章|終章|終局|幕間|あとがき|プロローグ|エピローグ|番外編)/);
             const marker = markerMatch ? markerMatch[0] : '';
-            const titleCandidate = fullLine.substring(marker.length).trim();
+            const markerEnd = markerMatch ? markerMatch.index + marker.length : 0;
+            const titleCandidate = fullLine.substring(markerEnd).replace(/^[\s\u3000:：―—-]+/, '').trim();
             addCandidate(offset, 'chapter', marker, titleCandidate, 0.9);
         }
     }
 
     if (includeMarkdown) {
-        const mdRegex = /^[#＃]+\s.*/gm;
+        const mdRegex = /^[\uFEFF \t\u3000]*[#＃]{1,6}[ \t\u3000]*\S.*/gm;
         let match;
         while ((match = mdRegex.exec(text)) !== null) {
             const offset = match.index;
             const fullLine = match[0];
-            const m = fullLine.match(/^[#＃]+\s/);
-            const marker = m ? m[0] : '# ';
-            const titleCandidate = fullLine.substring(marker.length).trim();
+            const m = fullLine.match(/[#＃]{1,6}/);
+            const marker = m ? m[0] : '#';
+            const markerEnd = m ? m.index + marker.length : 0;
+            const titleCandidate = fullLine.substring(markerEnd).trim();
             addCandidate(offset, 'section', marker, titleCandidate, 0.85);
         }
     }
@@ -87,11 +93,14 @@ export function findBoundaryCandidates(text, options = {}) {
         // aozora headings: non-greedy match.
         // Needs to capture heading content to isolate it. Wait.
         // It says: marker is the match itself, titleCandidate is from the end of the match to the end of the line.
-        // Example: /[［\[]＃(大|中|小)見出し[］\]]/g
-        const aozoraRegex = /[［\[]＃(大|中|小)見出し[］\]]/g;
+        // 全角・半角角括弧の双方を許可する。
+        const aozoraRegex = /(?:［|\[)＃(大|中|小)見出し(?:］|\])/g;
         let match;
         while ((match = aozoraRegex.exec(text)) !== null) {
             const offset = match.index;
+            const lineStart = text.lastIndexOf('\n', offset - 1) + 1;
+            // 行末注記形式は下の suffix detector で行頭から分割する。
+            if (text.slice(lineStart, offset).trim()) continue;
             const marker = match[0];
             const kind = match[1];
             
@@ -112,8 +121,22 @@ export function findBoundaryCandidates(text, options = {}) {
             addCandidate(offset, type, marker, titleCandidate, confidence);
         }
 
+        // 青空文庫で一般的な「見出し本文［＃「見出し本文」は大見出し］」形式。
+        const aozoraSuffixRegex = /^([^\n\r]+?)［＃(?:「[^」]+」は)?(大|中|小)見出し］.*$/gm;
+        while ((match = aozoraSuffixRegex.exec(text)) !== null) {
+            const titleCandidate = match[1].trim();
+            const kind = match[2];
+            addCandidate(
+                match.index,
+                kind === '大' ? 'chapter' : 'section',
+                `青空文庫${kind}見出し`,
+                titleCandidate,
+                kind === '大' ? 0.95 : kind === '中' ? 0.85 : 0.75
+            );
+        }
+
         // aozora page break
-        const pageBreakRegex = /[［\[]＃改ページ[］\]]/g;
+        const pageBreakRegex = /(?:［|\[)＃改ページ(?:］|\])/g;
         while ((match = pageBreakRegex.exec(text)) !== null) {
             addCandidate(match.index, 'aozora-pagebreak', match[0], '', 0.9);
         }

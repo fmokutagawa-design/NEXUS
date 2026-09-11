@@ -75,6 +75,7 @@
   border: 1px solid rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: all 0.2s;
+  color: #1f2937;
 }
 
 .homework-item:hover {
@@ -152,11 +153,16 @@
   margin-right: 8px;
 }
 
-.category-監査 { background: #ff3b30; color: #fff; }
-.category-校正 { background: #007aff; color: #fff; }
-.category-誤字 { background: #ff9500; color: #fff; }
-.category-文法 { background: #34c759; color: #fff; }
-.category-文体 { background: #5856d6; color: #fff; }
+.category-tag.category-監査 { background: #ff3b30; color: #fff; }
+.category-tag.category-校正 { background: #0066cc; color: #fff; }
+.category-tag.category-誤字 { background: #c75b00; color: #fff; }
+.category-tag.category-文法 { background: #187a33; color: #fff; }
+.category-tag.category-文体 { background: #4b49b8; color: #fff; }
+
+.homework-item:focus-visible {
+  outline: 3px solid rgba(0, 102, 204, 0.35);
+  outline-offset: 2px;
+}
 
 .homework-item.category-監査 { border-left: 4px solid #ff3b30; }
 .homework-item.category-校正 { border-left: 4px solid #007aff; }

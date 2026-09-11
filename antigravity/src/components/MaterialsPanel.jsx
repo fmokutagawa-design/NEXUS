@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MATERIAL_TEMPLATES, AI_ORGANIZE_PROMPT } from '../constants/templates';
-import { createFile, createDirectory } from '../utils/fileSystemUtils';
+import { createFile } from '../utils/fileSystemUtils';
+import { folderDisplayPriority, workLocationPriority } from '../utils/workManagement.mjs';
 
 const MaterialsPanel = ({
     projectHandle,
@@ -15,14 +16,45 @@ const MaterialsPanel = ({
     isLoading = false,
     usageStats = {},
     onCreateFileWithTag,
-    onBatchCopy,
-    onOpenLink
+    onBatchCopy
 }) => {
     const [selectedTag, setSelectedTag] = useState(null);
     const [expandedFolders, setExpandedFolders] = useState(new Set(['root']));
     const [showNewMenu, setShowNewMenu] = useState(false);
     const [sortMode, setSortMode] = useState('name'); // 'name' or 'frequency'
     const [manualTags, setManualTags] = useState(new Set()); // State for manually added tags
+    const [selectedWork, setSelectedWork] = useState('');
+    const [showFolderTree, setShowFolderTree] = useState(false);
+
+    const projectPath = String(projectHandle?.handle || projectHandle?.path || projectHandle || '').normalize('NFC').replace(/\\/g, '/').replace(/\/+$/, '');
+    const filePath = file => String(file?.path || file?.handle || '').normalize('NFC').replace(/\\/g, '/');
+    const workInfoFor = file => {
+        const path = filePath(file);
+        const relative = projectPath && path.startsWith(`${projectPath}/`) ? path.slice(projectPath.length + 1) : path;
+        const parts = relative.split('/').filter(Boolean);
+        const first = parts[0] || '';
+        const projectName = projectPath.split('/').filter(Boolean).pop() || '現在の作品';
+        const category = ['manuscripts', 'archive', 'materials', 'settings'].includes(first.toLowerCase());
+        if (category && parts.length >= 3) {
+            return { name: parts[1].replace(/\.nexus$/i, ''), path: `${projectPath}/${first}/${parts[1]}` };
+        }
+        if (parts.length > 1 && !category) return { name: first, path: `${projectPath}/${first}` };
+        return { name: projectName, path: projectPath };
+    };
+    const workPathByName = new Map();
+    allMaterialFiles.filter(file => file.kind === 'file').forEach(file => {
+        const info = workInfoFor(file);
+        if (info.name && !workPathByName.has(info.name)) workPathByName.set(info.name, info.path);
+    });
+    const workOptions = [...workPathByName.keys()].sort((a, b) => a.localeCompare(b, 'ja'));
+    const workScopedFiles = selectedWork ? allMaterialFiles.filter(file => workInfoFor(file).name === selectedWork) : allMaterialFiles;
+    const selectedWorkPath = selectedWork ? workPathByName.get(selectedWork) || projectPath : projectPath;
+    const knowledgeFiles = workScopedFiles.filter(file => {
+        if (file.kind !== 'file' || !/\.(txt|md)$/i.test(file.name || '')) return false;
+        const path = filePath(file).toLowerCase();
+        if (path.includes('/archive/') || path.includes('/manuscripts/') || path.includes('.nexus/')) return false;
+        return !/(本文|本原稿|原稿|草稿|第\d+稿)/.test(file.name || '');
+    });
 
     // Load manual tags from localStorage
     useEffect(() => {
@@ -35,6 +67,14 @@ const MaterialsPanel = ({
             console.error('Failed to load manual tags:', e);
         }
     }, []);
+
+    // 開いているファイルが属する作品を入口の初期値にする。
+    useEffect(() => {
+        if (selectedWork || !currentFile) return;
+        const currentWork = workInfoFor(currentFile).name;
+        if (workOptions.includes(currentWork)) setSelectedWork(currentWork);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentFile, projectPath, allMaterialFiles.length]);
 
     const handleAddManualTag = () => {
         const tagName = prompt('新しいタグ名を入力してください:');
@@ -57,7 +97,14 @@ const MaterialsPanel = ({
     // Expand root by default when tree loads
     useEffect(() => {
         if (materialsTree.length > 0) {
-            setExpandedFolders(prev => new Set([...prev, 'root']));
+            const root = materialsTree[0];
+            const rootPath = root?.name || 'root';
+            const manuscript = root?.children?.find(item => item.kind === 'directory' && item.name?.toLowerCase() === 'manuscripts');
+            setExpandedFolders(prev => new Set([
+                ...prev,
+                rootPath,
+                ...(manuscript ? [`${rootPath}/${manuscript.name}`] : []),
+            ]));
         }
     }, [materialsTree]);
 
@@ -147,6 +194,11 @@ const MaterialsPanel = ({
             // Always directories first
             if (a.kind !== b.kind) return a.kind === 'directory' ? -1 : 1;
 
+            if (a.kind === 'directory') {
+                const priority = folderDisplayPriority(a.name) - folderDisplayPriority(b.name);
+                if (priority !== 0) return priority;
+            }
+
             if (sortMode === 'frequency' && a.kind === 'file') {
                 const pathA = pathPrefix ? `${pathPrefix}/${a.name}` : a.name;
                 const pathB = pathPrefix ? `${pathPrefix}/${b.name}` : b.name;
@@ -234,7 +286,7 @@ const MaterialsPanel = ({
     };
 
     const renderFilteredList = () => {
-        const filtered = allMaterialFiles.filter(file => {
+        const filtered = knowledgeFiles.filter(file => {
             if (selectedTag === 'unset') {
                 const noTags = !file.metadata?.tags || file.metadata.tags.length === 0;
                 const noWork = !file.metadata?.作品 || !file.metadata.作品.trim();
@@ -252,6 +304,8 @@ const MaterialsPanel = ({
         });
 
         filtered.sort((a, b) => {
+            const locationPriority = workLocationPriority(a.path) - workLocationPriority(b.path);
+            if (locationPriority !== 0) return locationPriority;
             if (sortMode === 'frequency') {
                 const countA = usageStats[a.path] || 0;
                 const countB = usageStats[b.path] || 0;
@@ -289,7 +343,7 @@ const MaterialsPanel = ({
     return (
         <div className="materials-panel">
             <div className="materials-header">
-                <h3>📚 設定資料</h3>
+                <h3>📚 資料・知識</h3>
                 <div className="materials-actions">
                     <button
                         className="sort-btn"
@@ -298,6 +352,9 @@ const MaterialsPanel = ({
                         style={{ marginRight: '8px', padding: '4px 8px', fontSize: '0.8rem', background: 'none', border: '1px solid var(--border-color)', borderRadius: '4px', cursor: 'pointer' }}
                     >
                         {sortMode === 'name' ? '🔤 名前順' : '📊 頻度順'}
+                    </button>
+                    <button onClick={() => setShowFolderTree(value => !value)} title="従来のフォルダツリー表示" style={{ padding: '4px 8px', fontSize: '0.8rem', background: showFolderTree ? 'var(--bg-secondary)' : 'none', border: '1px solid var(--border-color)', borderRadius: '4px', cursor: 'pointer' }}>
+                        {showFolderTree ? '作品別表示' : 'フォルダ表示'}
                     </button>
                     <button
                         className="new-material-btn"
@@ -346,6 +403,34 @@ const MaterialsPanel = ({
                 )}
             </div>
 
+            <div style={{ margin: '12px', padding: '14px 16px', display: 'grid', gridTemplateColumns: 'minmax(260px, 1.35fr) minmax(260px, 1fr)', gap: '14px', border: '1px solid #c7d2fe', borderRadius: '12px', background: 'linear-gradient(135deg, #f5f7ff, #fbf7ff)', color: '#29244a' }}>
+                <div>
+                    <div style={{ fontSize: '17px', fontWeight: 800 }}>作品の「どこに書いたか」を探す</div>
+                    <div style={{ marginTop: '6px', fontSize: '12px', lineHeight: 1.65, color: '#5d5875' }}>
+                        人物名・地名・固有用語を本文、設定、プロットから高速検索します。見つけた箇所は出典と行番号付きで、ChatGPTやClaudeへ渡す一つの相談資料にできます。
+                    </div>
+                    <div style={{ display: 'flex', gap: '14px', marginTop: '10px', fontSize: '11px', color: '#6d28d9' }}><span>✓ 全文を毎回読まない</span><span>✓ 旧稿・重複を区別</span><span>✓ AIなしで検索</span></div>
+                </div>
+                <div style={{ padding: '11px', borderRadius: '9px', background: 'rgba(255,255,255,.8)', border: '1px solid #ddd6fe' }}>
+                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '11px', fontWeight: 700 }}>検索する作品</label>
+                    <select value={selectedWork} onChange={event => { setSelectedWork(event.target.value); setSelectedTag(null); }} style={{ width: '100%', padding: '8px', fontSize: '13px', border: '1px solid #aaa', borderRadius: '6px' }}>
+                        <option value="">全作品を横断</option>
+                        {workOptions.map(work => <option key={work} value={work}>{work}</option>)}
+                    </select>
+                    <button onClick={() => window.api?.invoke?.('window:openKnowledge', selectedWorkPath)} disabled={!selectedWorkPath} style={{ width: '100%', marginTop: '8px', padding: '9px 12px', border: 'none', borderRadius: '7px', background: '#6d28d9', color: '#fff', fontSize: '13px', fontWeight: 700, cursor: selectedWorkPath ? 'pointer' : 'default' }}>
+                        🗂️ 資料棚・全文検索を開く
+                    </button>
+                    <div style={{ marginTop: '6px', fontSize: '10px', color: '#777' }}>
+                        {selectedWork ? `「${selectedWork}」の資料を、作品・年代・新旧・保存場所から探せます` : '全作品の資料を、作品・年代・新旧・保存場所から探せます'}。本文中の語句による全文検索も同じ画面です。
+                    </div>
+                </div>
+            </div>
+
+            <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <strong style={{ fontSize: '12px' }}>{selectedWork ? `${selectedWork} の資料` : '全作品の資料'}</strong>
+                <span style={{ fontSize: '11px', color: '#777' }}>{knowledgeFiles.length}件</span>
+            </div>
+
             {/* Tag Cloud */}
             {(displayTags.size > 0) && (
                 <div className="tags-container">
@@ -380,7 +465,7 @@ const MaterialsPanel = ({
                     <div className="tags-list">
                         {/* Unset Tag Alert */}
                         {(() => {
-                            const unsetCount = allMaterialFiles.filter(f => {
+                            const unsetCount = knowledgeFiles.filter(f => {
                                 const noTags = !f.metadata?.tags || f.metadata.tags.length === 0;
                                 const noWork = !f.metadata?.作品 || !f.metadata.作品.trim();
                                 return noTags && noWork;
@@ -400,7 +485,7 @@ const MaterialsPanel = ({
 
                         {Array.from(displayTags).map(tag => {
                             // Count files with this tag (check both tags and 作品)
-                            const fileCount = allMaterialFiles.filter(f => {
+                            const fileCount = knowledgeFiles.filter(f => {
                                 if (!f.metadata) return false;
                                 const hasCategoryTag = f.metadata.tags && f.metadata.tags.includes(tag);
                                 const hasWorkTag = f.metadata.作品 && f.metadata.作品.split(',').map(t => t.trim()).includes(tag);
@@ -455,12 +540,12 @@ const MaterialsPanel = ({
                         <div className="filter-header">
                             <span>🏷️ {selectedTag === 'unset' ? '⚠️ 未設定' : selectedTag} の検索結果: {
                                 selectedTag === 'unset'
-                                    ? allMaterialFiles.filter(f => {
+                                    ? knowledgeFiles.filter(f => {
                                         const noTags = !f.metadata?.tags || f.metadata.tags.length === 0;
                                         const noWork = !f.metadata?.作品 || !f.metadata.作品.trim();
                                         return noTags && noWork;
                                     }).length
-                                    : allMaterialFiles.filter(f => {
+                                    : knowledgeFiles.filter(f => {
                                         if (!f.metadata) return false;
                                         const hasCategoryTag = f.metadata.tags && f.metadata.tags.includes(selectedTag);
                                         const hasWorkTag = f.metadata.作品 && f.metadata.作品.split(',').map(t => t.trim()).includes(selectedTag);
@@ -471,12 +556,12 @@ const MaterialsPanel = ({
                             <button
                                 onClick={() => {
                                     const filteredFiles = selectedTag === 'unset'
-                                        ? allMaterialFiles.filter(f => {
+                                        ? knowledgeFiles.filter(f => {
                                             const noTags = !f.metadata?.tags || f.metadata.tags.length === 0;
                                             const noWork = !f.metadata?.作品 || !f.metadata.作品.trim();
                                             return noTags && noWork;
                                         })
-                                        : allMaterialFiles.filter(f => {
+                                        : knowledgeFiles.filter(f => {
                                             if (!f.metadata) return false;
                                             const hasCategoryTag = f.metadata.tags && f.metadata.tags.includes(selectedTag);
                                             const hasWorkTag = f.metadata.作品 && f.metadata.作品.split(',').map(t => t.trim()).includes(selectedTag);
@@ -501,8 +586,19 @@ const MaterialsPanel = ({
                         </div>
                         {renderFilteredList()}
                     </div>
-                ) : materialsTree.length > 0 ? (
+                ) : showFolderTree && materialsTree.length > 0 ? (
                     renderTree(materialsTree)
+                ) : knowledgeFiles.length > 0 ? (
+                    <div className="filtered-view">{knowledgeFiles
+                        .slice()
+                        .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ja'))
+                        .map(file => (
+                            <div key={filePath(file)} className={`material-file ${currentFile?.name === file.name ? 'active' : ''}`} onClick={() => onOpenFile(file.handle || file, file.name)} style={{ display: 'flex', alignItems: 'center' }}>
+                                <span className="file-icon">📄</span>
+                                <span className="file-name" style={{ flex: 1 }}>{file.name}</span>
+                                <span className="file-path-hint">{workInfoFor(file).name}</span>
+                            </div>
+                        ))}</div>
                 ) : (
                     <div className="empty-state">
                         資料がありません。<br />

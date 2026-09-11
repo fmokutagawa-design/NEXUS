@@ -37,7 +37,7 @@ async function performSplit({ plan, activeFileHandle, projectHandle, sourceText,
             } else {
                 parentDirHandle = projectHandle;
             }
-        } catch (e) {
+        } catch {
             parentDirHandle = projectHandle;
         }
     }
@@ -77,10 +77,10 @@ async function performSplit({ plan, activeFileHandle, projectHandle, sourceText,
                     `"${nexusFolderName}" フォルダが既に存在します。上書きしますか？\n（既存の manifest.json は上書きされます）`
                 );
                 if (!ok) {
-                    return { createdCount: 0, backupPath: '' };
+                    return { createdCount: 0, backupPath: '', cancelled: true };
                 }
             }
-        } catch (e) {
+        } catch {
             // readDirectory 失敗は無視（フォルダが存在しないケース）
         }
     }
@@ -135,12 +135,20 @@ async function performSplit({ plan, activeFileHandle, projectHandle, sourceText,
 
     // Step 4: 新ファイル群を作成
     const createdHandles = [];
+    const createdSegments = [];
     try {
         for (const segment of plan.segments) {
             const targetName = resolveFileNameCollision(segment.proposedFileName, existingNames);
             const targetHandle = await fileSystem.createFile(targetDirHandle, targetName, segment.content);
             createdHandles.push(targetHandle);
+            createdSegments.push({ ...segment, proposedFileName: targetName });
             existingNames.push(targetName);
+        }
+
+        // manifest には衝突解決後の「実際に作成した名前」を記録する。
+        if (useNexusFolder && nexusDirHandle) {
+            const manifest = createManifestFromSplitPlan({ ...plan, segments: createdSegments });
+            await writeManifest(nexusDirHandle, manifest);
         }
     } catch (err) {
         // Step 5: ロールバック
@@ -159,13 +167,7 @@ async function performSplit({ plan, activeFileHandle, projectHandle, sourceText,
         throw err;
     }
 
-    // Step 4.5: manifest.json 書き出し
-    if (useNexusFolder && nexusDirHandle) {
-        const manifest = createManifestFromSplitPlan(plan);
-        await writeManifest(nexusDirHandle, manifest);
-    }
-
-    return { createdCount: createdHandles.length, backupPath: backupFileName };
+    return { createdCount: createdHandles.length, backupPath: backupFileName, cancelled: false };
 }
 
 /**
@@ -226,8 +228,9 @@ export function useSplitByChapters({
         setIsExecuting(true);
 
         try {
-            await performSplit({ plan, activeFileHandle, projectHandle, sourceText, useNexusFolder });
-            showToast(`${plan.segments.length} ファイルに分割しました`);
+            const result = await performSplit({ plan, activeFileHandle, projectHandle, sourceText, useNexusFolder });
+            if (result.cancelled) return;
+            showToast(`${result.createdCount} ファイルに分割しました`);
             if (refreshMaterials) {
                 await refreshMaterials();
             }
@@ -238,7 +241,7 @@ export function useSplitByChapters({
         } finally {
             setIsExecuting(false);
         }
-    }, [plan, activeFileHandle, projectHandle, sourceText, showToast, refreshMaterials, closeModal]);
+    }, [plan, activeFileHandle, projectHandle, sourceText, showToast, refreshMaterials, closeModal, useNexusFolder]);
 
     return {
         isOpen,

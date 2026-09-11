@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 
 export function useKeyboardShortcuts({
   onSearchRequested,
+  isReaderOpen,
+  onReaderSearchRequested,
   handleSaveFileRef,
-  setIsRapidMode,
   setShowReader,
   setInputModalMode,
   setInputModalValue,
@@ -13,17 +14,14 @@ export function useKeyboardShortcuts({
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
         e.preventDefault();
-        if (onSearchRequested) onSearchRequested('');
+        if (isReaderOpen) {
+          if (onReaderSearchRequested) onReaderSearchRequested();
+        } else if (onSearchRequested) onSearchRequested('');
       }
       // Cmd+S: Save
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
         e.preventDefault();
         if (handleSaveFileRef.current) handleSaveFileRef.current();
-      }
-      // Cmd+Shift+R: Toggle rapid writing mode
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'R') {
-        e.preventDefault();
-        setIsRapidMode(prev => !prev);
       }
       // Alt+R: Reader Mode
       if (e.altKey && (e.code === 'KeyR' || e.key === 'r' || e.key === 'R')) {
@@ -43,8 +41,9 @@ export function useKeyboardShortcuts({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
     onSearchRequested,
+    isReaderOpen,
+    onReaderSearchRequested,
     handleSaveFileRef,
-    setIsRapidMode,
     setShowReader,
     setInputModalMode,
     setInputModalValue,

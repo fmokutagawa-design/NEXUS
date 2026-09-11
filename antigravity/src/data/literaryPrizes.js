@@ -132,16 +132,20 @@ const literaryPrizes = [
         charLimit: null,
         formatNote: 'A4判 40字×30行 縦書き 100〜200ページ（Word推奨）',
         editorFormat: { charsPerLine: 40, linesPerPage: 30 },
-        deadlineMonth: 10,
-        deadlineNote: '令和7年10月31日（24時で応募ページ閉鎖）',
+        deadlineMonth: 9,
+        estimatedDeadlineDay: 30,
+        confirmedDeadline: '2026-09-30',
+        lastConfirmedDeadline: '2026-09-30',
+        deadlineNote: '2026年9月30日（30日24時で応募ページ閉鎖）※今回から締切が早まります',
+        deadlineSourceStatus: 'official',
         prize: '正賞:時計 + 副賞:500万円',
-        url: 'https://www.google.com/search?q=%E6%9D%BE%E6%9C%AC%E6%B8%85%E5%BC%B5%E8%B3%9E%20%E5%BF%9C%E5%8B%9F%E8%A6%81%E9%A0%85',
+        url: 'https://bessatsu-bunshun.com/n/nb9338c24085b',
         recentWinners: [
             { year: 2025, title: '白鷺立つ', author: '住田祐' },
             { year: 2024, title: 'ゼロの激震', author: '安生正' },
             { year: 2023, title: '代償のギルド', author: '鳴海章' },
         ],
-        analysis: '長編限定。社会派ミステリー、サスペンス、冒険小説など幅広い。エンタメ性と社会性の両立が求められる。正賞が時計、副賞500万円と新人賞としては破格。A4判40字×30行で100〜200ページ。締切は10月末。'
+        analysis: '長編限定。社会派ミステリー、サスペンス、冒険小説など幅広い。エンタメ性と社会性の両立が求められる。正賞が時計、副賞500万円。A4判40字×30行で100〜200ページ。第34回の締切は2026年9月30日。'
     },
     {
         id: 'subaru_novel',
@@ -270,9 +274,13 @@ const literaryPrizes = [
         genre: 'エンタメ',
         pageLimit: { min: 200, max: 400 },
         charLimit: null,
-        formatNote: '400字詰換算200〜400枚',
-        deadlineMonth: 10,
-        deadlineNote: '例年10月末日消印有効',
+        formatNote: '400字詰換算200〜400枚。本文はA4横置き・40字×40行・縦組。応募原稿一式は4ファイル',
+        editorFormat: { charsPerLine: 40, linesPerPage: 40, pageSize: 'A4', orientation: 'landscape', isVertical: true },
+        confirmedDeadline: '2026-08-28',
+        deadlineMonth: 8,
+        estimatedDeadlineDay: 28,
+        deadlineNote: '2026年8月28日（金）Web 23:59／郵送は当日消印有効。2027年分は未発表（8月下旬の推定）',
+        deadlineSourceStatus: 'official',
         prize: '賞金100万円',
         url: 'https://www.google.com/search?q=%E9%87%8E%E6%80%A7%E6%99%82%E4%BB%A3%E6%96%B0%E4%BA%BA%E8%B3%9E%20%E5%BF%9C%E5%8B%9F%E8%A6%81%E9%A0%85',
         recentWinners: [
@@ -1386,11 +1394,57 @@ literaryPrizes.forEach(p => {
 export const GENRES = [...new Set(literaryPrizes.map(p => p.genre))];
 
 // ヘルパー: 次の締切を計算
-export const getNextDeadline = (prize) => {
+export const getNextDeadlineInfo = (prize, referenceDate = new Date()) => {
+    const now = new Date(referenceDate);
+    now.setHours(0, 0, 0, 0);
+
+    if (prize.confirmedDeadline) {
+        const confirmed = new Date(`${prize.confirmedDeadline}T23:59:59`);
+        if (confirmed >= now) {
+            return { date: confirmed, dateString: prize.confirmedDeadline, isEstimated: false, sourceStatus: 'official' };
+        }
+    }
+
     if (prize.deadlineMonth === 0) return null; // 通年応募
-    const now = new Date();
-    const year = now.getMonth() >= prize.deadlineMonth ? now.getFullYear() + 1 : now.getFullYear();
-    return new Date(year, prize.deadlineMonth - 1, 28); // 月末の概算
+    const month = Number(prize.deadlineMonth);
+    if (!month) return null;
+    const day = Number(prize.estimatedDeadlineDay || 28);
+    let year = now.getFullYear();
+    let candidate = new Date(year, month - 1, day, 23, 59, 59);
+    if (candidate < now) {
+        year += 1;
+        candidate = new Date(year, month - 1, day, 23, 59, 59);
+    }
+    const dateString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return { date: candidate, dateString, isEstimated: true, sourceStatus: 'estimated' };
+};
+
+export const getNextDeadline = (prize) => {
+    return getNextDeadlineInfo(prize)?.date || null;
+};
+
+export const getFollowingDeadlineInfo = (prize, referenceDate = new Date()) => {
+    const next = getNextDeadlineInfo(prize, referenceDate);
+    if (!next) return null;
+    const afterNext = new Date(next.date);
+    afterNext.setDate(afterNext.getDate() + 1);
+    return getNextDeadlineInfo(prize, afterNext);
+};
+
+export const refreshKnownPrizeDeadlines = (submissions, referenceDate = new Date()) => {
+    const correctedIds = new Set(['yasei', 'matsumoto']);
+    return (submissions || []).map(item => {
+        if (!correctedIds.has(item.prizeId) || item.deadlineIsEstimated === false || item.deadlineSelection === 'chosen') return item;
+        const prize = literaryPrizes.find(candidate => candidate.id === item.prizeId);
+        const info = prize ? getNextDeadlineInfo(prize, referenceDate) : null;
+        if (!info) return item;
+        // 旧バージョンで保存された「翌年の回」には deadlineSelection がない。
+        // 次回締切より後の年を明示している場合は、補正対象にせず選択を守る。
+        const selectedYear = Number(String(item.deadline || '').slice(0, 4));
+        const nextYear = Number(info.dateString.slice(0, 4));
+        if (selectedYear > nextYear) return { ...item, deadlineSelection: 'chosen' };
+        return { ...item, deadline: info.dateString, deadlineIsEstimated: info.isEstimated };
+    });
 };
 
 // ヘルパー: 締切までの日数

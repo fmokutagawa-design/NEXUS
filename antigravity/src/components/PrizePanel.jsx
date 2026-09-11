@@ -1,10 +1,30 @@
 import React, { useState, useMemo } from 'react';
-import literaryPrizes, { GENRES, getNextDeadline, getDaysUntilDeadline } from '../data/literaryPrizes';
+import literaryPrizes, { GENRES, getFollowingDeadlineInfo, getNextDeadline, getNextDeadlineInfo, getDaysUntilDeadline } from '../data/literaryPrizes';
 
-const PrizePanel = ({ onApplyPrize, onApplyFormat, projectSettings, editorText, showToast }) => {
+const PrizePanel = ({ onApplyPrize, editorText, showToast, submissions = [], currentWorkId = '', currentWorkTitle = '現在の作品', onAddSubmission, onRemoveSubmission, onUpdateSubmission, selectedSubmissionId, onSelectSubmission }) => {
     const [selectedPrize, setSelectedPrize] = useState(null);
     const [genreFilter, setGenreFilter] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
+
+    const deadlineItems = useMemo(() => {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        return submissions.map(item => {
+            if (!item.deadline) return { ...item, daysLeft: null, urgency: 'open' };
+            const due = new Date(`${item.deadline}T23:59:59`);
+            const daysLeft = Math.ceil((due - now) / 86400000);
+            const urgency = daysLeft < 0 ? 'overdue' : daysLeft <= 14 ? 'critical' : daysLeft <= 45 ? 'soon' : 'safe';
+            return { ...item, daysLeft, urgency };
+        }).sort((a, b) => {
+            if (a.daysLeft === null) return 1;
+            if (b.daysLeft === null) return -1;
+            return a.daysLeft - b.daysLeft;
+        });
+    }, [submissions]);
+
+    const deadlineColors = {
+        overdue: '#7f1d1d', critical: '#dc2626', soon: '#d97706', safe: '#15803d', open: '#64748b'
+    };
 
     const filteredPrizes = useMemo(() => {
         return literaryPrizes.filter(p => {
@@ -21,30 +41,20 @@ const PrizePanel = ({ onApplyPrize, onApplyFormat, projectSettings, editorText, 
     }, [genreFilter, searchTerm]);
 
     const handleApply = (prize) => {
-        if (!onApplyPrize) return;
-        const deadline = getNextDeadline(prize);
-        onApplyPrize({
+        const deadlineInfo = getNextDeadlineInfo(prize);
+        const target = {
             targetPages: prize.pageLimit.max || prize.pageLimit.min,
-            deadline: deadline ? deadline.toISOString().split('T')[0] : null,
+            deadline: deadlineInfo?.dateString || null,
+            deadlineIsEstimated: Boolean(deadlineInfo?.isEstimated),
             prizeName: prize.name,
             prizeId: prize.id,
             editorFormat: prize.editorFormat || null,
             pageCountBasis: prize.pageCountBasis || '400-page',
             targetChars: prize.charLimit?.max || 0
-        });
-    };
-
-    const handleApplyFormat = (prize) => {
-        if (!onApplyFormat || !prize.editorFormat) return;
-        const { charsPerLine, linesPerPage } = prize.editorFormat;
-        if (!charsPerLine || !linesPerPage) {
-            showToast?.('この賞には指定フォーマットがありません');
-            return;
-        }
-        if (window.confirm(`エディタの設定を ${charsPerLine}字×${linesPerPage}行 に変更しますか？\n（現在の設定は上書きされます）`)) {
-            onApplyFormat({ charsPerLine, linesPerPage });
-            showToast?.(`📄 ${charsPerLine}字×${linesPerPage}行 に変更しました`);
-        }
+        };
+        onAddSubmission?.(target);
+        onApplyPrize?.(target); // 旧進捗表示との互換
+        showToast?.(`「${currentWorkTitle}」の応募予定に追加しました。執筆画面の書式は変更していません。`);
     };
 
     const getCurrentProgress = (prize) => {
@@ -78,6 +88,8 @@ const PrizePanel = ({ onApplyPrize, onApplyFormat, projectSettings, editorText, 
         const prize = selectedPrize;
         const days = getDaysUntilDeadline(prize);
         const deadline = getNextDeadline(prize);
+        const deadlineInfo = getNextDeadlineInfo(prize);
+        const followingDeadlineInfo = getFollowingDeadlineInfo(prize);
         return (
             <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
                 {/* Header */}
@@ -127,8 +139,9 @@ const PrizePanel = ({ onApplyPrize, onApplyFormat, projectSettings, editorText, 
                                 あと {days} 日
                             </div>
                             <div style={{ fontSize: '11px', color: '#888' }}>
-                                {deadline?.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                {deadline?.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}{deadlineInfo?.isEstimated ? '（推定・要公式確認）' : '（公式確認済み）'}
                             </div>
+                            {followingDeadlineInfo && <div style={{ marginTop: '4px', fontSize: '10px', color: '#888' }}>翌回目安：{followingDeadlineInfo.dateString}{followingDeadlineInfo.isEstimated ? '（推定）' : '（公式）'}</div>}
                         </div>
                     )}
 
@@ -143,19 +156,12 @@ const PrizePanel = ({ onApplyPrize, onApplyFormat, projectSettings, editorText, 
                     >
                         🎯 この賞に応募する（目標設定）
                     </button>
-                    {prize.editorFormat && prize.editorFormat.charsPerLine > 0 && (
-                        <button
-                            onClick={() => handleApplyFormat(prize)}
-                            style={{
-                                padding: '8px', background: 'transparent', color: '#8e44ad',
-                                border: '1px solid #8e44ad', borderRadius: '8px', cursor: 'pointer',
-                                fontSize: '12px'
-                            }}
-                        >
-                            📄 印刷用にフォーマット変更（{prize.editorFormat.charsPerLine}字×{prize.editorFormat.linesPerPage}行）
-                        </button>
+                    {prize.editorFormat?.charsPerLine > 0 && (
+                        <div style={{ fontSize: '11px', color: '#666', textAlign: 'center' }}>
+                            提出時に {prize.editorFormat.charsPerLine}字×{prize.editorFormat.linesPerPage}行を使用します（執筆画面は変更しません）
+                        </div>
                     )}
-                    {projectSettings?.prizeName === prize.name && (
+                    {submissions.some(s => s.workId === currentWorkId && s.prizeId === prize.id) && (
                         <div style={{ fontSize: '10px', color: '#27ae60', textAlign: 'center' }}>✓ 現在この賞が設定されています</div>
                     )}
 
@@ -251,6 +257,48 @@ const PrizePanel = ({ onApplyPrize, onApplyFormat, projectSettings, editorText, 
                 />
             </div>
 
+            {submissions.length > 0 && (
+                <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--border-color)', background: 'rgba(142,68,173,0.06)', maxHeight: '46%', overflowY: 'auto', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <div style={{ fontWeight: 'bold', fontSize: '12px' }}>📅 全作品の締切ダッシュボード</div>
+                        <div style={{ display: 'flex', gap: '5px', fontSize: '9px' }}>
+                            <span style={{ color: deadlineColors.critical }}>● 14日以内</span>
+                            <span style={{ color: deadlineColors.soon }}>● 45日以内</span>
+                            <span style={{ color: deadlineColors.safe }}>● 余裕あり</span>
+                        </div>
+                    </div>
+                    {deadlineItems.map(item => (
+                        <div key={item.id} style={{ borderLeft: `4px solid ${deadlineColors[item.urgency]}`, background: selectedSubmissionId === item.id ? 'rgba(142,68,173,0.1)' : 'var(--bg-paper, #fff)', borderRadius: '6px', padding: '7px 8px', marginBottom: '6px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(110px, 1fr) auto auto', gap: '7px', alignItems: 'center', fontSize: '10px' }}>
+                            <span><strong>{item.workTitle}</strong><br/><span style={{ color: '#666' }}>{item.prizeName}</span></span>
+                            <div style={{ textAlign: 'right', minWidth: '58px', color: deadlineColors[item.urgency], fontWeight: 'bold' }}>
+                                {item.daysLeft === null ? '通年' : item.daysLeft < 0 ? `${Math.abs(item.daysLeft)}日超過` : item.daysLeft === 0 ? '本日締切' : `あと${item.daysLeft}日`}
+                            </div>
+                            {item.deadline ? (
+                                <label style={{ color: '#777' }}>
+                                    <input type="date" value={item.deadline} onChange={e => onUpdateSubmission?.(item.id, { deadline: e.target.value, deadlineIsEstimated: false })} style={{ fontSize: '9px' }} />
+                                    {item.deadlineIsEstimated ? ' 概算・要確認' : ''}
+                                </label>
+                            ) : <span style={{ color: '#777' }}>通年</span>}
+                          </div>
+                          {item.daysLeft !== null && item.daysLeft >= 0 && (
+                            <div style={{ height: '4px', background: '#e5e7eb', borderRadius: '2px', marginTop: '6px', overflow: 'hidden' }} title="180日を全幅として表示">
+                                <div style={{ width: `${Math.max(2, Math.min(100, (item.daysLeft / 180) * 100))}%`, height: '100%', background: deadlineColors[item.urgency] }} />
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', marginTop: '5px' }}>
+                            {item.workId === currentWorkId && (
+                                <button onClick={() => onSelectSubmission?.(item.id)} style={{ border: '1px solid #8e44ad', borderRadius: '10px', background: selectedSubmissionId === item.id ? '#8e44ad' : 'transparent', color: selectedSubmissionId === item.id ? '#fff' : '#8e44ad', cursor: 'pointer', fontSize: '9px' }}>
+                                    {selectedSubmissionId === item.id ? '提出設定中' : '提出用に選択'}
+                                </button>
+                            )}
+                            <button onClick={() => onRemoveSubmission?.(item.id)} title="応募予定から削除" style={{ border: 'none', background: 'transparent', color: '#999', cursor: 'pointer' }}>✕</button>
+                          </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
             {/* Prize List */}
             <div style={{ flex: 1, overflowY: 'auto' }}>
                 {filteredPrizes.map(prize => (
@@ -260,16 +308,16 @@ const PrizePanel = ({ onApplyPrize, onApplyFormat, projectSettings, editorText, 
                         style={{
                             padding: '10px 12px', borderBottom: '1px solid rgba(0,0,0,0.05)',
                             cursor: 'pointer', transition: 'background 0.15s',
-                            background: projectSettings?.prizeId === prize.id ? 'rgba(142, 68, 173, 0.08)' : 'transparent'
+                            background: submissions.some(s => s.workId === currentWorkId && s.prizeId === prize.id) ? 'rgba(142, 68, 173, 0.08)' : 'transparent'
                         }}
                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.03)'}
-                        onMouseLeave={e => e.currentTarget.style.background = projectSettings?.prizeId === prize.id ? 'rgba(142, 68, 173, 0.08)' : 'transparent'}
+                        onMouseLeave={e => e.currentTarget.style.background = submissions.some(s => s.workId === currentWorkId && s.prizeId === prize.id) ? 'rgba(142, 68, 173, 0.08)' : 'transparent'}
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
                                 <div style={{ fontWeight: 'bold', fontSize: '12px' }}>
                                     {prize.name}
-                                    {projectSettings?.prizeId === prize.id && <span style={{ marginLeft: '6px', color: '#8e44ad', fontSize: '10px' }}>✓ 応募中</span>}
+                                    {submissions.some(s => s.workId === currentWorkId && s.prizeId === prize.id) && <span style={{ marginLeft: '6px', color: '#8e44ad', fontSize: '10px' }}>✓ 応募予定</span>}
                                 </div>
                                 <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>
                                     {prize.organizer} | {prize.genre} | {prize.formatNote ? prize.formatNote.substring(0, 20) + (prize.formatNote.length > 20 ? '…' : '') : prize.charLimit && prize.charLimit.max ? prize.charLimit.max + '字' : prize.pageLimit.min + '〜' + (prize.pageLimit.max || '∞') + '枚'}

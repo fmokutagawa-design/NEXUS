@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 
 const ProgressPanel = ({
     renderProgressTracker,
+    renderProductionDashboard,
     renderChecklistPanel,
     renderTodoPanel
 }) => {
-    const [activeTab, setActiveTab] = useState('progress');
+    const [activeTab, setActiveTab] = useState('overview');
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -31,6 +32,12 @@ const ProgressPanel = ({
                     }}
                 >
                     📊 進捗
+                </button>
+                <button
+                    onClick={() => setActiveTab('overview')}
+                    style={{ flex: 1, padding: '8px 4px', fontSize: '11px', border: 'none', background: activeTab === 'overview' ? 'var(--bg-primary, #fff)' : 'transparent', borderBottom: activeTab === 'overview' ? '2px solid var(--accent-color, #8e44ad)' : '2px solid transparent', cursor: 'pointer', fontWeight: activeTab === 'overview' ? 'bold' : 'normal', color: 'inherit' }}
+                >
+                    🧭 全作品
                 </button>
                 <button
                     onClick={() => setActiveTab('todo')}
@@ -69,6 +76,7 @@ const ProgressPanel = ({
             {/* Tab Content */}
             <div style={{ flex: 1, overflowY: 'auto' }}>
                 {activeTab === 'progress' && renderProgressTracker && renderProgressTracker()}
+                {activeTab === 'overview' && renderProductionDashboard && renderProductionDashboard()}
                 {activeTab === 'todo' && renderTodoPanel && renderTodoPanel()}
                 {activeTab === 'checklist' && renderChecklistPanel && renderChecklistPanel()}
             </div>

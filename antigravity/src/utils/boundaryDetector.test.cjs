@@ -29,6 +29,12 @@ async function main() {
     })();
 
     (() => {
+        const text = "本文\n◇第二部\n続き";
+        const c = findBoundaryCandidates(text);
+        expect('testChapterDiamond detects diamond', c.length === 1 && c[0].type === 'chapter' && c[0].marker === '◇' && c[0].titleCandidate === '第二部');
+    })();
+
+    (() => {
         // testChapterNth
         const text = "第十二幕 激闘\n本文";
         const c = findBoundaryCandidates(text);
@@ -40,6 +46,18 @@ async function main() {
         const text = "## 概要\n本文";
         const c = findBoundaryCandidates(text);
         expect('testMarkdownSection detects md heading', c.length === 1 && c[0].type === 'section' && c[0].titleCandidate === '概要');
+    })();
+
+    (() => {
+        const text = "\uFEFF　 第一章：帰還\n本文\n  #第二章\n本文";
+        const c = findBoundaryCandidates(text);
+        expect('detects indented/BOM chapter and markdown without space', c.length === 2 && c[0].titleCandidate === '帰還' && c[1].titleCandidate === '第二章');
+    })();
+
+    (() => {
+        const text = "第一章　帰還［＃「第一章　帰還」は大見出し］\n本文";
+        const c = findBoundaryCandidates(text);
+        expect('detects aozora suffix heading at line start', c.length === 1 && c[0].offset === 0 && c[0].titleCandidate === '第一章　帰還');
     })();
 
     (() => {

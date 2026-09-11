@@ -1,6 +1,6 @@
 module.exports = {
   rules: {
-    // 1. Tomarigi 由来の辞書（166ルール）
+    // 1. prh表記辞書。Tomarigi本体ではなく、誤字・慣用句・読みやすい表記を扱う。
     "prh": {
       "rulePaths": [
         "textlint/prh.yml"
@@ -26,8 +26,8 @@ module.exports = {
       "ja-no-space-between-full-width": true,
       "ja-no-space-around-parentheses": true,
       "ja-space-between-half-and-full-width": { "space": "never" }
-    },
-    // 4. NEXUS 独自の統合カスタムルール（文脈依存の高度なチェック）
-    "nexus-integrated-rules": true
+    }
+    // NEXUS 独自ルールはローカルファイルなので、electron/textlintMain.cjs で
+    // 明示的に読み込む。ここへ名前だけを書くと設定全体のロードが失敗する。
   }
 };

@@ -39,6 +39,16 @@ const GYOMATSU_CHARS = new Set([
 // ぶら下げ (Hanging): 行末からはみ出してもOK
 const HANGING_CHARS = new Set(['、', '。', '，', '．']);
 
+const toEditorDisplay = (text, isVertical, showWhitespace) => {
+  const converted = isVertical ? toVerticalDisplay(text) : text;
+  return showWhitespace ? converted.replace(/ /g, '␠').replace(/　/g, '□') : converted;
+};
+
+const fromEditorDisplay = (text, isVertical, showWhitespace) => {
+  const restoredSpaces = showWhitespace ? text.replace(/␠/g, ' ').replace(/□/g, '　') : text;
+  return isVertical ? fromVerticalDisplay(restoredSpaces) : restoredSpaces;
+};
+
 /**
  * 禁則処理付きの文字位置計算
  * CSS lineBreak: strict と同じルールを JS で再現し、
@@ -187,7 +197,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
       debouncedDocTimerRef.current = null;
     }
 
-    const displayed = settings.isVertical ? toVerticalDisplay(newValue) : newValue;
+    const displayed = toEditorDisplay(newValue, settings.isVertical, settings.showWhitespace);
     // 同一内容なら DOM を書き換えない（カーソル保持）
     if (ta.value !== displayed) {
       ta.value = displayed;
@@ -203,7 +213,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
     lastLocalMutationTsRef.current = Date.now();
 
     scheduleDebouncedDocumentUpdate(newDoc);
-  }, [settings.isVertical, scheduleDebouncedDocumentUpdate]);
+  }, [settings.isVertical, settings.showWhitespace, scheduleDebouncedDocumentUpdate]);
 
   // ★ 外部からの value 変更（フォーマット適用・AI補完・検索置換等）への同期
   //    注意：打鍵 → Editor内で localTextRef 更新 → onChange(restored) → App側 setText
@@ -270,7 +280,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
   // 初回マウント/ファイル切替時のみ計算する defaultValue 用の値
   const initialDisplayValue = useMemo(() => {
     const text = documentToText(localDocumentRef.current);
-    return settings.isVertical ? toVerticalDisplay(text) : text;
+    return toEditorDisplay(text, settings.isVertical, settings.showWhitespace);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -282,7 +292,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
     lastLocalMutationTsRef.current = 0;
 
     if (textareaRef.current) {
-      const displayed = settings.isVertical ? toVerticalDisplay(value) : value;
+      const displayed = toEditorDisplay(value, settings.isVertical, settings.showWhitespace);
       textareaRef.current.value = displayed;
       textareaRef.current.setSelectionRange(0, 0);
     }
@@ -303,6 +313,13 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
 
     return () => clearTimeout(parseTimer);
   }, [fileId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 空白表示の切替は本文を変更せず、表示用の記号だけを更新する。
+  useEffect(() => {
+    if (isComposingRef.current || !textareaRef.current) return;
+    const displayed = toEditorDisplay(localTextRef.current, settings.isVertical, settings.showWhitespace);
+    textareaRef.current.value = displayed;
+  }, [settings.isVertical, settings.showWhitespace]);
 
   // React再レンダリング直後にカーソル位置を復元（useLayoutEffectでペイント前に実行）
   // ★ IME 変換中はカーソル復元をスキップ（変換カーソルを破壊しないため）
@@ -881,8 +898,9 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
       return [];
     }
  
-    const { charArray, positions } = charPositionsCache;
+    const { charArray, positions, utf16ToCharIdx } = charPositionsCache;
     const { cell } = baseMetrics;
+    const isVert = settings.isVertical;
  
     const list = [];
  
@@ -924,8 +942,18 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
   const handleChange = useCallback((e) => {
     const ta = e.target;
     const raw = ta.value;
-    const restored = settings.isVertical ? fromVerticalDisplay(raw) : raw;
+    const restored = fromEditorDisplay(raw, settings.isVertical, settings.showWhitespace);
     const cursorPos = ta.selectionStart;
+    // IME変換中に textarea.value を差し替えると未確定バッファが壊れ、
+    // 変換候補の確定で全角スペースが混入する。
+    if (settings.showWhitespace && !isComposingRef.current) {
+      const displayed = toEditorDisplay(restored, settings.isVertical, true);
+      // 通常入力では値は同じ。DOM再代入は縦書きレイアウトを揺らすため行わない。
+      if (ta.value !== displayed) {
+        ta.value = displayed;
+        ta.setSelectionRange(cursorPos, cursorPos);
+      }
+    }
 
     const prevText = localTextRef.current;
     const newDoc = updateDocument(localDocumentRef.current, restored, cursorPos);
@@ -943,7 +971,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
     appNotifyTimerRef.current = setTimeout(() => onChange(restored), 500);
 
     scheduleDebouncedDocumentUpdate(newDoc);
-  }, [settings.isVertical, pushHistory, currentCursorRef, onChange, scheduleDebouncedDocumentUpdate]);
+  }, [settings.isVertical, settings.showWhitespace, pushHistory, currentCursorRef, onChange, scheduleDebouncedDocumentUpdate]);
 
   const handleCompositionStart = useCallback(() => {
     isComposingRef.current = true;
@@ -953,8 +981,16 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
   const handleCompositionEnd = useCallback((e) => {
     const ta = e.target;
     const raw = ta.value;
-    const restored = settings.isVertical ? fromVerticalDisplay(raw) : raw;
+    const restored = fromEditorDisplay(raw, settings.isVertical, settings.showWhitespace);
     const cursorPos = ta.selectionStart;
+
+    if (settings.showWhitespace) {
+      const displayed = toEditorDisplay(restored, settings.isVertical, true);
+      if (ta.value !== displayed) {
+        ta.value = displayed;
+        ta.setSelectionRange(cursorPos, cursorPos);
+      }
+    }
 
     isComposingRef.current = false;
 
@@ -980,7 +1016,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
     if (!textarea) return;
     const selected = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
     if (selected) {
-      const original = settings.isVertical ? fromVerticalDisplay(selected) : selected;
+      const original = fromEditorDisplay(selected, settings.isVertical, settings.showWhitespace);
       // クリップボード履歴に追加
       addToClipboard(original);
       if (settings.isVertical) {
@@ -1008,7 +1044,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
     if (!textarea) return;
     const selected = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
     if (selected) {
-      const original = settings.isVertical ? fromVerticalDisplay(selected) : selected;
+      const original = fromEditorDisplay(selected, settings.isVertical, settings.showWhitespace);
       // クリップボード履歴に追加
       addToClipboard(original);
       if (settings.isVertical) {
@@ -1017,7 +1053,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
         const cursorPos = textarea.selectionStart;
         const before = textarea.value.substring(0, cursorPos);
         const after = textarea.value.substring(textarea.selectionEnd);
-        const newValue = fromVerticalDisplay(before + after);
+      const newValue = fromEditorDisplay(before + after, true, settings.showWhitespace);
         pushHistory(localTextRef.current, newValue, cursorPos);
         applyText(newValue, cursorPos);
         appNotifyTimerRef.current = setTimeout(() => onChange(newValue), 500);
@@ -1131,32 +1167,40 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
     const isClean = settings.paperStyle === 'clean';
 
     if (isClean) {
-      const origWidth = ta.style.width;
-      const origHeight = ta.style.height;
-      const origOverflow = ta.style.overflow;
+      // 縦書き + overflow:hidden の textarea は内部スクロール値で
+      // キャレット位置を取得できないため、実寸の不可視要素で測定する。
+      const computed = window.getComputedStyle(ta);
+      const mirror = document.createElement('div');
+      const marker = document.createElement('span');
+      mirror.setAttribute('aria-hidden', 'true');
+      Object.assign(mirror.style, {
+        position: 'fixed', left: '-20000px', top: '0', visibility: 'hidden', pointerEvents: 'none',
+        boxSizing: computed.boxSizing,
+        width: `${ta.clientWidth}px`, height: `${ta.clientHeight}px`,
+        padding: computed.padding, border: '0', whiteSpace: 'pre-wrap',
+        overflowWrap: computed.overflowWrap, wordBreak: computed.wordBreak, lineBreak: computed.lineBreak,
+        writingMode: computed.writingMode, textOrientation: computed.textOrientation, direction: computed.direction,
+        fontFamily: computed.fontFamily, fontSize: computed.fontSize, fontWeight: computed.fontWeight,
+        fontStyle: computed.fontStyle, lineHeight: computed.lineHeight, letterSpacing: computed.letterSpacing,
+        textIndent: computed.textIndent,
+      });
+      mirror.append(document.createTextNode(localTextRef.current.slice(0, charIndex)));
+      marker.textContent = '\u200b';
+      mirror.append(marker);
+      document.body.append(mirror);
 
-      ta.style.overflow = 'auto';
-      ta.style.width = '1px';
-      ta.style.height = '1px';
-
-      ta.focus();
-      ta.setSelectionRange(charIndex, charIndex);
-
-      const innerTop = ta.scrollTop;
-      const innerLeft = ta.scrollLeft;
-
+      const mirrorRect = mirror.getBoundingClientRect();
+      const markerRect = marker.getBoundingClientRect();
       if (settings.isVertical) {
-        container.scrollLeft = innerLeft;
+        const offsetFromRight = mirrorRect.right - markerRect.right;
+        const target = -(offsetFromRight - container.clientWidth / 2);
+        const min = -(container.scrollWidth - container.clientWidth);
+        container.scrollLeft = Math.max(min, Math.min(0, target));
       } else {
-        container.scrollTop = innerTop;
+        const offsetFromTop = markerRect.top - mirrorRect.top;
+        container.scrollTop = Math.max(0, offsetFromTop - container.clientHeight / 2);
       }
-
-      ta.scrollTop = 0;
-      ta.scrollLeft = 0;
-      ta.style.width = origWidth;
-      ta.style.height = origHeight;
-      ta.style.overflow = origOverflow;
-
+      mirror.remove();
       return;
     }
 
@@ -1169,7 +1213,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
       return;
     }
 
-    const text = settings.isVertical ? toVerticalDisplay(currentText) : currentText;
+    const text = toEditorDisplay(currentText, settings.isVertical, settings.showWhitespace);
 
     let line = 0;
     let pos = 0;
@@ -1217,7 +1261,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
       if (!ta) return;
       const start = ta.selectionStart;
       const end = ta.selectionEnd;
-      const rawVal = settings.isVertical ? fromVerticalDisplay(ta.value) : ta.value;
+      const rawVal = fromEditorDisplay(ta.value, settings.isVertical, settings.showWhitespace);
       const newValue = rawVal.substring(0, start) + text + rawVal.substring(end);
       const newCursor = start + splitString(text).length;
       pushHistory(localTextRef.current, newValue, newCursor);
@@ -1230,7 +1274,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
       const start = ta.selectionStart;
       const end = ta.selectionEnd;
       const currentVal = ta.value;
-      const rawVal = settings.isVertical ? fromVerticalDisplay(currentVal) : currentVal;
+      const rawVal = fromEditorDisplay(currentVal, settings.isVertical, settings.showWhitespace);
       const newValue = rawVal.substring(0, start) + text + rawVal.substring(end);
       const newCursor = start + text.length;
       pushHistory(localTextRef.current, newValue, newCursor);
@@ -1243,7 +1287,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
       const start = ta.selectionStart;
       const end = ta.selectionEnd;
       const currentValue = ta.value;
-      const rawValue = settings.isVertical ? fromVerticalDisplay(currentValue) : currentValue;
+      const rawValue = fromEditorDisplay(currentValue, settings.isVertical, settings.showWhitespace);
       const selectedText = rawValue.substring(start, end);
       const insertion = selectedText
         ? `${selectedText}《》`
@@ -1263,40 +1307,26 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
     setCursorPosition: (position) => {
       const ta = textareaRef.current;
       if (!ta) return;
-      // まずスクロール（focus前にやることで画面移動を確実に）
-      scrollToCaretPosition(position);
-      // 次フレームで focus + selection
-      requestAnimationFrame(() => {
-        const el = textareaRef.current;
-        if (!el) return;
-        el.focus();
-        el.setSelectionRange(position, position);
-      });
+      ta.focus({ preventScroll: true });
+      ta.setSelectionRange(position, position);
+      requestAnimationFrame(() => scrollToCaretPosition(position));
     },
     jumpToPosition: (start, end) => {
       const ta = textareaRef.current;
       if (!ta) return;
       const selEnd = end != null ? end : start;
-      scrollToCaretPosition(start);
-      requestAnimationFrame(() => {
-        const el = textareaRef.current;
-        if (!el) return;
-        el.focus();
-        el.setSelectionRange(start, selEnd);
-      });
+      ta.focus({ preventScroll: true });
+      ta.setSelectionRange(start, selEnd);
+      requestAnimationFrame(() => scrollToCaretPosition(start));
     },
     // ★ jumpToIndex: 検索結果ジャンプ（jumpToPositionの別名）
     //    App.jsx が editorRef.current?.jumpToIndex(index) で呼んでいるが未定義だったため追加
     jumpToIndex: (index) => {
       const ta = textareaRef.current;
       if (!ta) return;
-      scrollToCaretPosition(index);
-      requestAnimationFrame(() => {
-        const el = textareaRef.current;
-        if (!el) return;
-        el.focus();
-        el.setSelectionRange(index, index);
-      });
+      ta.focus({ preventScroll: true });
+      ta.setSelectionRange(index, index);
+      requestAnimationFrame(() => scrollToCaretPosition(index));
     },
   }));
 
@@ -1306,7 +1336,9 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
       settings.paperStyle === 'lined' ? 'paper-lined' : 'paper-plain';
 
   // フォントスタイル（メモ化 — レンダリングごとの新規オブジェクト生成を回避）
-  const cleanFontFamily = settings.cleanFontFamily || 'var(--font-mincho)';
+  // すべての用紙モードで設定画面の本文フォントを正とする。
+  // 旧 cleanFontFamily は下部セレクトだけが優先される原因だった。
+  const cleanFontFamily = settings.fontFamily || 'var(--font-mincho)';
   const fontStyle = useMemo(() => isCleanMode ? {
     fontFamily: `${cleanFontFamily}, serif`,
     letterSpacing: '0em',
@@ -1437,7 +1469,9 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
       {/* Underlay: skip in massive text mode（座標キャッシュを作らないため） */}
       {!isCleanMode && !isMassiveText && (
         <div className="editor-underlay" style={{
-          top: `${metrics.padding - (settings.isVertical ? Math.round(metrics.letterSpacing / 2) : 0)}px`,
+          // 下敷きの原点は textarea の本文開始位置と同じ padding に固定する。
+          // 縦書き時に letter-spacing の半分を引くと、文字に対して着色だけが上へずれる。
+          top: `${metrics.padding}px`,
           right: settings.isVertical ? `${metrics.padding}px` : 'auto',
           left: settings.isVertical ? 'auto' : `${metrics.padding}px`,
           writingMode: settings.isVertical ? 'vertical-rl' : 'horizontal-tb',
@@ -1503,7 +1537,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
               // Accept Ghost Text（★ localOnChange → 差分更新）
               const ta = textareaRef.current;
               const start = ta.selectionStart;
-              const val = settings.isVertical ? fromVerticalDisplay(ta.value) : ta.value;
+              const val = fromEditorDisplay(ta.value, settings.isVertical, settings.showWhitespace);
               const newValue = val.slice(0, start) + ghostText + val.slice(start);
               const newCursor = start + ghostText.length;
               pushHistory(localTextRef.current, newValue, newCursor);
@@ -1598,7 +1632,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
                     if (!ta) return;
                     const start = ta.selectionStart;
                     const end = ta.selectionEnd;
-                    const rawValue = settings.isVertical ? fromVerticalDisplay(ta.value) : ta.value;
+                    const rawValue = fromEditorDisplay(ta.value, settings.isVertical, settings.showWhitespace);
                     const selected = rawValue.substring(start, end);
                     const cleaned = cleanRuby(selected);
                     const newValue = rawValue.substring(0, start) + cleaned + rawValue.substring(end);
@@ -1615,7 +1649,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
                     if (!ta) return;
                     const start = ta.selectionStart;
                     const end = ta.selectionEnd;
-                    const rawValue = settings.isVertical ? fromVerticalDisplay(ta.value) : ta.value;
+                    const rawValue = fromEditorDisplay(ta.value, settings.isVertical, settings.showWhitespace);
                     const selected = rawValue.substring(start, end);
                     const converted = convertToFullWidth(selected);
                     const newValue = rawValue.substring(0, start) + converted + rawValue.substring(end);
@@ -1632,7 +1666,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
                     if (!ta) return;
                     const start = ta.selectionStart;
                     const end = ta.selectionEnd;
-                    const rawValue = settings.isVertical ? fromVerticalDisplay(ta.value) : ta.value;
+                    const rawValue = fromEditorDisplay(ta.value, settings.isVertical, settings.showWhitespace);
                     const selected = rawValue.substring(start, end);
                     const compressed = compressBlankLines(selected);
                     const newValue = rawValue.substring(0, start) + compressed + rawValue.substring(end);
@@ -1651,14 +1685,14 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
                 const ta = textareaRef.current;
                 if (ta) {
                   const selected = ta.value.substring(ta.selectionStart, ta.selectionEnd);
-                  const original = settings.isVertical ? fromVerticalDisplay(selected) : selected;
+                  const original = fromEditorDisplay(selected, settings.isVertical, settings.showWhitespace);
                   addToClipboard(original);
                   navigator.clipboard.writeText(original).catch(() => {});
                   // テキストから選択部分を削除
                   const cursorPos = ta.selectionStart;
                   const before = ta.value.substring(0, cursorPos);
                   const after = ta.value.substring(ta.selectionEnd);
-                  const newValue = settings.isVertical ? fromVerticalDisplay(before + after) : (before + after);
+                  const newValue = fromEditorDisplay(before + after, settings.isVertical, settings.showWhitespace);
                   pushHistory(localTextRef.current, newValue, cursorPos);
                   applyText(newValue, cursorPos);
                   appNotifyTimerRef.current = setTimeout(() => onChange(newValue), 500);
@@ -1671,7 +1705,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
                 const ta = textareaRef.current;
                 if (ta) {
                   const selected = ta.value.substring(ta.selectionStart, ta.selectionEnd);
-                  const original = settings.isVertical ? fromVerticalDisplay(selected) : selected;
+                  const original = fromEditorDisplay(selected, settings.isVertical, settings.showWhitespace);
                   addToClipboard(original);
                   navigator.clipboard.writeText(original).catch(() => {
                     document.execCommand('copy');
@@ -1691,7 +1725,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
               const start = ta.selectionStart;
               const end = ta.selectionEnd;
               const currentVal = ta.value;
-              const rawVal = settings.isVertical ? fromVerticalDisplay(currentVal) : currentVal;
+              const rawVal = fromEditorDisplay(currentVal, settings.isVertical, settings.showWhitespace);
               const newValue = rawVal.substring(0, start) + text + rawVal.substring(end);
               const newCursor = start + text.length;
               pushHistory(localTextRef.current, newValue, start);

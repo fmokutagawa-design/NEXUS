@@ -159,7 +159,7 @@ const AIAssistant = ({
     // AI Model Props
     aiModel = 'local', setAiModel = null, localModels = [], selectedLocalModel = '', setSelectedLocalModel = null, isLocalConnected = false, checkLocalConnection = null,
     // Integrated panels
-    renderCandidateBoxPanel, renderSnippetsPanel, renderNotesPanel
+    renderCandidateBoxPanel, renderSnippetsPanel, renderNotesPanel, projectId = ''
 }) => {
     const [activeMode, setActiveMode] = useState('generator'); // 'generator', 'chat', 'correction', 'candidates', 'memos'
     const [chatInput, setChatInput] = useState('');
@@ -207,15 +207,38 @@ const AIAssistant = ({
     const parseCorrections = React.useCallback((textStr) => {
         // Regex to match <correction>...<original>...</original>...
         // Handles optional attributes, whitespace, and case-insensitivity
-        const regex = /<correction[^>]*>[\s\S]*?<original[^>]*>([\s\S]*?)<\/original>[\s\S]*?<suggested[^>]*>([\s\S]*?)<\/suggested>[\s\S]*?(?:<reason[^>]*>([\s\S]*?)<\/reason>)?[\s\S]*?<\/correction>/gi;
+        const regex = /<correction([^>]*)>[\s\S]*?<original[^>]*>([\s\S]*?)<\/original>[\s\S]*?<suggested[^>]*>([\s\S]*?)<\/suggested>[\s\S]*?(?:<reason[^>]*>([\s\S]*?)<\/reason>)?[\s\S]*?<\/correction>/gi;
 
         const matches = [...textStr.matchAll(regex)];
-        const parsed = matches.map(m => ({
-            original: m[1].trim(),
-            suggested: m[2].trim(),
-            reason: m[3] ? m[3].trim() : '',
-            id: Math.random().toString(36).substr(2, 9)
-        }));
+        const parsed = matches.map(m => {
+            const original = m[2].trim();
+            const startMatch = m[1].match(/\bstart=["'](\d+)["']/i);
+            const endMatch = m[1].match(/\bend=["'](\d+)["']/i);
+            let start = startMatch ? Number(startMatch[1]) : undefined;
+            let end = endMatch ? Number(endMatch[1]) : undefined;
+
+            // 位置情報を返さない外部AIについては、一意に特定できる場合だけ補完する。
+            // 同じ表現が複数ある場合は曖昧なままにし、適用側で安全に拒否する。
+            if (!Number.isInteger(start) || !Number.isInteger(end) || text.slice(start, end) !== original) {
+                const first = text.indexOf(original);
+                const second = first >= 0 ? text.indexOf(original, first + original.length) : -1;
+                if (first >= 0 && second === -1) {
+                    start = first;
+                    end = first + original.length;
+                } else {
+                    start = undefined;
+                    end = undefined;
+                }
+            }
+            return {
+                original,
+                suggested: m[3].trim(),
+                reason: m[4] ? m[4].trim() : '',
+                start,
+                end,
+                id: Math.random().toString(36).substr(2, 9)
+            };
+        });
 
         if (parsed.length === 0 && textStr.includes('correction')) {
             console.warn('Parsing failed despite "correction" keyword present.', textStr);
@@ -224,7 +247,7 @@ const AIAssistant = ({
         if (setCorrections) {
             setCorrections(parsed);
         }
-    }, [setCorrections]);
+    }, [setCorrections, text]);
 
     const handleLaunchAI = React.useCallback(async (mode = 'chat', options = {}) => {
         if (mode === 'chat' && !chatInput.trim()) return;
@@ -331,9 +354,12 @@ const AIAssistant = ({
             if (aiModel === 'local') {
                 if (mode === 'proofread') {
                     setIsGenerating(true);
-                    setGeneratedText('🚩 プログラム校正を実行中（LanguageTool/textlint/Tomarigi準拠）...');
+                    setGeneratedText('🚩 統合校正を実行中（textlint／LanguageTool／RedPen／Tomarigi系統）...');
                     try {
-                        const resultXml = await ollamaService.proofreadWithRules(options.selectedText || text.slice(-8000), selectedLocalModel);
+                        const activePath = activeFile?.path || activeFile?.handle || '';
+                        const resultXml = await ollamaService.proofreadWithRules(
+                            options.selectedText || text.slice(-8000), activePath, selectedLocalModel
+                        );
                         setGeneratedText(resultXml || '指摘事項はありませんでした。');
                         parseCorrections(resultXml);
                     } catch (err) {
@@ -462,11 +488,12 @@ const AIAssistant = ({
         }
     }, [isOpen, initialAction, initialOptions, handleLaunchAI]);
 
-    const handleApplyCorrection = (correction) => {
+    const handleApplyCorrection = async (correction) => {
+        let applied = true;
         if (onInsert) {
-            onInsert(correction, 'replace');
+            applied = await onInsert(correction, 'replace');
         }
-        if (setCorrections) {
+        if (applied !== false && setCorrections) {
             setCorrections(prev => prev.filter(c => c.id !== correction.id));
         }
     };
@@ -686,7 +713,7 @@ const AIAssistant = ({
                 {activeMode === 'candidates' && renderCandidateBoxPanel && renderCandidateBoxPanel()}
                 {activeMode === 'memos' && renderSnippetsPanel && renderSnippetsPanel()}
                 {activeMode === 'notes' && renderNotesPanel && renderNotesPanel()}
-                {activeMode === 'knowledge' && <AIKnowledgeManager />}
+                {activeMode === 'knowledge' && <AIKnowledgeManager targetPath={projectId} />}
 
                 {activeMode === 'chat' && (
                     <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -837,7 +864,7 @@ const AIAssistant = ({
                                             {isAuditing ? '中...' : '校正監査'}
                                         </button>
                                         <button
-                                            onClick={() => window.api?.invoke?.('window:openKnowledge')}
+                                            onClick={() => window.api?.invoke?.('window:openKnowledge', projectId)}
                                             style={{
                                                 flex: 1, padding: '8px', fontSize: '12px',
                                                 background: '#fff9c4', border: '1px solid #fff176', color: '#f57f17',

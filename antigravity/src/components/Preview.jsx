@@ -1,18 +1,34 @@
-import React, { useMemo, useRef, useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useEffect, useState } from 'react';
 import { parseRuby } from '../utils/textUtils';
 import { preprocessText, composeLines, parseAozoraStructure } from '../utils/typesetting';
+import { resolveSubmissionLayout, orientedPageMm } from '../utils/submissionLayout';
 import '../styles/Preview.css';
 
-const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandle, workText, isNexusFile, workTitle, resolveOffset, onOpenSegmentFile }) => {
+const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandle, workText, isNexusFile, workTitle, resolveOffset, onOpenSegmentFile, submissionMode = false }) => {
+    const submissionLayout = useMemo(() => resolveSubmissionLayout(settings), [settings]);
     // mode: 'manuscript' | 'plain'
     const [showFullWork, setShowFullWork] = useState(false);
+    const effectiveShowFullWork = showFullWork || (submissionMode && isNexusFile);
+
+    useEffect(() => {
+        const printFullWork = () => {
+            if (!isNexusFile) return;
+            setShowFullWork(true);
+            // 全章表示への再描画とページ組版が反映されてから印刷する。
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                document.getElementById('preview-print-button')?.click();
+            }));
+        };
+        window.addEventListener('nexus:print-full-work', printFullWork);
+        return () => window.removeEventListener('nexus:print-full-work', printFullWork);
+    }, [isNexusFile]);
     const showGrid = settings.showGrid !== false;
   
     // 表示するテキストを決定（コンポーネントレベルで1回だけ、useMemoで最適化）
     const displayText = useMemo(() => {
-        if (showFullWork && isNexusFile && workText) return workText;
+        if (effectiveShowFullWork && isNexusFile && workText) return workText;
         return text;
-    }, [showFullWork, isNexusFile, workText, text]);
+    }, [effectiveShowFullWork, isNexusFile, workText, text]);
 
     const [imageUrls, setImageUrls] = useState({});
     const knownImages = useRef(new Set());
@@ -106,30 +122,24 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
     // Only re-run if text or layout settings change. Do NOT re-run on showGrid change.
     const { pages, styles, pageSizeClass, orientationClass, paddingStyle, lineGapPx, cellWidthPx, cellHeightPx } = useMemo(() => {
         // Ensure numbers
-        const charsPerLine = Number(settings.charsPerLine) || 20;
-        const linesPerPage = Number(settings.linesPerPage) || 20;
+        const charsPerLine = submissionLayout.charsPerLine;
+        const linesPerPage = submissionLayout.linesPerPage;
 
         // --- Auto-Scale & Distribution Logic ---
 
         // 1. Determine Page Dimensions (mm)
-        const pageDims = {
-            'A4': { width: 210, height: 297 },
-            'B5': { width: 176, height: 250 },
-            'A5': { width: 148, height: 210 }
-        }[settings.pageSize || 'A4'];
-
-        const isLandscape = settings.orientation === 'landscape';
-        const pageWidth = isLandscape ? pageDims.height : pageDims.width;
-        const pageHeight = isLandscape ? pageDims.width : pageDims.height;
+        const pageDims = orientedPageMm(submissionLayout);
+        const pageWidth = pageDims.width;
+        const pageHeight = pageDims.height;
 
         // 2. Define Margins (mm)
-        const marginTop = 20;
-        const marginBottom = 20;
-        const marginLeft = 20;
-        const marginRight = 20;
+        const marginTop = submissionLayout.margins.top;
+        const marginBottom = submissionLayout.margins.bottom;
+        const marginLeft = submissionLayout.margins.left;
+        const marginRight = submissionLayout.margins.right;
 
         // CSS padding values (creates visual margins on the page)
-        const paddingStyle = `${marginTop}mm ${marginLeft}mm ${marginBottom}mm ${marginRight}mm`;
+        const paddingStyle = `${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm`;
 
         // Global * { box-sizing: border-box } in index.css means
         // CSS width/height INCLUDE padding. Content area = dims - padding.
@@ -204,20 +214,35 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
                 // 後方互換性: cell-size は小さい方を使用
                 '--cell-size': `${Math.min(cellWidthPx, cellHeightPx)}px`
             },
-            pageSizeClass: `size-${settings.pageSize || 'A4'}`,
-            orientationClass: `orient-${settings.orientation || 'portrait'}`,
+            pageSizeClass: `size-${submissionLayout.pageSize}`,
+            orientationClass: `orient-${submissionLayout.orientation}`,
             paddingStyle,
             lineGapPx,
             cellWidthPx,
             cellHeightPx
         };
-    }, [displayText, settings.charsPerLine, settings.linesPerPage, settings.pageSize, settings.orientation]);
+    }, [displayText, submissionLayout]);
+
+    useEffect(() => {
+        let secondFrame;
+        const firstFrame = requestAnimationFrame(() => {
+            secondFrame = requestAnimationFrame(() => {
+                window.dispatchEvent(new CustomEvent('nexus:preview-ready', {
+                    detail: { pageCount: pages.length, textLength: displayText.length }
+                }));
+            });
+        });
+        return () => {
+            cancelAnimationFrame(firstFrame);
+            if (secondFrame) cancelAnimationFrame(secondFrame);
+        };
+    }, [pages.length, displayText.length]);
 
     /**
      * 作品全体表示中のクリック → 該当章ファイルを開く
      */
     const handleWorkClick = useCallback((e) => {
-        if (!showFullWork || !resolveOffset || !onOpenSegmentFile) return;
+        if (!effectiveShowFullWork || !resolveOffset || !onOpenSegmentFile) return;
 
         // クリック位置からテキスト内の文字位置を推定する
         const pageEl = e.target.closest('.manuscript-page');
@@ -233,13 +258,13 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
         if (resolved) {
             onOpenSegmentFile(resolved.file, resolved.localOffset);
         }
-    }, [showFullWork, resolveOffset, onOpenSegmentFile, settings.charsPerLine, settings.linesPerPage, displayText]);
+    }, [effectiveShowFullWork, resolveOffset, onOpenSegmentFile, settings.charsPerLine, settings.linesPerPage, displayText]);
 
     /**
      * Plain モードでの行クリック
      */
     const handlePlainLineClick = useCallback((lineIndex) => {
-        if (!showFullWork || !resolveOffset || !onOpenSegmentFile) return;
+        if (!effectiveShowFullWork || !resolveOffset || !onOpenSegmentFile) return;
 
         const lines = displayText.split('\n');
         let offset = 0;
@@ -251,7 +276,7 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
         if (resolved) {
             onOpenSegmentFile(resolved.file, resolved.localOffset);
         }
-    }, [showFullWork, resolveOffset, onOpenSegmentFile, displayText]);
+    }, [effectiveShowFullWork, resolveOffset, onOpenSegmentFile, displayText]);
 
     // Render logic continues below...
     const renderManuscript = () => {
@@ -291,8 +316,8 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
         return (
             <div
                 className={`manuscript-wrapper ${showGrid ? '' : 'no-grid'}`}
-                style={{ ...styles, cursor: showFullWork ? 'pointer' : undefined }}
-                onClick={showFullWork ? handleWorkClick : undefined}
+                style={{ ...styles, cursor: effectiveShowFullWork ? 'pointer' : undefined }}
+                onClick={effectiveShowFullWork ? handleWorkClick : undefined}
             >
                 {pages.map((page, pIndex) => (
                     <div key={pIndex}
@@ -487,9 +512,9 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
                             style={{
                                 fontFamily: settings.fontFamily,
                                 lineHeight: '1.8',
-                                cursor: showFullWork ? 'pointer' : undefined
+                                cursor: effectiveShowFullWork ? 'pointer' : undefined
                             }}
-                            onClick={() => showFullWork && handlePlainLineClick(i)}
+                            onClick={() => effectiveShowFullWork && handlePlainLineClick(i)}
                         >
                             {segments.map((segment, j) => {
                                 if (segment.type === 'link') {
@@ -576,8 +601,8 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
                         style={{
                             padding: '4px 12px',
                             fontSize: '0.85rem',
-                            background: showFullWork ? '#4a9eff' : '#f0f0f0',
-                            color: showFullWork ? '#fff' : '#333',
+                            background: effectiveShowFullWork ? '#4a9eff' : '#f0f0f0',
+                            color: effectiveShowFullWork ? '#fff' : '#333',
                             border: '1px solid #ccc',
                             borderRadius: '16px',
                             cursor: 'pointer',
@@ -585,32 +610,27 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
                             alignItems: 'center',
                             gap: '6px'
                         }}
-                        title={showFullWork ? '現在の章のみ表示' : '作品全体を表示'}
+                        title={effectiveShowFullWork ? '現在の章のみ表示' : '作品全体を表示'}
                     >
-                        {showFullWork ? `📖 全体表示中${workTitle ? ` (${workTitle})` : ''}` : '📖 作品全体'}
+                        {effectiveShowFullWork ? `📖 全体表示中${workTitle ? ` (${workTitle})` : ''}` : '📖 作品全体'}
                     </button>
                 )}
                 <button
+                    id="preview-print-button"
                     onClick={() => {
                         const firstPage = document.querySelector('.manuscript-page');
                         if (!firstPage) { window.print(); return; }
-                        const rect = firstPage.getBoundingClientRect();
-                        const isLandscape = rect.width > rect.height;
 
-                        const linesPerPage = Number(settings.linesPerPage) || 20;
-                        const charsPerLine = Number(settings.charsPerLine) || 20;
+                        const linesPerPage = submissionLayout.linesPerPage;
+                        const charsPerLine = submissionLayout.charsPerLine;
 
                         const mmToPx = 96 / 25.4;
-                        const pageDims = {
-                            'A4': { w: 210, h: 297 },
-                            'B5': { w: 176, h: 250 },
-                            'A5': { w: 148, h: 210 }
-                        }[settings.pageSize || 'A4'];
-                        const paperW = (isLandscape ? pageDims.h : pageDims.w) * mmToPx;
-                        const paperH = (isLandscape ? pageDims.w : pageDims.h) * mmToPx;
-                        const marginPx = 15 * mmToPx;
-                        const contentW = paperW - marginPx * 2;
-                        const contentH = paperH - marginPx * 2;
+                        const pageDims = orientedPageMm(submissionLayout);
+                        const paperW = pageDims.width * mmToPx;
+                        const paperH = pageDims.height * mmToPx;
+                        const margin = submissionLayout.margins;
+                        const contentW = paperW - (margin.left + margin.right) * mmToPx;
+                        const contentH = paperH - (margin.top + margin.bottom) * mmToPx;
                         const lineGapRatio = 0.5;
                         const cellW = contentW / (linesPerPage + lineGapRatio * (linesPerPage - 1));
                         const lineGap = cellW * lineGapRatio;
@@ -637,7 +657,7 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
                                 text-orientation:upright!important;
                                 width:${paperW}px!important;
                                 height:${paperH}px!important;
-                                padding:${marginPx}px!important;
+                                padding:${margin.top * mmToPx}px ${margin.right * mmToPx}px ${margin.bottom * mmToPx}px ${margin.left * mmToPx}px!important;
                                 margin:0!important;
                                 box-shadow:none!important;
                                 border:none!important;
@@ -699,7 +719,7 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
                         const styleEl = document.createElement('style');
                         styleEl.id = 'dynamic-print-style';
                         styleEl.textContent = `
-                            @page { margin: 0; size: ${isLandscape ? 'landscape' : 'portrait'}; }
+                            @page { margin: 0; size: ${submissionLayout.pageSize} ${submissionLayout.orientation}; }
                             @media print {
                                 .sidebar, .editor-pane, .tab-nav-bottom, .toolbar,
                                 .editor-toolbar-overlay, .no-print, .line-number-indicator,

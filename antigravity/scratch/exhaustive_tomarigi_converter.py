@@ -87,7 +87,9 @@ def main():
     for r in all_rules:
         exp = r['expected'].strip() if r['expected'] else ""
         pat = r['pattern'].strip() if r['pattern'] else ""
-        if not exp or not pat: continue
+        # 一文字の表記規則は「大切」の「切」まで置換するため、PRHへ入れない。
+        # 形式名詞・補助動詞は品詞対応ルールで処理する。
+        if not exp or not pat or len(pat) == 1: continue
         
         key = (exp, pat)
         if key not in seen and exp != pat:

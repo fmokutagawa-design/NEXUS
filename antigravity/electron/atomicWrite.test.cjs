@@ -15,6 +15,7 @@ const {
     classifyShrink,
     cleanupOrphanedTempFiles,
     ValidationError,
+    ConflictError,
 } = require('./atomicWrite.cjs');
 
 let passed = 0;
@@ -61,6 +62,54 @@ async function testOverwrite() {
         await atomicWriteTextFile(target, 'updated content');
         const readBack = fs.readFileSync(target, 'utf8');
         expect('overwrite succeeded', readBack === 'updated content');
+    });
+}
+
+async function testRejectExternalModification() {
+    console.log('testRejectExternalModification');
+    await withTempDir(async (dir) => {
+        const target = path.join(dir, 'manuscript.txt');
+        fs.writeFileSync(target, 'codex updated content');
+        let threw = null;
+        try {
+            await atomicWriteTextFile(target, 'stale nexus content', {
+                expectedContent: 'content when nexus opened the file',
+            });
+        } catch (err) {
+            threw = err;
+        }
+        expect('threw ConflictError', threw instanceof ConflictError);
+        expect('code EXTERNAL_MODIFICATION', threw?.code === 'EXTERNAL_MODIFICATION');
+        expect('external content preserved', fs.readFileSync(target, 'utf8') === 'codex updated content');
+    });
+}
+
+async function testExpectedContentAllowsUnchangedFile() {
+    console.log('testExpectedContentAllowsUnchangedFile');
+    await withTempDir(async (dir) => {
+        const target = path.join(dir, 'manuscript.txt');
+        fs.writeFileSync(target, 'content when nexus opened the file');
+        await atomicWriteTextFile(target, 'nexus updated content', {
+            expectedContent: 'content when nexus opened the file',
+        });
+        expect('unchanged file saved', fs.readFileSync(target, 'utf8') === 'nexus updated content');
+    });
+}
+
+async function testRejectExternallyDeletedFile() {
+    console.log('testRejectExternallyDeletedFile');
+    await withTempDir(async (dir) => {
+        const target = path.join(dir, 'deleted-manuscript.txt');
+        let threw = null;
+        try {
+            await atomicWriteTextFile(target, 'stale nexus content', {
+                expectedContent: 'content before external deletion',
+            });
+        } catch (err) {
+            threw = err;
+        }
+        expect('deleted file throws ConflictError', threw instanceof ConflictError);
+        expect('deleted file remains absent', !fs.existsSync(target));
     });
 }
 
@@ -391,6 +440,9 @@ async function main() {
     const tests = [
         testBasicWrite,
         testOverwrite,
+        testRejectExternalModification,
+        testExpectedContentAllowsUnchangedFile,
+        testRejectExternallyDeletedFile,
         testRejectEmpty,
         testAllowEmpty,
         testRejectNonString,

@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { fileSystem } from '../utils/fileSystem';
 import { saveSnapshot } from '../utils/snapshotStore';
-import { perfNow, perfMeasure, perfLog } from '../utils/perfProbe';
+import { perfNow, perfMeasure } from '../utils/perfProbe';
+import { isAutoSaveJobCurrent } from '../utils/autoSaveSafety.mjs';
+import { sameFileTarget } from '../utils/readerEditSession.mjs';
+import { assessSaveEligibility } from '../utils/saveSafety.mjs';
 
 /**
  * useAutoSave
@@ -18,11 +21,14 @@ export function useAutoSave({
   setLastSaved,
   lastSavedTextRef,
   setProjectSettings,
-  setIsRapidMode,
   activeFileHandleRef,
   debouncedTextRef,
   settings, // 追加
   showToast,
+  externalConflictRef,
+  onExternalConflict,
+  baselineFileHandleRef,
+  saveReviewGateRef,
 }) {
   // Auto-save to active file in project mode
   // ★ debouncedText は Editor(500ms) + App(500ms) で既に約1秒遅延済み
@@ -36,10 +42,24 @@ export function useAutoSave({
   const lastSaveTimeRef = useRef(0);
   useEffect(() => {
     if (!isProjectMode || !activeFileHandle || debouncedText === undefined) return;
+    if (externalConflictRef?.current) return;
+    if (!assessSaveEligibility({
+      activeFileHandle,
+      baselineFileHandle: baselineFileHandleRef?.current,
+      reviewGate: saveReviewGateRef?.current,
+    }).allowed) return;
     // ★ 安全策: 空文字列での保存を禁止（ファイル消失防止）
     if (!debouncedText || debouncedText.length === 0) return;
     // ★ 同一内容なら保存しない（無駄な I/O 回避）
     if (debouncedText === lastSavedTextRef.current) return;
+
+    // 保存対象と本文を一組で固定する。ファイル切替後にRefを個別に読むと、
+    // 別章のハンドルと本文が混ざる可能性がある。
+    const saveJob = {
+      fileHandle: activeFileHandle,
+      text: debouncedText,
+      expectedContent: lastSavedTextRef.current,
+    };
 
     // ★ ファイルサイズに応じてスロットルを変える。
     //    大きいファイルは I/O コストが高く、またクラッシュ復旧も手動で再読込すれば済む。
@@ -55,38 +75,51 @@ export function useAutoSave({
 
     const doSave = async () => {
       const tStart = perfNow();
-      // Bug F 対策: closure の debouncedText/activeFileHandle ではなく Ref の最新値を使う
-      const currentHandle = activeFileHandleRef.current;
-      const currentText = debouncedTextRef.current;
+      if (!isAutoSaveJobCurrent(saveJob, activeFileHandleRef.current, debouncedTextRef.current)) {
+        perfMeasure('useAutoSave.doSave', tStart, { ok: false, skipped: 'stale-job' });
+        return;
+      }
 
       try {
-        if (!currentHandle) return;
-
         // ジャーナリング設定を反映
         const options = {
-          disableJournal: settings?.enableJournaling === false
+          disableJournal: settings?.enableJournaling === false,
+          expectedContent: saveJob.expectedContent,
         };
 
-        await fileSystem.writeFile(currentHandle, currentText, options);
-        setLastSaved(new Date());
-        lastSavedTextRef.current = currentText;
+        await fileSystem.writeFile(saveJob.fileHandle, saveJob.text, options);
+        if (sameFileTarget(saveJob.fileHandle, activeFileHandleRef.current)) {
+          setLastSaved(new Date());
+          lastSavedTextRef.current = saveJob.text;
+        }
         lastSaveTimeRef.current = Date.now();
         perfMeasure('useAutoSave.doSave', tStart, {
           ok: true,
-          textLength: currentText.length,
+          textLength: saveJob.text.length,
           throttleMs,
           elapsed,
         });
       } catch (error) {
         perfMeasure('useAutoSave.doSave', tStart, {
           ok: false,
-          textLength: currentText.length,
+          textLength: saveJob.text.length,
           throttleMs,
           elapsed,
           error: String(error),
         });
         console.error('Failed to auto-save:', error);
-        showToast('⚠️ 自動保存に失敗しました');
+        if (String(error?.message || error).includes('EXTERNAL_MODIFICATION')) {
+          if (externalConflictRef) externalConflictRef.current = true;
+          try {
+            const externalText = await fileSystem.readFile(saveJob.fileHandle);
+            onExternalConflict?.({ fileHandle: saveJob.fileHandle, nexusText: saveJob.text, externalText });
+          } catch (readError) {
+            console.error('Failed to read externally updated file:', readError);
+          }
+          showToast('🚨 外部更新を検知したため、自動保存を停止しました。NEXUSの本文は画面内に保持しています。');
+        } else {
+          showToast('⚠️ 自動保存に失敗しました');
+        }
       }
     };
 
@@ -98,7 +131,7 @@ export function useAutoSave({
       const timer = setTimeout(doSave, throttleMs - elapsed);
       return () => clearTimeout(timer);
     }
-  }, [debouncedText, isProjectMode, activeFileHandle, setLastSaved, lastSavedTextRef, showToast, activeFileHandleRef, debouncedTextRef, settings?.enableJournaling]);
+  }, [debouncedText, isProjectMode, activeFileHandle, setLastSaved, lastSavedTextRef, showToast, activeFileHandleRef, debouncedTextRef, settings?.enableJournaling, externalConflictRef, onExternalConflict, baselineFileHandleRef, saveReviewGateRef]);
 
   // Auto-snapshot: 5分間隔 or 500文字以上の変更で自動スナップショット
   const lastSnapshotRef = useRef({ text: '', time: 0 });
@@ -142,7 +175,7 @@ export function useAutoSave({
     }, 30000); // 30秒ごとにチェック
 
     return () => clearInterval(timer);
-  }, [debouncedText, isProjectMode, activeFileHandle]);
+  }, [debouncedText, isProjectMode, activeFileHandle, debouncedTextRef]);
 
   // ファイル切替時にスナップショットの基準をリセット＋初回保存
   useEffect(() => {
@@ -169,11 +202,10 @@ export function useAutoSave({
           const content = await fileSystem.readFile(settingsHandle);
           const parsed = JSON.parse(content);
           setProjectSettings(prev => ({ ...prev, ...parsed }));
-          if (parsed.rapidModeDefault) setIsRapidMode(true);
         }
       } catch {
         console.log('nexus-project.json not found, will create on first settings save');
       }
     })();
-  }, [projectHandle, setProjectSettings, setIsRapidMode]);
+  }, [projectHandle, setProjectSettings]);
 }

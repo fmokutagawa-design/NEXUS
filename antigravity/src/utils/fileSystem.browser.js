@@ -71,6 +71,21 @@ export const browserFileSystem = {
     return await file.text();
   },
 
+  async getFileFingerprint(fileHandle) {
+    const file = await fileHandle.getFile();
+    const bytes = await file.arrayBuffer();
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    const sha256 = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+    return {
+      path: '',
+      name: file.name,
+      size: file.size,
+      characterCount: Array.from(await file.text()).length,
+      modifiedAt: new Date(file.lastModified).toISOString(),
+      sha256,
+    };
+  },
+
   async writeFile(fileHandle, content) {
     const writable = await fileHandle.createWritable();
     await writable.write(content);
@@ -121,6 +136,10 @@ export const browserFileSystem = {
 
     await sourceParentHandle.removeEntry(sourceHandle.name);
     return newHandle;
+  },
+
+  async moveDirectoryWithContext() {
+    throw new Error('ブラウザ版ではフォルダ移動に対応していません');
   },
 
   async resolvePath(rootHandle, targetHandle) {

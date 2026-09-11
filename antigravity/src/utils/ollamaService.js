@@ -1,3 +1,5 @@
+import { mergeProofreadingResults, proofreadingResultsToXml } from './proofreadingHub.mjs';
+
 export const ollamaService = {
     // Default Ollama URL
     baseUrl: 'http://localhost:11434/api',
@@ -331,7 +333,11 @@ export const ollamaService = {
             });
             if (!response.ok) throw new Error('Proofread endpoint failed');
             const data = await response.json();
-            return data.corrections || "";
+            const textlintResults = window.api?.textlint?.proofread
+                ? await window.api.textlint.proofread(text, data.profile || {})
+                : [];
+            const issues = mergeProofreadingResults(text, textlintResults || [], data.issues || []);
+            return proofreadingResultsToXml(issues);
         } catch (error) {
             console.error("Hybrid proofread failed:", error);
             throw error;
@@ -339,15 +345,18 @@ export const ollamaService = {
     },
 
     // Trigger ingestion script
-    async triggerIngest() {
+    async triggerIngest(targetPath = '') {
         try {
             const response = await fetch(`${this.ragServerUrl}/db/ingest`, {
-                method: 'POST'
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ target_path: targetPath || null })
             });
-            return response.ok;
+            if (!response.ok) return null;
+            return await response.json();
         } catch (error) {
             console.error("Error triggering ingest:", error);
-            return false;
+            return null;
         }
     },
 

@@ -3,5 +3,6 @@ node_modules/
 ._*
 *.log
 __pycache__/
+nexus_backend/.venv/
 nexus_db/
 *.pyc

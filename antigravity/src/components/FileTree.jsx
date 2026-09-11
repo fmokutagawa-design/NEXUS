@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 
-const FileTreeItem = ({ name, type, level, isActive, onClick, onContextMenu, children, fileCount, draggable, onDragStart, onDrop }) => {
+const FileTreeItem = ({ name, type, level, isActive, onClick, onContextMenu, children, fileCount, pinned, draggable, onDragStart, onDrop }) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const [isDragOver, setIsDragOver] = useState(false);
     const isFolder = type === 'directory';
@@ -70,10 +70,11 @@ const FileTreeItem = ({ name, type, level, isActive, onClick, onContextMenu, chi
                 )}
                 {!isFolder && <span className="tree-expand-icon"></span>}
                 <span className="tree-icon">{isFolder ? '📁' : '📄'}</span>
-                <span className="tree-label">{name}</span>
+                <span className="tree-label" title={name}>{name}</span>
                 {isFolder && fileCount !== undefined && fileCount > 0 && (
-                    <span className="tree-count">{fileCount}</span>
+                    <span className="tree-count" title={`${fileCount}ファイル`}>{fileCount}件</span>
                 )}
+                {pinned && <span className="tree-pin" title="上部に固定">📌</span>}
             </div>
             {isFolder && isExpanded && children && (
                 <div className="tree-children">{children}</div>
@@ -95,11 +96,40 @@ const countFiles = (items) => {
     return count;
 };
 
-const FileTree = ({ tree, activeFile, onFileSelect, onCreateFile, onCreateFolder, onRequestCreateFile, onRequestCreateFolder, onOpenReference, onOpenInNewWindow, onShowInFinder, onRename, onDelete, onDuplicate, onMergeFile, onMove }) => {
+const FileTree = ({ tree, activeFile, projectKey, onFileSelect, onCreateFile, onCreateFolder, onRequestCreateFile, onRequestCreateFolder, onOpenReference, onOpenInNewWindow, onShowInFinder, onRename, onDelete, onDuplicate, onMergeFile, onMove, onArchiveVersion }) => {
     const [contextMenu, setContextMenu] = useState(null);
     const [showRenameDialog, setShowRenameDialog] = useState(false);
     const [renameValue, setRenameValue] = useState('');
     const [renameTarget, setRenameTarget] = useState(null); // { handle, type, oldName }
+    const [pinnedItems, setPinnedItems] = useState(() => {
+        try { return JSON.parse(localStorage.getItem(`nexus-tree-pins:${projectKey || 'default'}`) || '[]'); }
+        catch { return []; }
+    });
+    const storageKey = `nexus-tree-pins:${projectKey || 'default'}`;
+    const [loadedPinKey, setLoadedPinKey] = useState(storageKey);
+
+    useEffect(() => {
+        if (loadedPinKey !== storageKey) return;
+        try { localStorage.setItem(storageKey, JSON.stringify(pinnedItems)); }
+        catch (error) { console.warn('ファイルツリー固定設定を保存できません:', error); }
+    }, [pinnedItems, loadedPinKey, storageKey]);
+
+    useEffect(() => {
+        try { setPinnedItems(JSON.parse(localStorage.getItem(storageKey) || '[]')); }
+        catch { setPinnedItems([]); }
+        setLoadedPinKey(storageKey);
+    }, [storageKey]);
+
+    const itemKey = (item) => {
+        const kind = item.kind || item.itemType;
+        const handle = item.handle ?? item.itemHandle;
+        return `${kind}:${typeof handle === 'string' ? handle : (handle?.name || item.name)}`;
+    };
+    const togglePin = () => {
+        const key = itemKey(contextMenu);
+        setPinnedItems((current) => current.includes(key) ? current.filter((value) => value !== key) : [...current, key]);
+        handleCloseContextMenu();
+    };
 
     const handleContextMenu = (e, itemType, itemHandle, parentHandle, itemName) => {
         e.preventDefault();
@@ -261,7 +291,13 @@ const FileTree = ({ tree, activeFile, onFileSelect, onCreateFile, onCreateFolder
     const renderTree = (items, level = 0, parentHandle = null) => {
         if (!items || !Array.isArray(items) || items.length === 0) return null;
 
-        return items.map((item, index) => {
+        // プロジェクト名のルート行を含むツリーでは、実ファイルは level 1 になる。
+        // 固定項目は各階層の先頭へ寄せることで、見えているツリーの上部に確実に出す。
+        const orderedItems = [...items].sort((a, b) =>
+            Number(pinnedItems.includes(itemKey(b))) - Number(pinnedItems.includes(itemKey(a)))
+        );
+
+        return orderedItems.map((item, index) => {
             const fileCount = item.kind === 'directory' ? countFiles(item.children) : undefined;
 
             const handleItemDrop = (sourceData, targetItemInfo) => {
@@ -282,6 +318,7 @@ const FileTree = ({ tree, activeFile, onFileSelect, onCreateFile, onCreateFolder
                     onClick={() => item.kind === 'file' && onFileSelect(item.handle)}
                     onContextMenu={(e, type) => handleContextMenu(e, type, item.handle, parentHandle, item.name)}
                     fileCount={fileCount}
+                    pinned={pinnedItems.includes(itemKey(item))}
                     draggable={item.kind === 'file'}
                     onDragStart={(e) => handleDragStart(e, item)}
                     onDrop={(sourceData, targetInfo) => handleItemDrop(sourceData, { ...targetInfo, handle: item.handle })}
@@ -375,12 +412,23 @@ const FileTree = ({ tree, activeFile, onFileSelect, onCreateFile, onCreateFolder
                             <div className="context-menu-item" onClick={handleRename}>
                                 ✏️ 名前を変更
                             </div>
+                            <div className="context-menu-item" onClick={togglePin}>
+                                {pinnedItems.includes(itemKey(contextMenu)) ? '📍 固定を解除' : '📌 ツリー上部に固定'}
+                            </div>
                             {onMove && (
                                 <div className="context-menu-item" onClick={() => {
                                     onMove(contextMenu.itemHandle, contextMenu.itemType);
                                     handleCloseContextMenu();
                                 }}>
                                     🚚 移動
+                                </div>
+                            )}
+                            {onArchiveVersion && (
+                                <div className="context-menu-item" onClick={async () => {
+                                    await onArchiveVersion(contextMenu.itemHandle, contextMenu.itemType);
+                                    handleCloseContextMenu();
+                                }}>
+                                    🗄️ フォルダごとversion_archiveへ移動
                                 </div>
                             )}
                             <div className="context-menu-item" onClick={handleDelete} style={{ color: '#d32f2f' }}>
@@ -420,9 +468,20 @@ const FileTree = ({ tree, activeFile, onFileSelect, onCreateFile, onCreateFolder
                             <div className="context-menu-item" onClick={handleRename}>
                                 ✏️ 名前を変更
                             </div>
+                            <div className="context-menu-item" onClick={togglePin}>
+                                {pinnedItems.includes(itemKey(contextMenu)) ? '📍 固定を解除' : '📌 ツリー上部に固定'}
+                            </div>
                             <div className="context-menu-item" onClick={handleDuplicate}>
                                 📑 複製 (別名保存)
                             </div>
+                            {onArchiveVersion && (
+                                <div className="context-menu-item" onClick={async () => {
+                                    await onArchiveVersion(contextMenu.itemHandle, contextMenu.itemType);
+                                    handleCloseContextMenu();
+                                }}>
+                                    🗄️ version_archiveへ移動
+                                </div>
+                            )}
                             <div className="context-menu-item" onClick={handleDelete} style={{ color: '#d32f2f' }}>
                                 🗑️ 削除
                             </div>

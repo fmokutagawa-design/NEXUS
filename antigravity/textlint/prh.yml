@@ -63,7 +63,7 @@ rules:
   pattern: 権力におもねて
 - expected: 押しも押されもせぬ
   pattern: 押しも押されぬ
-- expected: 仰る
+- expected: おっしゃる
   pattern: おっしゃられる
 - expected: 半数を超える
   pattern: 過半数を超える
@@ -99,8 +99,8 @@ rules:
   pattern: 土曜の丑の日
 - expected: 鳴かず飛ばず
   pattern: 泣かず跳ばず
-- expected: 生兵法
-  pattern: なまへいほう
+- expected: なまへいほう
+  pattern: 生兵法
 - expected: 脚光を浴びる
   pattern: 脚光を集める
 - expected: 斜に構える
@@ -115,8 +115,8 @@ rules:
   pattern: はっきり断言
 - expected: 断トツ
   pattern: 断トツの一位
-- expected: 予め
-  pattern: あらかじめ
+- expected: あらかじめ
+  pattern: 予め
 - expected: しかしながら
   pattern: 然しながら
 - expected: すばらしい
@@ -163,8 +163,8 @@ rules:
   pattern: うよう曲折
 - expected: 御役御免
   pattern: 御役目御免
-- expected: 覚束無い
-  pattern: おぼつかぬ
+- expected: おぼつかない
+  pattern: 覚束無い
 - expected: こぢんまり
   pattern: こじんまり
 - expected: 著作権法違反
@@ -183,8 +183,8 @@ rules:
   pattern: 憶面もなく
 - expected: 隠れ蓑の術
   pattern: 隠れ身の術
-- expected: 恰好良い
-  pattern: かっこいい
+- expected: かっこいい
+  pattern: 恰好良い
 - expected: 器物損壊罪
   pattern: 器物損害罪
 - expected: 嚊天下
@@ -239,36 +239,34 @@ rules:
   pattern: まだ未解決
 - expected: 頭が痛い
   pattern: 頭痛が痛い
-- expected: 余りに
-  pattern: あまりに
-- expected: 如何にも
-  pattern: いかにも
-- expected: 一旦
-  pattern: いったん
-- expected: 凡そ
-  pattern: おおよそ
-- expected: 却って
-  pattern: かえって
-- expected: 漸く
-  pattern: しばらく
-- expected: 沢山
-  pattern: たくさん
-- expected: 忽ち
-  pattern: たちまち
-- expected: 尚更
-  pattern: なおさら
-- expected: 益々
-  pattern: ますます
-- expected: 真っ直ぐ
-  pattern: まっすぐ
-- expected: 滅多に
-  pattern: めったに
-- expected: 勿論
-  pattern: もちろん
-- expected: 宜しく
-  pattern: よろしく
-- expected: 態態
-  pattern: わざわざ
+- expected: あまりに
+  pattern: 余りに
+- expected: いかにも
+  pattern: 如何にも
+- expected: いったん
+  pattern: 一旦
+- expected: おおよそ
+  pattern: 凡そ
+- expected: かえって
+  pattern: 却って
+- expected: たくさん
+  pattern: 沢山
+- expected: たちまち
+  pattern: 忽ち
+- expected: なおさら
+  pattern: 尚更
+- expected: ますます
+  pattern: 益々
+- expected: まっすぐ
+  pattern: 真っ直ぐ
+- expected: めったに
+  pattern: 滅多に
+- expected: もちろん
+  pattern: 勿論
+- expected: よろしく
+  pattern: 宜しく
+- expected: わざわざ
+  pattern: 態態
 - expected: かならずしも
   pattern: 必ずしも
 - expected: ようするに
@@ -481,8 +479,8 @@ rules:
   pattern: 虎視耽耽
 - expected: これを機
   pattern: これを期
-- expected: 声高
-  pattern: こえだか
+- expected: こえだか
+  pattern: 声高
 - expected: 時期尚早
   pattern: 時期早々
 - expected: 三位一体
@@ -613,22 +611,22 @@ rules:
   pattern: 霙交じり
 - expected: 列強
   pattern: 列強諸国
-- expected: 敢えて
-  pattern: あえて
-- expected: 何時も
-  pattern: いつも
-- expected: 嘗て
-  pattern: かつて
-- expected: 全て
-  pattern: すべて
-- expected: 遂に
-  pattern: ついに
-- expected: 寧ろ
-  pattern: むしろ
-- expected: 若しも
-  pattern: もしも
-- expected: 態と
-  pattern: わざと
+- expected: あえて
+  pattern: 敢えて
+- expected: いつも
+  pattern: 何時も
+- expected: かつて
+  pattern: 嘗て
+- expected: すべて
+  pattern: 全て
+- expected: ついに
+  pattern: 遂に
+- expected: むしろ
+  pattern: 寧ろ
+- expected: もしも
+  pattern: 若しも
+- expected: わざと
+  pattern: 態と
 - expected: いちがいに
   pattern: 一概に
 - expected: いちだんと
@@ -927,14 +925,14 @@ rules:
   pattern: 石の礫
 - expected: 轍
   pattern: 轍の跡
-- expected: 且つ
-  pattern: かつ
-- expected: 唯
-  pattern: ただ
-- expected: 尚
-  pattern: なお
-- expected: 何故
-  pattern: なぜ
+- expected: かつ
+  pattern: 且つ
+- expected: ただ
+  pattern: 唯
+- expected: なお
+  pattern: 尚
+- expected: なぜ
+  pattern: 何故
 - expected: いぜん
   pattern: 依然
 - expected: いちおう
@@ -1255,59 +1253,3 @@ rules:
   pattern: 賄路
 - expected: 倭寇
   pattern: 倭冠
-- expected: いや
-  pattern: 否
-- expected: ただし
-  pattern: 但
-- expected: なお
-  pattern: 尚
-- expected: また
-  pattern: 又
-- expected: また
-  pattern: 亦
-- expected: あたり
-  pattern: 辺
-- expected: うえ
-  pattern: 上
-- expected: おり
-  pattern: 折
-- expected: かぎり
-  pattern: 限
-- expected: くらい
-  pattern: 位
-- expected: こと
-  pattern: 事
-- expected: とき
-  pattern: 時
-- expected: ところ
-  pattern: 所
-- expected: かた
-  pattern: 方
-- expected: もの
-  pattern: 物
-- expected: よう
-  pattern: 様
-- expected: いう
-  pattern: 言
-- expected: いく
-  pattern: 行
-- expected: いる
-  pattern: 居
-- expected: おく
-  pattern: 置
-- expected: かける
-  pattern: 掛
-- expected: かねる
-  pattern: 兼
-- expected: きる
-  pattern: 切
-- expected: くる
-  pattern: 来
-- expected: でる
-  pattern: 出
-- expected: つける
-  pattern: 付
-- expected: みる
-  pattern: 見
-- expected: たま
-  pattern: 偶

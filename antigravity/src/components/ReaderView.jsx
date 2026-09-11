@@ -19,11 +19,15 @@ const RUBY_FONT_OPTIONS = [
 
 const SIZE_OPTIONS = [14, 16, 18, 20, 22, 24, 28, 32];
 
-const ReaderView = ({ text, settings, onClose, cursorOffset = 0, onJumpToEditor, workText, isNexusFile, workTitle, resolveOffset, onOpenSegmentFile }) => {
+const ReaderView = ({ text, settings, onClose, cursorOffset = 0, onJumpToEditor, workText, isNexusFile, workTitle, resolveOffset, onOpenSegmentFile, chapterStatuses = [], loadFailures = [], onEditFromReader, onRequestReplace, initialFullWork = false }) => {
     const containerRef = useRef(null);
+    const searchInputRef = useRef(null);
     const [showTOC, setShowTOC] = useState(false);
     const [showToolbar, setShowToolbar] = useState(true);
-    const [showFullWork, setShowFullWork] = useState(false);
+    const [showFullWork, setShowFullWork] = useState(initialFullWork);
+    const [pendingTocIndex, setPendingTocIndex] = useState(null);
+    const wheelDeltaRef = useRef(0);
+    const wheelFrameRef = useRef(null);
 
     // リーダー独自の表示設定（親の settings を初期値に使う）
     const [readerFont, setReaderFont] = useState(settings.fontFamily || 'var(--font-mincho)');
@@ -31,50 +35,116 @@ const ReaderView = ({ text, settings, onClose, cursorOffset = 0, onJumpToEditor,
     const [readerSize, setReaderSize] = useState(settings.fontSize || 18);
     const [readerVertical, setReaderVertical] = useState(settings.isVertical ?? true);
     const [readerTheme, setReaderTheme] = useState(settings.colorTheme || 'light');
+    const [systemFontOptions, setSystemFontOptions] = useState([]);
+
+    // 閲覧画面でもエディタと同じインストール済みフォントを選べるようにする。
+    useEffect(() => {
+        let active = true;
+        window.api?.system?.getFonts?.().then(groups => {
+            if (!active || !Array.isArray(groups)) return;
+            const seen = new Set(FONT_OPTIONS.map(f => f.value));
+            const options = [];
+            groups.forEach(group => (group.fonts || []).forEach(font => {
+                const value = font.ps || group.family;
+                if (!value || seen.has(value)) return;
+                seen.add(value);
+                options.push({ label: font.weight && font.weight !== 'Regular' ? `${group.family} (${font.weight})` : group.family, value });
+            }));
+            setSystemFontOptions(options);
+        }).catch(error => console.warn('[ReaderView] font loading failed:', error));
+        return () => { active = false; };
+    }, []);
+
+    useEffect(() => { setReaderFont(settings.fontFamily || 'var(--font-mincho)'); }, [settings.fontFamily]);
+    useEffect(() => { setReaderRubyFont(settings.rubyFontFamily || 'inherit'); }, [settings.rubyFontFamily]);
+
+    const readerFontOptions = useMemo(() => {
+        const all = [...FONT_OPTIONS, ...systemFontOptions];
+        if (readerFont && !all.some(f => f.value === readerFont)) {
+            all.unshift({ label: readerFont, value: readerFont });
+        }
+        return all;
+    }, [systemFontOptions, readerFont]);
 
     // 検索
     const [searchTerm, setSearchTerm] = useState('');
-    const [searchResultIndex, setSearchResultIndex] = useState(0);
+    const [searchResultIndex, setSearchResultIndex] = useState(-1);
+    const [readerSearchScope, setReaderSearchScope] = useState('current');
 
     // ブロック解析
     const displayText = (showFullWork && isNexusFile && workText) ? workText : text;
     const blocks = useMemo(() => parseBlocks(displayText), [displayText]);
+    const workBlocks = useMemo(
+        () => (isNexusFile && workText ? parseBlocks(workText) : blocks),
+        [isNexusFile, workText, blocks]
+    );
 
-    // 目次
+    const searchBlocks = readerSearchScope === 'work' && isNexusFile && workText ? workBlocks : blocks;
+
+    // 分割作品では、現在章だけを表示中でも作品全体から目次を作る。
     const toc = useMemo(() => {
-        return blocks
+        return workBlocks
             .map((b, i) => ({ ...b, index: i }))
-            .filter(b => b.isHeader);
-    }, [blocks]);
+            .filter(b => b.isHeader)
+            .map(entry => {
+                const resolved = isNexusFile && resolveOffset
+                    ? resolveOffset(entry.textOffset ?? 0)
+                    : null;
+                return { ...entry, segmentName: resolved?.displayName || resolved?.file || '' };
+            });
+    }, [workBlocks, isNexusFile, resolveOffset]);
 
     // 検索結果（ブロックインデックス配列）
     const searchResults = useMemo(() => {
         if (!searchTerm) return [];
         const lower = searchTerm.toLowerCase();
-        return blocks.reduce((acc, b, i) => {
+        return searchBlocks.reduce((acc, b, i) => {
             if (b.content && b.content.toLowerCase().includes(lower)) acc.push(i);
             return acc;
         }, []);
-    }, [blocks, searchTerm]);
+    }, [searchBlocks, searchTerm]);
 
     // 章ジャンプ
     const jumpToChapter = useCallback((index) => {
-        const el = document.getElementById(`reader-block-${index}`);
-        if (!el) return;
+        const container = containerRef.current;
+        const el = container?.querySelector(`#reader-block-${index}`);
+        if (!container || !el) return false;
 
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = el.getBoundingClientRect();
         if (readerVertical) {
-            const container = containerRef.current;
-            if (container) {
-                const containerRect = container.getBoundingClientRect();
-                const elRect = el.getBoundingClientRect();
-                const offset = elRect.right - containerRect.right;
-                container.scrollBy({ left: offset + 40, behavior: 'smooth' });
-            }
+            const deltaX = targetRect.right - (containerRect.right - 32);
+            container.scrollTo({ left: container.scrollLeft + deltaX, behavior: 'smooth' });
         } else {
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const deltaY = targetRect.top - (containerRect.top + 32);
+            container.scrollTo({ top: container.scrollTop + deltaY, behavior: 'smooth' });
         }
         setShowTOC(false);
+        return true;
     }, [readerVertical]);
+
+    const navigateToWorkBlock = useCallback((index) => {
+        if (isNexusFile && workText && !showFullWork) {
+            setPendingTocIndex(index);
+            setShowFullWork(true);
+            setShowTOC(false);
+            return;
+        }
+        jumpToChapter(index);
+    }, [isNexusFile, workText, showFullWork, jumpToChapter]);
+
+    const jumpFromToc = useCallback((entry) => {
+        navigateToWorkBlock(entry.index);
+    }, [navigateToWorkBlock]);
+
+    useEffect(() => {
+        if (!showFullWork || pendingTocIndex == null) return;
+        const frame = requestAnimationFrame(() => {
+            jumpToChapter(pendingTocIndex);
+            setPendingTocIndex(null);
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [showFullWork, pendingTocIndex, blocks, jumpToChapter]);
 
     // 初回マウント時：cursorOffset に最も近いブロックにスクロール
     useEffect(() => {
@@ -98,13 +168,35 @@ const ReaderView = ({ text, settings, onClose, cursorOffset = 0, onJumpToEditor,
         if (!el || !readerVertical) return;
         const handler = (e) => {
             if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                el.scrollLeft -= e.deltaY;
                 e.preventDefault();
+                wheelDeltaRef.current += e.deltaY;
+                if (wheelFrameRef.current != null) return;
+                wheelFrameRef.current = requestAnimationFrame(() => {
+                    const delta = wheelDeltaRef.current;
+                    wheelDeltaRef.current = 0;
+                    wheelFrameRef.current = null;
+                    el.scrollBy({ left: -delta, behavior: 'auto' });
+                });
             }
         };
         el.addEventListener('wheel', handler, { passive: false });
-        return () => el.removeEventListener('wheel', handler);
+        return () => {
+            el.removeEventListener('wheel', handler);
+            if (wheelFrameRef.current != null) cancelAnimationFrame(wheelFrameRef.current);
+            wheelFrameRef.current = null;
+            wheelDeltaRef.current = 0;
+        };
     }, [readerVertical]);
+
+    // エディタから Cmd/Ctrl+F を受けたときは、リーダー内検索へフォーカスする。
+    useEffect(() => {
+        const focusSearch = () => {
+            searchInputRef.current?.focus();
+            searchInputRef.current?.select();
+        };
+        window.addEventListener('nexus-reader-focus-search', focusSearch);
+        return () => window.removeEventListener('nexus-reader-focus-search', focusSearch);
+    }, []);
 
     // ツールバー自動非表示（3秒操作なしで隠す）
     const hideTimerRef = useRef(null);
@@ -132,17 +224,21 @@ const ReaderView = ({ text, settings, onClose, cursorOffset = 0, onJumpToEditor,
     // 検索ナビゲーション
     const searchPrev = useCallback(() => {
         if (!searchResults.length) return;
-        const idx = (searchResultIndex - 1 + searchResults.length) % searchResults.length;
+        const idx = searchResultIndex < 0
+            ? searchResults.length - 1
+            : (searchResultIndex - 1 + searchResults.length) % searchResults.length;
         setSearchResultIndex(idx);
-        jumpToChapter(searchResults[idx]);
-    }, [searchResults, searchResultIndex, jumpToChapter]);
+        if (readerSearchScope === 'work') navigateToWorkBlock(searchResults[idx]);
+        else jumpToChapter(searchResults[idx]);
+    }, [searchResults, searchResultIndex, navigateToWorkBlock, readerSearchScope, jumpToChapter]);
 
     const searchNext = useCallback(() => {
         if (!searchResults.length) return;
         const idx = (searchResultIndex + 1) % searchResults.length;
         setSearchResultIndex(idx);
-        jumpToChapter(searchResults[idx]);
-    }, [searchResults, searchResultIndex, jumpToChapter]);
+        if (readerSearchScope === 'work') navigateToWorkBlock(searchResults[idx]);
+        else jumpToChapter(searchResults[idx]);
+    }, [searchResults, searchResultIndex, navigateToWorkBlock, readerSearchScope, jumpToChapter]);
 
     return (
         <div
@@ -163,19 +259,35 @@ const ReaderView = ({ text, settings, onClose, cursorOffset = 0, onJumpToEditor,
                     {/* 検索バー */}
                     <div className="reader-search-bar">
                         <input
+                            ref={searchInputRef}
                             type="text"
                             className="reader-search-input"
                             placeholder="検索..."
                             value={searchTerm}
-                            onChange={(e) => { setSearchTerm(e.target.value); setSearchResultIndex(0); }}
+                            onChange={(e) => { setSearchTerm(e.target.value); setSearchResultIndex(-1); }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    if (e.shiftKey) searchPrev();
+                                    else searchNext();
+                                }
+                            }}
                         />
                         {searchResults.length > 0 && (
                             <span className="reader-search-count">
-                                {searchResultIndex + 1}/{searchResults.length}
+                                {searchResultIndex >= 0 ? searchResultIndex + 1 : 0}/{searchResults.length}
                             </span>
                         )}
                         <button className="reader-btn" onClick={searchPrev} disabled={!searchResults.length}>↑</button>
                         <button className="reader-btn" onClick={searchNext} disabled={!searchResults.length}>↓</button>
+                        {isNexusFile && workText && (
+                            <button className="reader-btn" onClick={() => { setReaderSearchScope(scope => { const next = scope === 'current' ? 'work' : 'current'; setShowFullWork(next === 'work'); return next; }); setSearchResultIndex(-1); }} title="検索範囲を切り替え">
+                                {readerSearchScope === 'work' ? '作品全体' : '現在章'}
+                            </button>
+                        )}
+                        {searchTerm && onRequestReplace && (
+                            <button className="reader-btn" onClick={() => onRequestReplace(searchTerm)} title="編集画面で検索・置換を開く">編集で置換</button>
+                        )}
                     </div>
                 </div>
 
@@ -185,7 +297,7 @@ const ReaderView = ({ text, settings, onClose, cursorOffset = 0, onJumpToEditor,
                         value={readerFont}
                         onChange={(e) => setReaderFont(e.target.value)}
                     >
-                        {FONT_OPTIONS.map(f => (
+                        {readerFontOptions.map(f => (
                             <option key={f.value} value={f.value}>{f.label}</option>
                         ))}
                     </select>
@@ -252,17 +364,36 @@ const ReaderView = ({ text, settings, onClose, cursorOffset = 0, onJumpToEditor,
                 </div>
             </div>
 
+            {loadFailures.length > 0 && (
+                <div style={{ position: 'fixed', top: '58px', left: '50%', transform: 'translateX(-50%)', zIndex: 1003, maxWidth: '80vw', padding: '9px 14px', borderRadius: '8px', background: '#fff0f0', border: '1px solid #c0392b', color: '#8e2418', boxShadow: '0 3px 12px rgba(0,0,0,.18)' }}>
+                    読み込めない章があります：{loadFailures.map(item => item.file).join('、')}
+                </div>
+            )}
+
             {/* ===== 目次パネル ===== */}
             {showTOC && (
                 <div className="reader-toc-panel">
                     <div className="reader-toc-title">目次</div>
+                    {chapterStatuses.length > 0 && (
+                        <div style={{ marginBottom: '8px', paddingBottom: '7px', borderBottom: '1px solid rgba(0,0,0,.12)', fontSize: '10px', lineHeight: 1.5 }}>
+                            {chapterStatuses.map(chapter => (
+                                <div key={chapter.id} title={chapter.file} style={{ color: chapter.status === 'loaded' ? 'inherit' : '#c0392b' }}>
+                                    {chapter.status === 'loaded' ? '✓' : chapter.status === 'loading' ? '…' : '⚠'} {chapter.displayName || chapter.file} — {chapter.characters.toLocaleString()}字
+                                </div>
+                            ))}
+                        </div>
+                    )}
                     {toc.map((entry, i) => (
                         <div
                             key={i}
                             className={`reader-toc-item level-${entry.heading}`}
-                            onClick={() => jumpToChapter(entry.index)}
+                            onClick={() => jumpFromToc(entry)}
+                            title={entry.segmentName ? `${entry.segmentName} — ${entry.content}` : entry.content}
                         >
-                            {entry.content}
+                            {entry.segmentName && (
+                                <span className="reader-toc-segment">{entry.segmentName}</span>
+                            )}
+                            <span>{entry.content}</span>
                         </div>
                     ))}
                 </div>
@@ -313,12 +444,14 @@ const ReaderView = ({ text, settings, onClose, cursorOffset = 0, onJumpToEditor,
                                     ...style,
                                     cursor: (onJumpToEditor || (showFullWork && onOpenSegmentFile)) ? 'pointer' : undefined,
                                 }}
-                                onClick={() => {
+                                title={(onJumpToEditor || (showFullWork && onOpenSegmentFile)) ? 'ダブルクリックでこの位置を編集' : undefined}
+                                onDoubleClick={() => {
                                     if (showFullWork && resolveOffset && onOpenSegmentFile) {
                                         // 作品全体表示中: 該当章ファイルを開く
                                         const resolved = resolveOffset(block.textOffset ?? 0);
                                         if (resolved) {
-                                            onOpenSegmentFile(resolved.file, resolved.localOffset);
+                                            if (onEditFromReader) onEditFromReader(resolved, block.textOffset ?? 0);
+                                            else onOpenSegmentFile(resolved.file, resolved.localOffset, resolved.nexusPath);
                                             onClose(); // リーダーを閉じる
                                         }
                                     } else if (onJumpToEditor) {

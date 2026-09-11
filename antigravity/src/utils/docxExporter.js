@@ -1,5 +1,5 @@
 import JSZip from 'jszip';
-import { downloadBlob } from './epubExporter';
+import { downloadBlob } from './epubExporter.js';
 
 /**
  * DOCX Exporter for Antigravity
@@ -17,10 +17,20 @@ function escapeXml(str) {
     .replace(/'/g, '&apos;');
 }
 
+function normalizeWordFontName(fontName) {
+  if (!fontName || fontName === 'inherit' || fontName.includes('--font-mincho')) return '游明朝';
+  if (fontName.includes('--font-gothic')) return 'メイリオ';
+  if (fontName.includes('--font-hand')) return '游明朝';
+  const first = fontName.split(',')[0].trim().replace(/^['"]|['"]$/g, '');
+  return first || '游明朝';
+}
+
 /**
  * テキスト行をOpenXMLのパラグラフに変換
  */
-function textToDocxParagraphs(text, fontName) {
+function textToDocxParagraphs(text, fontName, fontSizePt) {
+  const baseHalfPoints = Math.max(2, Math.round(fontSizePt * 2));
+  const rubyHalfPoints = Math.max(2, Math.round(baseHalfPoints / 2));
   const lines = text.split('\n');
   const paragraphs = [];
 
@@ -66,15 +76,14 @@ function textToDocxParagraphs(text, fontName) {
         const base = m[1];
         const ruby = m[2];
         parts.push(
-          `<w:r><w:rPr><w:rFonts w:eastAsia="${fontName}"/></w:rPr>` +
           `<w:ruby>` +
           `<w:rubyPr><w:rubyAlign w:val="distributeSpace"/>` +
-          `<w:hps w:val="12"/><w:hpsRaise w:val="22"/><w:hpsBaseText w:val="24"/></w:rubyPr>` +
+          `<w:hps w:val="${rubyHalfPoints}"/><w:hpsRaise w:val="${baseHalfPoints}"/><w:hpsBaseText w:val="${baseHalfPoints}"/></w:rubyPr>` +
           `<w:rubyBase><w:r><w:rPr><w:rFonts w:eastAsia="${fontName}"/></w:rPr>` +
           `<w:t>${escapeXml(base)}</w:t></w:r></w:rubyBase>` +
-          `<w:rt><w:r><w:rPr><w:rFonts w:eastAsia="${fontName}"/><w:sz w:val="12"/></w:rPr>` +
+          `<w:rt><w:r><w:rPr><w:rFonts w:eastAsia="${fontName}"/><w:sz w:val="${rubyHalfPoints}"/></w:rPr>` +
           `<w:t>${escapeXml(ruby)}</w:t></w:r></w:rt>` +
-          `</w:ruby></w:r>`
+          `</w:ruby>`
         );
         cursor = m.index + m[0].length;
       }
@@ -87,18 +96,18 @@ function textToDocxParagraphs(text, fontName) {
         );
       }
 
+      const indent = processedLine.startsWith('　') ? '' : '';
       paragraphs.push(
         `<w:p><w:pPr>` +
-        `<w:ind w:firstLineChars="100" w:firstLine="240"/>` +
+        indent +
         `<w:rPr><w:rFonts w:eastAsia="${fontName}"/></w:rPr></w:pPr>` +
         parts.join('') +
         `</w:p>`
       );
     } else {
       // 通常テキスト行
-      const indent = processedLine.startsWith('　')
-        ? `<w:ind w:firstLineChars="100" w:firstLine="240"/>`
-        : '';
+      // 原文の行頭全角空白を保持するため、Word側の段落字下げは重ねない。
+      const indent = '';
       paragraphs.push(
         `<w:p><w:pPr>${indent}<w:rPr><w:rFonts w:eastAsia="${fontName}"/></w:rPr></w:pPr>` +
         `<w:r><w:rPr><w:rFonts w:eastAsia="${fontName}"/></w:rPr>` +
@@ -136,23 +145,24 @@ function documentRelsXml() {
 </Relationships>`;
 }
 
-function stylesXml(fontName) {
+function stylesXml(fontName, fontSizePt, linePitchTwips) {
+  const halfPoints = Math.round(fontSizePt * 2);
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:docDefaults>
     <w:rPrDefault><w:rPr>
       <w:rFonts w:ascii="${fontName}" w:eastAsia="${fontName}" w:hAnsi="${fontName}"/>
-      <w:sz w:val="24"/>
-      <w:szCs w:val="24"/>
+      <w:sz w:val="${halfPoints}"/>
+      <w:szCs w:val="${halfPoints}"/>
       <w:lang w:val="en-US" w:eastAsia="ja-JP"/>
     </w:rPr></w:rPrDefault>
     <w:pPrDefault><w:pPr>
-      <w:spacing w:line="360" w:lineRule="auto"/>
+      <w:spacing w:line="${linePitchTwips}" w:lineRule="exact"/>
     </w:pPr></w:pPrDefault>
   </w:docDefaults>
   <w:style w:type="paragraph" w:styleId="Normal" w:default="1">
     <w:name w:val="Normal"/>
-    <w:pPr><w:spacing w:line="360" w:lineRule="auto"/></w:pPr>
+    <w:pPr><w:spacing w:line="${linePitchTwips}" w:lineRule="exact"/></w:pPr>
   </w:style>
 </w:styles>`;
 }
@@ -167,7 +177,12 @@ function settingsXml() {
 </w:settings>`;
 }
 
-function documentXml(bodyContent, isVertical, pageSize = 'A4', orientation = 'portrait') {
+function mmToTwips(mm) {
+  return Math.round(Number(mm) * 56.6929133858);
+}
+
+function documentXml(bodyContent, layout) {
+  const { isVertical, pageSize, orientation, margins, charsPerLine, linesPerPage, fontSizePt } = layout;
   const pageDims = {
     'A4': { w: 11906, h: 16838 },
     'B5': { w: 9979, h: 14175 },
@@ -178,6 +193,18 @@ function documentXml(bodyContent, isVertical, pageSize = 'A4', orientation = 'po
   const pgW = isLandscape ? pageDims.h : pageDims.w;
   const pgH = isLandscape ? pageDims.w : pageDims.h;
   const orientAttr = isLandscape ? ' w:orient="landscape"' : '';
+  const marginTwips = {
+    top: mmToTwips(margins.top),
+    right: mmToTwips(margins.right),
+    bottom: mmToTwips(margins.bottom),
+    left: mmToTwips(margins.left),
+  };
+  const usableWidth = pgW - marginTwips.left - marginTwips.right;
+  const usableHeight = pgH - marginTwips.top - marginTwips.bottom;
+  const linePitchTwips = Math.max(1, Math.round((isVertical ? usableWidth : usableHeight) / linesPerPage));
+  const charAxisPoints = (isVertical ? usableHeight : usableWidth) / 20;
+  const desiredCharPitchPt = charAxisPoints / charsPerLine;
+  const charSpace = Math.max(0, Math.round((desiredCharPitchPt - fontSizePt) * 4096));
 
   // 縦書き: textDirection="tbRl"
   const textDir = isVertical ? '<w:textDirection w:val="tbRl"/>' : '';
@@ -189,9 +216,10 @@ function documentXml(bodyContent, isVertical, pageSize = 'A4', orientation = 'po
 ${bodyContent}
     <w:sectPr>
       <w:pgSz w:w="${pgW}" w:h="${pgH}"${orientAttr}/>
-      <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"
+      <w:pgMar w:top="${marginTwips.top}" w:right="${marginTwips.right}" w:bottom="${marginTwips.bottom}" w:left="${marginTwips.left}"
                w:header="720" w:footer="720"/>
       ${textDir}
+      <w:docGrid w:type="linesAndChars" w:linePitch="${linePitchTwips}" w:charSpace="${charSpace}"/>
     </w:sectPr>
   </w:body>
 </w:document>`;
@@ -201,22 +229,43 @@ ${bodyContent}
  * DOCX生成メイン関数
  */
 export async function generateDocx({
-  title = '無題',
   content = '',
   isVertical = true,
   fontName = '游明朝',
   pageSize = 'A4',
   orientation = 'portrait',
+  charsPerLine = 20,
+  linesPerPage = 20,
+  fontSizePt = 12,
+  lineHeight = 1.5,
+  margins = { top: 20, right: 20, bottom: 20, left: 20 },
 }) {
   const zip = new JSZip();
-
-  const bodyParagraphs = textToDocxParagraphs(content, fontName);
+  fontName = normalizeWordFontName(fontName);
 
   zip.file('[Content_Types].xml', contentTypesXml());
   zip.file('_rels/.rels', relsXml());
   zip.file('word/_rels/document.xml.rels', documentRelsXml());
-  zip.file('word/document.xml', documentXml(bodyParagraphs, isVertical, pageSize, orientation));
-  zip.file('word/styles.xml', stylesXml(fontName));
+  const pageDims = {
+    A4: { w: 11906, h: 16838 }, B5: { w: 9979, h: 14175 }, A5: { w: 8392, h: 11906 }
+  }[pageSize] || { w: 11906, h: 16838 };
+  const pgW = orientation === 'landscape' ? pageDims.h : pageDims.w;
+  const pgH = orientation === 'landscape' ? pageDims.w : pageDims.h;
+  const usableCharAxis = isVertical
+    ? pgH - mmToTwips(margins.top) - mmToTwips(margins.bottom)
+    : pgW - mmToTwips(margins.left) - mmToTwips(margins.right);
+  const desiredCharPitchPt = usableCharAxis / 20 / charsPerLine;
+  const effectiveFontSizePt = Math.min(fontSizePt, desiredCharPitchPt * 0.9);
+  const layout = { isVertical, pageSize, orientation, charsPerLine, linesPerPage, fontSizePt: effectiveFontSizePt, lineHeight, margins };
+  const bodyParagraphs = textToDocxParagraphs(content, fontName, effectiveFontSizePt);
+
+  zip.file('word/document.xml', documentXml(bodyParagraphs, layout));
+  const usableCrossAxis = isVertical
+    ? pgW - mmToTwips(margins.left) - mmToTwips(margins.right)
+    : pgH - mmToTwips(margins.top) - mmToTwips(margins.bottom);
+  const linePitchTwips = Math.max(1, Math.round(usableCrossAxis / linesPerPage));
+
+  zip.file('word/styles.xml', stylesXml(fontName, effectiveFontSizePt, linePitchTwips));
   zip.file('word/settings.xml', settingsXml());
 
   const blob = await zip.generateAsync({

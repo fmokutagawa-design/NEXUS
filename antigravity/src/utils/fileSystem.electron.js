@@ -104,6 +104,10 @@ export const electronFileSystem = {
     throw lastError;
   },
 
+  async getFileFingerprint(fileHandle) {
+    return await window.api.fs.getFileFingerprint(toPath(fileHandle));
+  },
+
   async writeFile(fileHandle, content, options = {}) {
     return await window.api.fs.writeFile(toPath(fileHandle), content, options);
   },
@@ -176,6 +180,15 @@ export const electronFileSystem = {
 
   async moveFileWithContext(sourceHandle, _sourceParentHandle, targetDirHandle) {
     return this.moveFile(sourceHandle, targetDirHandle);
+  },
+
+  async moveDirectoryWithContext(sourceHandle, _sourceParentHandle, targetDirHandle) {
+    const sourcePath = toPath(sourceHandle);
+    const targetPath = toPath(targetDirHandle);
+    const separator = pathSep(targetPath);
+    const name = extractName(sourcePath);
+    await window.api.fs.rename(sourcePath, `${targetPath}${separator}${name}`);
+    return { handle: `${targetPath}${separator}${name}`, name, kind: 'directory' };
   },
 
   async resolvePath(rootHandle, targetHandle) {

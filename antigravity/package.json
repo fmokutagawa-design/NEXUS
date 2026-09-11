@@ -7,6 +7,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test:proofreading": "node src/utils/proofreadingHub.test.mjs",
+    "test:work-management": "node src/utils/workManagement.test.mjs",
+    "test:work-registry": "node src/utils/workRegistry.test.mjs",
+    "test:prize-deadlines": "node src/data/literaryPrizes.test.mjs",
+    "test:manifest": "node src/utils/manifest.test.mjs",
+    "test:export": "node src/utils/exportLayout.test.mjs",
+    "benchmark:proofreading": "node tests/proofreading_benchmark.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "electron:dev": "concurrently -k \"npm run dev\" \"wait-on tcp:5173 && electron .\"",
@@ -21,12 +28,14 @@
     "@tauri-apps/plugin-dialog": "^2.6.0",
     "@tauri-apps/plugin-fs": "^2.4.5",
     "@tauri-apps/plugin-shell": "^2.3.5",
+    "diff": "^8.0.4",
     "font-list": "^2.0.2",
     "jszip": "^3.10.1",
     "openai": "^6.9.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -61,7 +70,29 @@
     "files": [
       "dist/**/*",
       "electron/**/*",
+      "textlint/**/*",
+      ".textlintrc.js",
       "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../nexus_backend",
+        "to": "nexus_backend",
+        "filter": [
+          "bridge_server.py",
+          "deterministic_store.py",
+          "memory_pack.py",
+          "proofreader.py",
+          "knowledge_processor.py",
+          "config_loader.py",
+          "audit_batch_processor.py",
+          "nexus_config.json",
+          "nexus_whitelist.json",
+          "nexus_aliases.json",
+          "proofreading_profile.py",
+          "proofreading_cli.py"
+        ]
+      }
     ],
     "mac": {
       "target": [

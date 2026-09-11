@@ -1,30 +1,52 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getSnapshots, clearSnapshots } from '../utils/snapshotStore';
+import {
+    getSnapshots,
+    clearSnapshots,
+    getSnapshotGroups,
+    deleteSnapshotGroups,
+    getLocalStorageBreakdown,
+} from '../utils/snapshotStore';
 
 const SnapshotPanel = ({ filePath, currentText, onRestore, showToast, onSaveNow }) => {
     const [snapshots, setSnapshots] = useState([]);
     const [loading, setLoading] = useState(false);
     const [previewId, setPreviewId] = useState(null);
     const [diffView, setDiffView] = useState(null);
-    const [storageInfo, setStorageInfo] = useState({ snapshotBytes: 0, totalBytes: 0 });
+    const [storageInfo, setStorageInfo] = useState({ snapshotBytes: 0, draftBytes: 0, otherBytes: 0, totalBytes: 0 });
+    const [showManager, setShowManager] = useState(false);
+    const [snapshotGroups, setSnapshotGroups] = useState([]);
+    const [selectedPaths, setSelectedPaths] = useState(() => new Set());
+    const [managerFilter, setManagerFilter] = useState('all');
+    const [openedAt] = useState(() => Date.now());
 
     const calculateStorageUsage = () => {
-        let snapshotBytes = 0;
-        let totalBytes = 0;
-        try {
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                const value = localStorage.getItem(key);
-                const size = (key.length + value.length) * 2; // UTF-16
-                totalBytes += size;
-                if (key.startsWith('nexus-snap-')) {
-                    snapshotBytes += size;
-                }
-            }
-        } catch (e) {
-            console.error('Storage calculation failed:', e);
-        }
-        return { snapshotBytes, totalBytes };
+        return getLocalStorageBreakdown();
+    };
+
+    const loadManager = useCallback(async () => {
+        setSnapshotGroups(await getSnapshotGroups());
+        setStorageInfo(calculateStorageUsage());
+    }, []);
+
+    const openManager = async () => {
+        await loadManager();
+        setShowManager(true);
+    };
+
+    const handleDeleteSelected = async () => {
+        const selected = snapshotGroups.filter(group => selectedPaths.has(group.filePath));
+        if (selected.length === 0) return;
+        const count = selected.reduce((sum, group) => sum + group.count, 0);
+        const bytes = selected.reduce((sum, group) => sum + group.bytes, 0);
+        const confirmed = window.confirm(
+            `${selected.length}ファイル、${count}件（${formatBytes(bytes)}）のスナップショットを削除します。\n原稿ファイル本体は削除されません。`
+        );
+        if (!confirmed) return;
+        const removed = await deleteSnapshotGroups(selected.map(group => group.filePath));
+        setSelectedPaths(new Set());
+        await loadManager();
+        await loadSnapshots();
+        if (showToast) showToast(`${removed.snapshotCount}件のスナップショットを削除しました`);
     };
 
     const formatBytes = (bytes) => {
@@ -79,7 +101,7 @@ const SnapshotPanel = ({ filePath, currentText, onRestore, showToast, onSaveNow 
 
     const handleRestore = (snapshot) => {
         if (onRestore) {
-            onRestore(snapshot.content);
+            onRestore(snapshot.content, snapshot);
             if (showToast) showToast(`${formatTime(snapshot.timestamp)} の状態に復元しました`);
             setPreviewId(null);
             setDiffView(null);
@@ -110,7 +132,7 @@ const SnapshotPanel = ({ filePath, currentText, onRestore, showToast, onSaveNow 
     };
 
     const formatAgo = (ts) => {
-        const diff = Date.now() - ts;
+        const diff = openedAt - ts;
         const mins = Math.floor(diff / 60000);
         if (mins < 1) return 'たった今';
         if (mins < 60) return `${mins}分前`;
@@ -119,6 +141,13 @@ const SnapshotPanel = ({ filePath, currentText, onRestore, showToast, onSaveNow 
         const days = Math.floor(hours / 24);
         return `${days}日前`;
     };
+
+    const oldBoundary = openedAt - (30 * 24 * 60 * 60 * 1000);
+    const visibleGroups = snapshotGroups.filter(group => {
+        if (managerFilter === 'old') return group.newestAt && group.newestAt < oldBoundary;
+        if (managerFilter === 'current') return group.filePath === filePath;
+        return true;
+    });
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -132,8 +161,29 @@ const SnapshotPanel = ({ filePath, currentText, onRestore, showToast, onSaveNow 
                 fontSize: '13px',
                 fontWeight: 'bold'
             }}>
-                <span>📸 スナップショット</span>
-                {snapshots.length > 0 && (
+                <span>📸 {showManager ? '全体のスナップショット管理' : 'スナップショット'}</span>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                    {!showManager && onSaveNow && currentText && (
+                        <button
+                            disabled={currentText.length > 100000}
+                            title={currentText.length > 100000 ? '10万字を超える本文は現在の保存方式ではスナップショットにできません' : '現在の本文をスナップショットに保存'}
+                            onClick={async () => {
+                                await onSaveNow();
+                                await loadSnapshots();
+                                if (showToast) showToast('スナップショットを保存しました');
+                            }}
+                            style={{ border: '1px solid var(--border-color)', background: 'transparent', borderRadius: '4px', padding: '2px 8px', fontSize: '10px', cursor: currentText.length > 100000 ? 'not-allowed' : 'pointer' }}
+                        >
+                            今すぐ保存
+                        </button>
+                    )}
+                    <button
+                        onClick={() => { if (showManager) setShowManager(false); else openManager(); }}
+                        style={{ border: '1px solid var(--border-color)', background: 'transparent', borderRadius: '4px', padding: '2px 8px', fontSize: '10px', cursor: 'pointer' }}
+                    >
+                        {showManager ? '現在のファイルへ戻る' : '全体を管理'}
+                    </button>
+                {!showManager && snapshots.length > 0 && (
                     <button
                         onClick={handleClear}
                         style={{
@@ -149,9 +199,48 @@ const SnapshotPanel = ({ filePath, currentText, onRestore, showToast, onSaveNow 
                         🗑 全削除
                     </button>
                 )}
+                </div>
             </div>
 
-            {!filePath ? (
+            {showManager ? (
+                <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
+                    <div style={{ padding: '10px', marginBottom: '10px', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '11px', lineHeight: 1.7 }}>
+                        <strong>削除されるのはNEXUS内部の復元履歴だけです。原稿ファイル本体には触れません。</strong><br />
+                        スナップショット {formatBytes(storageInfo.snapshotBytes)} ／ 復元用の現在本文 {formatBytes(storageInfo.draftBytes)} ／ 設定・その他 {formatBytes(storageInfo.otherBytes)}
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                        <select value={managerFilter} onChange={event => setManagerFilter(event.target.value)}>
+                            <option value="all">すべて</option>
+                            <option value="old">最終保存が30日以上前</option>
+                            <option value="current">現在のファイル</option>
+                        </select>
+                        <button onClick={() => setSelectedPaths(new Set(visibleGroups.map(group => group.filePath)))}>表示中をすべて選択</button>
+                        <button onClick={() => setSelectedPaths(new Set())}>選択解除</button>
+                        <button disabled={selectedPaths.size === 0} onClick={handleDeleteSelected} style={{ color: '#b42318' }}>
+                            選択した履歴を削除（{selectedPaths.size}）
+                        </button>
+                    </div>
+                    {visibleGroups.length === 0 ? <p style={{ color: '#888', fontSize: '12px' }}>該当するスナップショットはありません。</p> : visibleGroups.map(group => {
+                        const selected = selectedPaths.has(group.filePath);
+                        const name = group.filePath.split(/[/\\]/).pop() || group.filePath;
+                        return <label key={group.storageKey} style={{ display: 'flex', gap: '10px', padding: '10px', marginBottom: '7px', border: `1px solid ${selected ? 'var(--accent-color,#3498db)' : 'var(--border-color)'}`, borderRadius: '6px', cursor: 'pointer' }}>
+                            <input type="checkbox" checked={selected} onChange={() => setSelectedPaths(previous => {
+                                const next = new Set(previous);
+                                if (next.has(group.filePath)) next.delete(group.filePath); else next.add(group.filePath);
+                                return next;
+                            })} />
+                            <span style={{ minWidth: 0, flex: 1 }}>
+                                <span style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+                                    <strong style={{ overflowWrap: 'anywhere' }}>{name}</strong>
+                                    {group.filePath === filePath && <span style={{ color: '#176b3a', fontWeight: 700 }}>使用中</span>}
+                                </span>
+                                <span style={{ display: 'block', color: '#777', fontSize: '10px', overflowWrap: 'anywhere', marginTop: '3px' }}>{group.filePath}</span>
+                                <span style={{ display: 'block', color: '#777', fontSize: '10px', marginTop: '3px' }}>{group.count}件・{formatBytes(group.bytes)}・最終 {group.newestAt ? formatTime(group.newestAt) : '不明'}</span>
+                            </span>
+                        </label>;
+                    })}
+                </div>
+            ) : !filePath ? (
                 <div style={{ padding: '20px', textAlign: 'center', color: '#999', fontSize: '12px' }}>
                     ファイルを開いてください
                 </div>
@@ -163,29 +252,7 @@ const SnapshotPanel = ({ filePath, currentText, onRestore, showToast, onSaveNow 
                 <div style={{ padding: '20px', textAlign: 'center', color: '#999', fontSize: '12px' }}>
                     スナップショットはまだありません。<br />
                     <span style={{ fontSize: '11px' }}>5分ごと、または大きな変更時に自動保存されます。</span>
-                    {onSaveNow && currentText && (
-                        <button
-                            onClick={async () => {
-                                if (onSaveNow) {
-                                    await onSaveNow();
-                                    loadSnapshots();
-                                    if (showToast) showToast('スナップショットを保存しました');
-                                }
-                            }}
-                            style={{
-                                marginTop: '12px',
-                                padding: '6px 16px',
-                                backgroundColor: 'var(--accent-color, #3498db)',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '11px'
-                            }}
-                        >
-                            📸 今すぐ保存
-                        </button>
-                    )}
+                    {currentText?.length > 100000 && <><br /><span style={{ color: '#b42318', fontSize: '11px' }}>この本文は10万字を超えるため、現在の方式では保存対象外です。</span></>}
                 </div>
             ) : (
                 <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
@@ -303,17 +370,9 @@ const SnapshotPanel = ({ filePath, currentText, onRestore, showToast, onSaveNow 
                 alignItems: 'center',
                 flexShrink: 0
             }}>
-                <span>
-                    📦 スナップショット: {formatBytes(storageInfo.snapshotBytes)}
-                </span>
-                <span>
-                    全体: {formatBytes(storageInfo.totalBytes)} / ~5 MB
-                </span>
-                {storageInfo.totalBytes > 4 * 1024 * 1024 && (
-                    <span style={{ color: '#e74c3c', fontWeight: 'bold' }}>
-                        ⚠️ 容量注意
-                    </span>
-                )}
+                <span>📦 履歴: {formatBytes(storageInfo.snapshotBytes)}</span>
+                <span>内部データ全体: {formatBytes(storageInfo.totalBytes)}</span>
+                {!showManager && storageInfo.snapshotBytes > 0 && <button onClick={openManager} style={{ fontSize: '10px' }}>内訳・削除</button>}
             </div>
         </div>
     );

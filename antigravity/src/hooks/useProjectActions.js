@@ -403,6 +403,30 @@ export function useProjectActions({
     }
   }, [projectHandle, allMaterialFiles, refreshMaterials, showToast]);
 
+  const handleArchiveVersion = useCallback(async (sourceHandle, itemType) => {
+    if (!projectHandle || !sourceHandle) return false;
+    try {
+      const sourcePath = await fileSystem.resolvePath(projectHandle, sourceHandle);
+      if (!sourcePath || sourcePath.length === 0) throw new Error('移動元を確認できません');
+      const archiveHandle = await fileSystem.createFolder(projectHandle, 'version_archive');
+      const sourceParent = sourcePath.length > 1
+        ? await fileSystem.getDirectoryHandleFromPath(projectHandle, sourcePath.slice(0, -1))
+        : projectHandle;
+      if (itemType === 'directory' || sourceHandle?.kind === 'directory') {
+        await fileSystem.moveDirectoryWithContext(sourceHandle, sourceParent, archiveHandle);
+      } else {
+        await fileSystem.moveFileWithContext(sourceHandle, sourceParent, archiveHandle);
+      }
+      await refreshMaterials();
+      showToast('version_archiveへ移動しました。');
+      return true;
+    } catch (error) {
+      console.error('Version archive move failed:', error);
+      showToast(`version_archiveへの移動に失敗しました: ${error.message}`);
+      return false;
+    }
+  }, [projectHandle, refreshMaterials, showToast]);
+
   const handleDelete = useCallback(async (handle, itemType, parentHandle) => {
     try {
       const itemName = (typeof handle === 'string')
@@ -858,6 +882,7 @@ export function useProjectActions({
     // File tree operations
     handleRename,
     handleMoveItem,
+    handleArchiveVersion,
     handleDelete,
     // Project-wide replace
     handleProjectReplace,

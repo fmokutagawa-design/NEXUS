@@ -35,6 +35,7 @@ export function SidebarFilesTab({
   handleDelete,
   handleDuplicateFile,
   handleMoveItem,
+  handleArchiveVersion,
   handleSaveFile,
   fileInputRef,
   debouncedText,
@@ -164,6 +165,7 @@ export function SidebarFilesTab({
             ) : fileTree.length > 0 ? (
               <FileTree
                 tree={fileTree}
+                projectKey={typeof projectHandle === 'string' ? projectHandle : projectHandle?.name}
                 activeFile={activeFileHandle ? (activeFileHandle.handle || activeFileHandle) : null}
                 onFileSelect={handleFileSelect}
                 onCreateFile={handleCreateFileInProject}
@@ -192,6 +194,7 @@ export function SidebarFilesTab({
                 onDelete={handleDelete}
                 onDuplicate={handleDuplicateFile}
                 onMove={handleMoveItem}
+                onArchiveVersion={handleArchiveVersion}
               />
             ) : (
               <div style={{ padding: '1rem', color: '#999', fontSize: '0.85rem', textAlign: 'center' }}>

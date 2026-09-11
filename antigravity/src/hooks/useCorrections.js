@@ -24,11 +24,16 @@ export function useCorrections(
     } else if (mode === 'replace') {
       if (insertedText.original && insertedText.suggested) {
         // From correction
-        if (text.includes(insertedText.original)) {
-          setText(text.replace(insertedText.original, insertedText.suggested));
+        const { start, end } = insertedText;
+        if (Number.isInteger(start) && Number.isInteger(end) && text.slice(start, end) === insertedText.original) {
+          setText(text.slice(0, start) + insertedText.suggested + text.slice(end));
+          return true;
+        } else if (!Number.isInteger(start) || !Number.isInteger(end)) {
+          showToast('同じ表現が複数あり修正位置を特定できません。該当箇所へ移動して個別に修正してください。', 'error');
         } else {
-          showToast('指摘箇所が見つかりませんでした。');
+          showToast('校正後に文章が変更されたため、この修正は適用できません。もう一度校正してください。', 'error');
         }
+        return false;
       } else {
         // Simple replace at cursor (used for rewrite)
         editorRef.current?.insertText(insertedText);
@@ -38,14 +43,19 @@ export function useCorrections(
       const insertion = typeof insertedText === 'string' ? insertedText : (insertedText.suggested || '');
       setText(prev => prev.trimEnd() + insertion);
     } else if (mode === 'jump') {
-      const { original } = insertedText;
+      const { original, start, end } = insertedText;
       if (!original || !editorRef.current) return;
 
-      const index = text.indexOf(original);
-      if (index !== -1) {
-        editorRef.current.jumpToPosition(index, index + original.length);
+      if (Number.isInteger(start) && Number.isInteger(end) && text.slice(start, end) === original) {
+        editorRef.current.jumpToPosition(start, end);
       } else {
-        showToast('指摘箇所が見つかりませんでした。');
+        const first = text.indexOf(original);
+        const second = first >= 0 ? text.indexOf(original, first + original.length) : -1;
+        if (first >= 0 && second === -1) {
+          editorRef.current.jumpToPosition(first, first + original.length);
+        } else {
+          showToast('指摘箇所を一意に特定できませんでした。', 'error');
+        }
       }
     } else {
       if (editorRef.current) {
@@ -57,11 +67,16 @@ export function useCorrections(
   };
 
   const handleApplyCorrection = (correction) => {
-    if (!text.includes(correction.original)) {
-      showToast('修正箇所の原文が見つかりませんでした。', 'error');
+    const { start, end } = correction;
+    if (!Number.isInteger(start) || !Number.isInteger(end)) {
+      showToast('同じ表現が複数あり修正位置を特定できません。該当箇所へ移動して個別に修正してください。', 'error');
       return;
     }
-    const newText = text.replace(correction.original, correction.suggested);
+    if (text.slice(start, end) !== correction.original) {
+      showToast('校正後に文章が変更されたため、この修正は適用できません。もう一度校正してください。', 'error');
+      return;
+    }
+    const newText = text.slice(0, start) + correction.suggested + text.slice(end);
     setText(newText);
     setCorrections(prev => prev.filter(c => c.id !== correction.id));
     showToast('修正を適用しました');
@@ -75,9 +90,11 @@ export function useCorrections(
     let currentText = text;
     let appliedCount = 0;
     const remainingCorrections = [];
-    corrections.forEach(c => {
-      if (currentText.includes(c.original)) {
-        currentText = currentText.replace(c.original, c.suggested);
+    // 後ろから適用すれば、前方にある指摘の文字位置は変化しない。
+    const ordered = [...corrections].sort((a, b) => (b.start ?? -1) - (a.start ?? -1));
+    ordered.forEach(c => {
+      if (Number.isInteger(c.start) && Number.isInteger(c.end) && currentText.slice(c.start, c.end) === c.original) {
+        currentText = currentText.slice(0, c.start) + c.suggested + currentText.slice(c.end);
         appliedCount++;
       } else {
         remainingCorrections.push(c);

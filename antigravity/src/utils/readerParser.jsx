@@ -61,12 +61,19 @@ export function parseBlocks(text) {
         let lineFont = blockFont;
         let align = null;
         let isHeader = false;
+        let headingMarker = '';
 
-        // 見出し（■ マーカー含む）
-        if (/^■/.test(line)) {
+        // 見出し（■ / ◇ マーカー含む）
+        // 原稿の字下げ（半角/全角空白・タブ・BOM）が見出し記号の前に
+        // あっても、目次から章を落とさない。
+        if (/^[\uFEFF \t\u3000]*[■◇]/.test(line)) {
             heading = 'chapter';
             isHeader = true;
-            line = line.replace(/^■\s*/, '');
+            const markerMatch = line.match(/^[\uFEFF \t\u3000]*[■◇]+/);
+            headingMarker = markerMatch ? markerMatch[0].trim() : '';
+            line = line.replace(/^[\uFEFF \t\u3000]*[■◇]+\s*/, '');
+            // 記号だけの行も章境界として残す。空の制御行として捨てない。
+            if (line.length === 0) line = headingMarker;
         }
         if (/［＃大見出し］/.test(line)) {
             heading = 'large';

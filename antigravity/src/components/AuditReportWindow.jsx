@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ollamaService } from '../utils/ollamaService';
 import './AuditReportWindow.css';
 
-const AuditReportWindow = ({ isOpen, onClose, currentText, activeFile }) => {
+const AuditReportWindow = ({ isOpen, onClose, currentText, activeFile, onJumpToIndex }) => {
   const [report, setReport] = useState([]);
   const [textlintReport, setTextlintReport] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -40,16 +40,23 @@ const AuditReportWindow = ({ isOpen, onClose, currentText, activeFile }) => {
   const fetchTextlint = async () => {
     if (!currentText || !window.api?.textlint) return;
     try {
+      const activePath = typeof activeFile === 'string'
+        ? activeFile
+        : (activeFile?.path || activeFile?.handle || '');
+      const activeName = typeof activeFile === 'string'
+        ? activeFile.split(/[/\\]/).pop()
+        : (activeFile?.name || String(activePath).split(/[/\\]/).pop());
       const results = await window.api.textlint.proofread(currentText);
       const formatted = results.map(msg => ({
-        file: activeFile?.name || "現在のファイル",
-        full_path: activeFile?.path || activeFile?.handle,
+        file: activeName || "現在のファイル",
+        full_path: activePath,
         original: currentText.substring(msg.index - 5, msg.index + 10).replace(/\n/g, ' '),
         suggested: msg.message,
         reason: `[${msg.ruleId}] ${msg.message}`,
         line: msg.line,
         index: msg.index,
         category: '校正',
+        currentFileResult: true,
         timestamp: new Date().toLocaleTimeString()
       }));
       setTextlintReport(formatted);
@@ -136,6 +143,10 @@ const AuditReportWindow = ({ isOpen, onClose, currentText, activeFile }) => {
   }, [report, textlintReport, categoryFilter, fileFilter]);
 
   const handleJump = (item) => {
+    if (item.currentFileResult && Number.isFinite(Number(item.index)) && onJumpToIndex) {
+      onJumpToIndex(Number(item.index));
+      return;
+    }
     const event = new CustomEvent('nexus-jump-to-text', {
       detail: {
         text: item.original,
@@ -205,10 +216,23 @@ const AuditReportWindow = ({ isOpen, onClose, currentText, activeFile }) => {
             {processedItems.map((item, index) => {
               const category = classifyCorrection(item);
               return (
-                <li key={index} className={`homework-item category-${category}`} onClick={() => handleJump(item)}>
+                <li
+                  key={index}
+                  className={`homework-item category-${category}`}
+                  onClick={() => handleJump(item)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      handleJump(item);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  title="クリックして本文の該当位置へ移動"
+                >
                   <div className="item-meta">
                     <span className={`category-tag category-${category}`}>{category}</span>
-                    <span className="project-tag">{item.project || 'Unknown'}</span>
+                    {item.project && <span className="project-tag">{item.project}</span>}
                     <span className="file-name">{item.file}</span>
                     <span className="timestamp">{item.timestamp}</span>
                   </div>

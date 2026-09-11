@@ -30,14 +30,19 @@ import SemanticGraph from './components/SemanticGraph';
 import MatrixOutliner from './components/MatrixOutliner';
 import NotificationToast from './components/NotificationToast';
 import CustomConfirmModal from './components/CustomConfirmModal';
+import ConflictDiffModal from './components/ConflictDiffModal';
+import ReaderEditReviewModal from './components/ReaderEditReviewModal';
+import RestoreReviewModal from './components/RestoreReviewModal';
 import CardCreator from './components/CardCreator';
 import SnippetsPanel from './components/SnippetsPanel';
 import NavigatePanel from './components/NavigatePanel';
 import ProgressPanel from './components/ProgressPanel';
+import ProductionDashboard from './components/ProductionDashboard';
 import NotesPanel from './components/NotesPanel';
 import TodoPanel from './components/TodoPanel';
 import SnapshotPanel from './components/SnapshotPanel';
 import AIKnowledgeManager from './components/AIKnowledgeManager';
+import AIEditRequestPanel from './components/AIEditRequestPanel';
 import { saveSnapshot } from './utils/snapshotStore';
 import './components/LinkPanel.css';
 import KnowledgeSuggestionBanner from './components/KnowledgeSuggestionBanner';
@@ -82,6 +87,11 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { usePresets } from './hooks/usePresets';
 import { useSettingsSync } from './hooks/useSettingsSync';
 import { useStatePersistence } from './hooks/useStatePersistence';
+import { refreshKnownPrizeDeadlines } from './data/literaryPrizes';
+import { readManifest } from './utils/manifest';
+import { manuscriptCandidateScore } from './utils/workRegistry.js';
+import { assessReaderEdit, displayFileName, sameFileTarget } from './utils/readerEditSession.mjs';
+import { createRestoreReview } from './utils/restoreReview.mjs';
 import { SidebarFilesTab } from './components/SidebarFilesTab';
 import SplitByChaptersModal from './components/SplitByChaptersModal';
 import ImportChaptersModal from './components/ImportChaptersModal';
@@ -110,7 +120,8 @@ function App() {
     }, 500);
     return () => clearTimeout(timer);
   }, [text]);
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState(() => {
+    const defaults = {
     colorTheme: 'light', // light, dark, blackboard
     paperStyle: 'lined', // plain, lined, grid, manuscript
     fontFamily: 'var(--font-mincho)',
@@ -122,6 +133,7 @@ function App() {
     isVertical: true,
     orientation: 'landscape',
     showGrid: true,
+    showWhitespace: false,
     showLineNumbers: true, // New setting
     defaultReferenceWindowFontSize: 1.1,
     customKeywords: [], // { id, pattern, color, isActive }
@@ -141,14 +153,37 @@ function App() {
     enableJournaling: true, // ジャーナリング (操作ログ) のオン・オフ
     enablePerfLogging: false, // 開発・分析用ログ (PERF) のオン・オフ
     customCSS: '', // User custom CSS
-    rubyFontFamily: 'inherit', // Ruby specific font
+      rubyFontFamily: 'inherit', // Ruby specific font
+    };
+
+    // 初回描画より前に復元し、StrictMode の effect 再実行でも初期値が
+    // 保存済み設定を上書きしないようにする。
+    try {
+      const mainSaved = JSON.parse(localStorage.getItem('novel-editor-settings') || '{}');
+      const windowMode = new URLSearchParams(window.location.search).get('mode') === 'window';
+      const windowSaved = windowMode
+        ? JSON.parse(localStorage.getItem('novel-editor-settings-window') || '{}')
+        : {};
+      const saved = { ...mainSaved, ...windowSaved };
+      if (windowMode) {
+        saved.fontFamily = mainSaved.fontFamily || saved.fontFamily;
+        saved.rubyFontFamily = mainSaved.rubyFontFamily || saved.rubyFontFamily;
+      }
+      return {
+        ...defaults,
+        ...saved,
+        syntaxColors: { ...defaults.syntaxColors, ...(saved.syntaxColors || {}) },
+      };
+    } catch (error) {
+      console.warn('[settings] saved settings could not be restored:', error);
+      return defaults;
+    }
   });
 
   const [aiAction, setAiAction] = useState(null);
 
   const [presets, setPresets] = useState([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isRapidMode, setIsRapidMode] = useState(false);
   const [pendingImport, setPendingImport] = useState(null); // Data from Checklist to Board
   const [pendingFileSelect, setPendingFileSelect] = useState(null);
 
@@ -181,27 +216,205 @@ function App() {
     return urlParams.get('mode') === 'knowledge';
   });
 
-  const [sidebarTab, setSidebarTab] = useState('settings'); // 'files', 'tags', 'links', or 'settings'
+  const [sidebarTab, setSidebarTab] = useState('progress'); // 起動時は全作品の制作状況を表示
   const [projectHandle, setProjectHandle] = useState(null);
   const [savedProjectHandle, setSavedProjectHandle] = useState(null); // For resuming session
   const [fileTree, setFileTree] = useState([]);
   const [activeFileHandle, setActiveFileHandle] = useState(null);
   const [isProjectMode, setIsProjectMode] = useState(false);
+  const isProjectModeRef = useRef(false);
 
   // Bug 1 修正: 宣言後に Ref を同期させる
   useEffect(() => { activeFileHandleRef.current = activeFileHandle; }, [activeFileHandle]);
+  useEffect(() => { isProjectModeRef.current = isProjectMode; }, [isProjectMode]);
   const [showReader, setShowReader] = useState(false);
+  const [readerEditReturn, setReaderEditReturn] = useState(null);
+  const readerEditReturnRef = useRef(null);
+  const [readerEditReview, setReaderEditReview] = useState(null);
+  const [restoreReview, setRestoreReview] = useState(null);
+  const restoreReviewRef = useRef(null);
+  const baselineFileHandleRef = useRef(null);
+  const [readerResumeOffset, setReaderResumeOffset] = useState(null);
   const [projectSettings, setProjectSettings] = useState({
     targetPages: 300,     // 目標枚数 (400字詰め)
     chapters: 0,         // 章数 (0 = 自動)
     deadline: null,      // 締切日
-    rapidModeDefault: false,
     todoCategories: ['背景', '人物', '心理', '描写', '設定', '伏線', '調査', 'その他'],
   });
 
   const [showSemanticGraph, setShowSemanticGraph] = useState(false);
   const [showMatrixOutliner, setShowMatrixOutliner] = useState(false);
+  const { toasts, showToast, removeToast, confirmConfig, requestConfirm } = useToastConfirm();
   const [activeWorkFolderPath, setActiveWorkFolderPath] = useState(''); // NEW: 検索対象パスのステート化
+  const [submissions, setSubmissions] = useState([]);
+  const [workProfiles, setWorkProfiles] = useState({});
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState(null);
+
+  const activeWorkId = useMemo(() => {
+    if (activeWorkFolderPath) return activeWorkFolderPath;
+    const path = typeof activeFileHandle === 'string'
+      ? activeFileHandle
+      : (activeFileHandle?.handle || activeFileHandle?.path || activeFileHandle?.name || '');
+    return String(path).replace(/[/\\][^/\\]+$/, '') || String(path) || 'current-work';
+  }, [activeWorkFolderPath, activeFileHandle]);
+
+  const activeWorkTitle = useMemo(() => {
+    const nexusName = activeWorkId.split(/[/\\]/).pop() || '';
+    if (nexusName.endsWith('.nexus')) return nexusName.slice(0, -6);
+    const fileName = activeFileHandle?.name || String(activeFileHandle || '').split(/[/\\]/).pop();
+    return fileName?.replace(/\.[^/.]+$/, '') || nexusName || '現在の作品';
+  }, [activeWorkId, activeFileHandle]);
+
+  const activeSubmission = useMemo(() => {
+    const forWork = submissions.filter(item => item.workId === activeWorkId);
+    return forWork.find(item => item.id === selectedSubmissionId)
+      || [...forWork].sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999'))[0]
+      || null;
+  }, [submissions, activeWorkId, selectedSubmissionId]);
+
+  const nextSubmission = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return submissions
+      .filter(item => item.deadline)
+      .map(item => ({ ...item, daysLeft: Math.ceil((new Date(`${item.deadline}T23:59:59`) - today) / 86400000) }))
+      .filter(item => item.daysLeft >= 0)
+      .sort((a, b) => a.daysLeft - b.daysLeft)[0] || null;
+  }, [submissions]);
+
+  const persistSubmissions = useCallback(async (next) => {
+    if (!projectHandle) return;
+    const entries = await fileSystem.readDirectory(projectHandle);
+    const existing = entries.find(e => e.kind === 'file' && e.name === 'nexus-submissions.json');
+    const json = JSON.stringify({ version: 1, submissions: next }, null, 2);
+    if (existing) await fileSystem.writeFile(existing.handle || existing, json);
+    else await fileSystem.createFile(projectHandle, 'nexus-submissions.json', json);
+  }, [projectHandle]);
+
+  useEffect(() => {
+    let active = true;
+    if (!projectHandle) {
+      setSubmissions([]);
+      return () => { active = false; };
+    }
+    (async () => {
+      try {
+        const entries = await fileSystem.readDirectory(projectHandle);
+        const entry = entries.find(e => e.kind === 'file' && e.name === 'nexus-submissions.json');
+        if (!entry) { if (active) setSubmissions([]); return; }
+        const parsed = JSON.parse(await fileSystem.readFile(entry.handle || entry));
+        const saved = Array.isArray(parsed?.submissions) ? parsed.submissions : [];
+        const refreshed = refreshKnownPrizeDeadlines(saved);
+        if (JSON.stringify(refreshed) !== JSON.stringify(saved)) {
+          await fileSystem.writeFile(entry.handle || entry, JSON.stringify({ ...parsed, submissions: refreshed }, null, 2));
+        }
+        if (active) setSubmissions(refreshed);
+      } catch (error) {
+        console.warn('[submissions] load failed:', error);
+        if (active) setSubmissions([]);
+      }
+    })();
+    return () => { active = false; };
+  }, [projectHandle]);
+
+  const persistWorkProfiles = useCallback(async (next) => {
+    if (!projectHandle) return;
+    const entries = await fileSystem.readDirectory(projectHandle);
+    const existing = entries.find(e => e.kind === 'file' && e.name === 'nexus-production.json');
+    const json = JSON.stringify({ version: 1, works: next }, null, 2);
+    if (existing) await fileSystem.writeFile(existing.handle || existing, json);
+    else await fileSystem.createFile(projectHandle, 'nexus-production.json', json);
+  }, [projectHandle]);
+
+  useEffect(() => {
+    let active = true;
+    if (!projectHandle) {
+      setWorkProfiles({});
+      return () => { active = false; };
+    }
+    (async () => {
+      try {
+        const entries = await fileSystem.readDirectory(projectHandle);
+        const entry = entries.find(e => e.kind === 'file' && e.name === 'nexus-production.json');
+        if (!entry) { if (active) setWorkProfiles({}); return; }
+        const parsed = JSON.parse(await fileSystem.readFile(entry.handle || entry));
+        if (active) setWorkProfiles(parsed?.works && typeof parsed.works === 'object' ? parsed.works : {});
+      } catch (error) {
+        console.warn('[production] load failed:', error);
+        if (active) setWorkProfiles({});
+      }
+    })();
+    return () => { active = false; };
+  }, [projectHandle]);
+
+  const updateWorkProfile = useCallback((workId, changes) => {
+    setWorkProfiles(previous => {
+      const next = {
+        ...previous,
+        [workId]: { ...(previous[workId] || {}), ...changes, updatedAt: new Date().toISOString() }
+      };
+      persistWorkProfiles(next).catch(error => showToast(`制作状況を保存できませんでした: ${error.message}`, 'error'));
+      return next;
+    });
+  }, [persistWorkProfiles, showToast]);
+
+  const handleWorkRegistered = useCallback(async (registration, legacyIds = []) => {
+    const legacySet = new Set(legacyIds.filter(Boolean));
+    setWorkProfiles(previous => {
+      const inherited = [...legacySet].reduce((merged, id) => ({ ...merged, ...(previous[id] || {}) }), {});
+      const next = { ...previous };
+      legacySet.forEach(id => delete next[id]);
+      next[registration.workId] = {
+        ...inherited,
+        ...(previous[registration.workId] || {}),
+        title: registration.title,
+        updatedAt: new Date().toISOString(),
+      };
+      persistWorkProfiles(next).catch(error => showToast(`作品登録情報を保存できませんでした: ${error.message}`, 'error'));
+      return next;
+    });
+    setSubmissions(previous => {
+      const next = previous.map(item => legacySet.has(item.workId)
+        ? { ...item, workId: registration.workId, workTitle: registration.title, updatedAt: new Date().toISOString() }
+        : item);
+      persistSubmissions(next).catch(error => showToast(`応募情報を引き継げませんでした: ${error.message}`, 'error'));
+      return next;
+    });
+    showToast(`「${registration.title}」を作品として登録しました。`);
+  }, [persistSubmissions, persistWorkProfiles, showToast]);
+
+  const addSubmission = useCallback((submission) => {
+    setSubmissions(previous => {
+      const targetWorkId = submission.workId || activeWorkId;
+      const targetWorkTitle = submission.workTitle || activeWorkTitle;
+      const withoutSame = previous.filter(item => !(item.workId === targetWorkId && item.prizeId === submission.prizeId));
+      const next = [...withoutSame, {
+        ...submission,
+        id: submission.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        workId: targetWorkId,
+        workTitle: targetWorkTitle,
+        updatedAt: new Date().toISOString(),
+      }];
+      persistSubmissions(next).catch(error => showToast(`応募予定を保存できませんでした: ${error.message}`, 'error'));
+      return next;
+    });
+  }, [activeWorkId, activeWorkTitle, persistSubmissions, showToast]);
+
+  const removeSubmission = useCallback((id) => {
+    setSubmissions(previous => {
+      const next = previous.filter(item => item.id !== id);
+      persistSubmissions(next).catch(error => showToast(`応募予定を更新できませんでした: ${error.message}`, 'error'));
+      return next;
+    });
+  }, [persistSubmissions, showToast]);
+
+  const updateSubmission = useCallback((id, changes) => {
+    setSubmissions(previous => {
+      const next = previous.map(item => item.id === id ? { ...item, ...changes, updatedAt: new Date().toISOString() } : item);
+      persistSubmissions(next).catch(error => showToast(`応募予定を更新できませんでした: ${error.message}`, 'error'));
+      return next;
+    });
+  }, [persistSubmissions, showToast]);
 
   // Memoize editor value to avoid re-parsing on every render and stabilize reference for React.memo
   // ★ parseNote は debouncedText ベース → 毎キー入力での14万字パースを回避
@@ -215,7 +428,6 @@ function App() {
   }, [parsedNote, showMetadata, debouncedText]);
 
   // Custom UI Management
-  const { toasts, showToast, removeToast, confirmConfig, requestConfirm } = useToastConfirm();
   const [notesText, setNotesText] = useState('');
 
   const handleImageDrop = useCallback(async (imageFile) => {
@@ -279,6 +491,18 @@ function App() {
 
   const [lastSaved, setLastSaved] = useState(null);
   const lastSavedTextRef = useRef('');
+  const externalConflictRef = useRef(false);
+  const [externalConflict, setExternalConflict] = useState(null);
+
+  useEffect(() => { readerEditReturnRef.current = readerEditReturn; }, [readerEditReturn]);
+  useEffect(() => {
+    if (!readerEditReturn || !activeFileHandle) return;
+    if (!sameFileTarget(readerEditReturn.fileHandle, activeFileHandle)) {
+      setReaderEditReturn(null);
+      setReaderEditReview(null);
+      showToast('別のファイルを開いたため、以前のリーダー編集セッションを終了しました。');
+    }
+  }, [activeFileHandle, readerEditReturn, showToast]);
 
   const editorRef = React.useRef(null);
   const fileInputRef = useRef(null);
@@ -374,9 +598,10 @@ function App() {
 
   // --- Knowledge Window Mode ---
   if (isKnowledgeMode) {
+    const knowledgeTargetPath = new URLSearchParams(window.location.search).get('targetPath') || (typeof projectHandle === 'string' ? projectHandle : (projectHandle?.path || projectHandle?.handle || ''));
     return (
       <div className={`app-container ${isDarkMode ? 'dark-mode' : 'light'}`} style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}>
-        <AIKnowledgeManager />
+        <AIKnowledgeManager targetPath={knowledgeTargetPath} standalone onClose={() => window.close()} />
         <NotificationToast toasts={toasts} onRemove={removeToast} />
       </div>
     );
@@ -388,12 +613,16 @@ function App() {
   // 対象ファイルを開いて該当行へスクロールする
   useEffect(() => {
     const handleJumpEvent = async (e) => {
-        const { file, line, path } = e.detail;
+        const { file, line, path, text: expectedText } = e.detail;
         console.log(`[JumpRequest] File: ${file}, Line: ${line}, Path: ${path}`);
 
-        const targetFile = allMaterialFiles.find(f =>
-            (path && f.path === path) || f.name === file || f.name === `${file}.txt`
-        );
+        const normalizePath = value => String(value || '').normalize('NFC').replace(/\\/g, '/').replace(/\/+$/, '');
+        const requestedPath = normalizePath(path);
+        const targetFile = allMaterialFiles.find(f => {
+            const candidatePath = normalizePath(f.path || f.handle);
+            return (requestedPath && candidatePath === requestedPath)
+                || f.name === file || f.name === `${file}.txt`;
+        });
 
         if (targetFile) {
             await handleOpenFile(targetFile.handle, targetFile.name, { path: targetFile.path });
@@ -402,7 +631,10 @@ function App() {
                 const editor = editorRef.current;
                 const currentText = typeof textRef.current === 'string' ? textRef.current : '';
                 
-                if (editor?.jumpToPosition && currentText.length > 10) {
+                const normalizedExpected = String(expectedText || '').trim();
+                const loadedExpectedFile = !normalizedExpected || currentText.includes(normalizedExpected);
+
+                if (editor?.jumpToPosition && currentText.length > 0 && loadedExpectedFile) {
                     // 行番号 → 文字位置に変換
                     const lines = currentText.split('\n');
                     let charPos = 0;
@@ -413,6 +645,8 @@ function App() {
                     editor.jumpToPosition(charPos, charPos);
                 } else if (attempts < 50) {
                     setTimeout(() => tryJumpToLine(attempts + 1), 200);
+                } else {
+                    showToast(`「${file}」は開きましたが、ジャンプ位置を確認できませんでした。`, 'error');
                 }
             };
             setTimeout(() => tryJumpToLine(0), 400);
@@ -461,14 +695,6 @@ function App() {
     // ファイルパスならディレクトリ部分を取得
     if (norm.match(/\.[^/]+$/)) {
       norm = norm.substring(0, norm.lastIndexOf('/'));
-    }
-    // .nexus フォルダを見つけたらそこをスコープにする
-    if (norm.includes('.nexus')) {
-      const parts = norm.split('/');
-      const nexusIdx = parts.findIndex(p => p.endsWith('.nexus'));
-      if (nexusIdx !== -1) {
-        norm = parts.slice(0, nexusIdx + 1).join('/');
-      }
     }
     // 計算結果が現在値と異なる場合のみ更新
     setActiveWorkFolderPath(prev => prev === norm ? prev : norm);
@@ -527,8 +753,14 @@ function App() {
   useSettingsSync({ presets, isDarkMode, settings, isElectron });
   useStatePersistence({ debouncedText, activeFileHandle, isProjectMode, isWindowMode, settings, projectHandle, setProjectHandle, setLastSaved });
 
-  const { handleFormat, handleEpubExport, handleDocxExport, handlePrint } = useExport(
-    text, setText, activeFileHandle, projectHandle, settings, allMaterialFiles, showToast, activeTab, setActiveTab
+  const workTextData = useWorkText({
+    activeFileHandle,
+    projectHandle,
+    currentText: debouncedText,
+  });
+
+  const { handleFormat, handleEpubExport, handleDocxExport, handleMergedTextExport, handlePrint } = useExport(
+    text, setText, activeFileHandle, projectHandle, settings, allMaterialFiles, showToast, activeTab, setActiveTab, workTextData, activeSubmission?.editorFormat
   );
 
   const { handleAIInsert, handleApplyCorrection, handleDiscardCorrection, handleApplyAllCorrections } = useCorrections(
@@ -587,6 +819,7 @@ function App() {
     handleOutlineJump,
     handleRename,
     handleMoveItem,
+    handleArchiveVersion,
     handleDelete,
     handleProjectReplace,
     handleRenameProject,
@@ -657,6 +890,26 @@ function App() {
     saveProjectHandle,
     setProjectHandle,
     setUsageStats,
+    activeFileHandleRef,
+    externalConflictRef,
+    onExternalConflict: setExternalConflict,
+    baselineFileHandleRef,
+    saveReviewGateRef: restoreReviewRef,
+    onSaveBlocked: () => {
+      if (restoreReviewRef.current) {
+        const review = {
+          ...restoreReviewRef.current,
+          restoredText: textRef.current,
+          hasChanges: restoreReviewRef.current.diskText !== textRef.current,
+        };
+        restoreReviewRef.current = review;
+        setRestoreReview(review);
+      }
+    },
+    onFileBaselineEstablished: () => {
+      restoreReviewRef.current = null;
+      setRestoreReview(null);
+    },
   });
 
   // ラッパーの実体を更新
@@ -673,6 +926,52 @@ function App() {
     handleOpenSegmentFile,
   } = fileOps;
 
+  const openReader = useCallback(async () => {
+    await workTextData.reloadWork();
+    setReaderResumeOffset(null);
+    setShowReader(true);
+  }, [workTextData]);
+
+  const editFromReader = useCallback(async (resolved, globalOffset) => {
+    const opened = await handleOpenSegmentFile(resolved.file, resolved.localOffset, resolved.nexusPath);
+    if (!opened) return;
+    setReaderEditReturn({
+      globalOffset,
+      baselineText: opened.content,
+      fileHandle: opened.fileHandle,
+      fileName: displayFileName(opened.fileHandle, opened.fileName || resolved.file),
+    });
+  }, [handleOpenSegmentFile]);
+
+  const saveAndReturnToReader = useCallback(async () => {
+    if (!readerEditReturn) return;
+    const currentText = textRef.current;
+    if (!sameFileTarget(readerEditReturn.fileHandle, activeFileHandleRef.current)) {
+      setReaderEditReview({
+        ...readerEditReturn,
+        currentText,
+        fileHandle: null,
+        fileName: `${readerEditReturn.fileName || '以前のファイル'}（現在開いているファイルとは異なります）`,
+        saveUnavailableMessage: '編集を開始したファイルと現在のファイルが異なるため、保存を禁止しました。現在の本文をコピーして退避できます。',
+        mode: 'reader',
+      });
+      return;
+    }
+    const assessment = assessReaderEdit({
+      baselineText: readerEditReturn.baselineText,
+      currentText,
+      hasTarget: Boolean(readerEditReturn.fileHandle),
+    });
+    if (!assessment.hasChanges) {
+      await workTextData.reloadWork();
+      setReaderResumeOffset(readerEditReturn.globalOffset);
+      setReaderEditReturn(null);
+      setShowReader(true);
+      return;
+    }
+    setReaderEditReview({ ...readerEditReturn, currentText, mode: 'reader' });
+  }, [readerEditReturn, workTextData]);
+
   useKeyboardShortcuts({
     onSearchRequested: (query) => {
       setProjectSearchQuery({ term: query || '', timestamp: Date.now() });
@@ -680,9 +979,10 @@ function App() {
       setSidebarSubTab('search');
       setIsSidebarVisible(true);
     },
+    isReaderOpen: showReader,
+    onReaderSearchRequested: () => window.dispatchEvent(new CustomEvent('nexus-reader-focus-search')),
     handleSaveFileRef,
-    setIsRapidMode,
-    setShowReader,
+    setShowReader: (visible) => { if (visible) openReader(); else setShowReader(false); },
     setInputModalMode,
     setInputModalValue,
     setShowInputModal
@@ -700,12 +1000,6 @@ function App() {
     showToast,
   });
 
-  const workTextData = useWorkText({
-    activeFileHandle,
-    projectHandle,
-    currentText: debouncedText,
-  });
-
   useAutoSave({
     text,
     debouncedText,
@@ -716,10 +1010,13 @@ function App() {
     lastSavedTextRef,
     showToast,
     setProjectSettings,
-    setIsRapidMode,
     activeFileHandleRef, // 追加
     debouncedTextRef, // 追加
     settings, // 追加
+    externalConflictRef,
+    onExternalConflict: setExternalConflict,
+    baselineFileHandleRef,
+    saveReviewGateRef: restoreReviewRef,
   });
 
 
@@ -807,15 +1104,45 @@ function App() {
 
   // ウィンドウを閉じる前に未保存チェック
   useEffect(() => {
+    if (isElectron && window.api?.onCloseRequested) {
+      return window.api.onCloseRequested(async () => {
+        const currentText = textRef.current;
+        const isDirty = isProjectModeRef.current && currentText !== lastSavedTextRef.current;
+        try {
+          if (isDirty) {
+            const candidateSession = readerEditReturnRef.current;
+            const session = candidateSession && sameFileTarget(candidateSession.fileHandle, activeFileHandleRef.current)
+              ? candidateSession
+              : null;
+            setReaderEditReview({
+              globalOffset: session?.globalOffset ?? null,
+              baselineText: session?.baselineText ?? lastSavedTextRef.current,
+              currentText,
+              fileHandle: externalConflictRef.current
+                ? null
+                : (session?.fileHandle ?? activeFileHandleRef.current),
+              fileName: session?.fileName ?? displayFileName(activeFileHandleRef.current),
+              saveUnavailableMessage: externalConflictRef.current
+                ? '外部編集との競合が残っているため、この画面からは保存できません。本文をコピーするか、保存せず終了できます。'
+                : null,
+              mode: 'close',
+            });
+            return;
+          }
+          window.api.closeReady();
+        } catch (error) {
+          console.error('[close] final save failed:', error);
+          window.api.closeCancelled();
+          alert(`保存に失敗したため、アプリを終了しませんでした。\n${error?.message || error}`);
+        }
+      });
+    }
+
+    // Browser/Tauri では beforeunload で警告する（非同期保存完了の保証はできない）。
     const handleBeforeUnload = (e) => {
       // Bug B 対策: 引数の text ではなく Ref の最新値を使う
       const currentText = textRef.current;
-      if (isProjectMode && currentText !== lastSavedTextRef.current) {
-        if (activeFileHandleRef.current) {
-          try {
-            fileSystem.writeFile(activeFileHandleRef.current, currentText);
-          } catch { /* best effort */ }
-        }
+      if (isProjectModeRef.current && currentText !== lastSavedTextRef.current) {
         e.preventDefault();
         e.returnValue = '';
       }
@@ -903,7 +1230,7 @@ function App() {
   // Render
   // -----------------------------------------------------------------------------
   return (
-    <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${isRapidMode ? 'rapid-mode' : ''}`} style={{
+    <div className={`app-container ${isDarkMode ? 'dark-mode' : ''}`} style={{
       backgroundColor: settings.theme === 'dark' ? 'var(--bg-dark)' : 'var(--bg-paper)',
       color: settings.theme === 'dark' ? 'var(--text-dark)' : 'var(--text-paper)',
       flexDirection: 'column' /* Stack title bar and workspace */
@@ -960,6 +1287,13 @@ function App() {
                 >
                   🤖
                 </div>
+                <div
+                  className={`sidebar-nav-item ${sidebarTab === 'ai-request' ? 'active' : ''}`}
+                  onClick={() => setSidebarTab('ai-request')}
+                  title="AI編集依頼をコピー"
+                >
+                  🔐
+                </div>
 
                 <div
                   className={`sidebar-nav-item ${sidebarTab === 'prizes' ? 'active' : ''}`}
@@ -978,9 +1312,16 @@ function App() {
                 <div
                   className={`sidebar-nav-item ${sidebarTab === 'export' ? 'active' : ''}`}
                   onClick={() => setSidebarTab('export')}
-                  title="出力・整形"
+                  title="出力"
                 >
                   📤
+                </div>
+                <div
+                  className={`sidebar-nav-item ${sidebarTab === 'tools' ? 'active' : ''}`}
+                  onClick={() => setSidebarTab('tools')}
+                  title="文字整形ツール"
+                >
+                  🧰
                 </div>
                 <div
                   className={`sidebar-nav-item ${sidebarTab === 'audit' ? 'active' : ''}`}
@@ -1086,6 +1427,7 @@ function App() {
                       handleDelete={handleDelete}
                       handleDuplicateFile={handleDuplicateFile}
                       handleMoveItem={handleMoveItem}
+                      handleArchiveVersion={handleArchiveVersion}
                       handleSaveFile={handleSaveFile}
                       fileInputRef={fileInputRef}
                       debouncedText={debouncedText}
@@ -1158,7 +1500,10 @@ function App() {
                             allFiles={onlyFiles}
                             onOpenFile={handleOpenFile}
                             activeWorkFolderPath={activeWorkFolderPath}
+                            activeFilePath={activeFilePath}
                             searchQuery={projectSearchQuery}
+                            requestConfirm={requestConfirm}
+                            showToast={showToast}
                           />
                         );
                       }}
@@ -1173,6 +1518,81 @@ function App() {
                     />
                   ) : sidebarTab === 'progress' ? (
                     <ProgressPanel
+                      renderProductionDashboard={() => (
+                        <ProductionDashboard
+                          projectHandle={projectHandle}
+                          allMaterialFiles={allMaterialFiles}
+                          submissions={submissions}
+                          profiles={workProfiles}
+                          onUpdateProfile={updateWorkProfile}
+                          onAddSubmission={addSubmission}
+                          onWorkRegistered={handleWorkRegistered}
+                          onOpenWork={async work => {
+                            setActiveTab('editor');
+                            const normalize = value => String(value || '').normalize('NFC').replace(/\\/g, '/').replace(/\/+$/, '');
+                            const rootPath = normalize(work.workRoot?.path || work.workRoot?.handle?.handle || work.workRoot?.handle);
+                            const selectedPath = normalize(work.registration?.currentManuscriptPath);
+                            const itemPath = item => normalize(item?.handle?.handle || item?.handle || item?.path);
+                            const openCandidate = async candidate => {
+                              if (candidate.kind === 'directory' && candidate.name?.endsWith('.nexus')) {
+                                const manifest = await readManifest(candidate.handle || candidate);
+                                const firstSegment = manifest?.segments?.[0]?.file;
+                                if (!firstSegment) return false;
+                                await handleOpenSegmentFile(firstSegment, 0, itemPath(candidate));
+                                return true;
+                              }
+                              await handleOpenFile(candidate.handle || candidate, candidate.name);
+                              return true;
+                            };
+
+                            if (selectedPath) {
+                              const selected = allMaterialFiles.find(item => itemPath(item) === selectedPath);
+                              if (selected && await openCandidate(selected)) return;
+                              showToast('指定された原稿が見つかりません。作品進行の「執筆する原稿」で選び直してください。', 'error');
+                              return;
+                            }
+
+                            const candidates = allMaterialFiles
+                              .filter(item => !rootPath || itemPath(item).startsWith(`${rootPath}/`))
+                              .map(item => ({ item, score: manuscriptCandidateScore(item, work.title) }))
+                              .filter(candidate => candidate.score > 0)
+                              .sort((a, b) => b.score - a.score);
+
+                            for (const { item } of candidates) {
+                              if (await openCandidate(item)) return;
+                            }
+
+                            if (work.firstSegmentFile) {
+                              await handleOpenSegmentFile(work.firstSegmentFile, 0, work.manuscriptPath || '');
+                              return;
+                            }
+
+                            const manuscriptFolders = allMaterialFiles
+                              .filter(item => item.kind === 'directory' && item.name?.endsWith('.nexus'))
+                              .filter(item => !rootPath || itemPath(item).startsWith(`${rootPath}/`));
+                            for (const folder of manuscriptFolders) {
+                              const manifest = await readManifest(folder.handle || folder);
+                              const firstSegment = manifest?.segments?.[0]?.file;
+                              if (firstSegment) {
+                                await handleOpenSegmentFile(firstSegment, 0, itemPath(folder));
+                                return;
+                              }
+                            }
+                            showToast('本文と判断できる原稿が見つかりません。作品進行の「執筆する原稿」で指定してください。', 'error');
+                          }}
+                          onShowWorkFolder={async work => {
+                            if (!work.workRoot) return;
+                            const folderHandle = work.workRoot.handle || work.workRoot;
+                            if (isNative && fileSystem.showInExplorer) {
+                              await fileSystem.showInExplorer(folderHandle);
+                            } else {
+                              setActiveWorkFolderPath(work.workRoot.path || '');
+                              setSidebarTab('files');
+                            }
+                          }}
+                          currentWorkId={activeWorkId}
+                        />
+                      )}
                       renderProgressTracker={() => (
                         <ProgressTracker
                           allMaterialFiles={allMaterialFiles}
@@ -1234,15 +1654,29 @@ function App() {
 
                   ) : sidebarTab === 'export' ? (
                     <ExportPanel
-                      onFormat={handleFormat}
                       onPrint={handlePrint}
                       onEpubExport={() => handleEpubExport(null, allMaterialFiles)}
                       onDocxExport={handleDocxExport}
+                      onMergedTextExport={handleMergedTextExport}
                       onBatchExport={handleBatchExport}
-                      onSplitByChapters={splitChapters.openModal}
+                      mode="output"
+                      colorTheme={settings.colorTheme}
+                    />
+                  ) : sidebarTab === 'tools' ? (
+                    <ExportPanel
+                      onFormat={handleFormat}
+                      mode="tools"
                       colorTheme={settings.colorTheme}
                     />
 
+                  ) : sidebarTab === 'ai-request' ? (
+                    <AIEditRequestPanel
+                      activeFile={activeFileHandle}
+                      allFiles={allMaterialFiles}
+                      fileTree={fileTree}
+                      hasUnsavedChanges={Boolean(activeFileHandle && text !== lastSavedTextRef.current)}
+                      showToast={showToast}
+                    />
                   ) : sidebarTab === 'ai' ? (
                     <AIPanel
                       text={debouncedText}
@@ -1317,6 +1751,7 @@ function App() {
                     <>
                     <ManuscriptPanel
                       allFiles={allMaterialFiles}
+                      projectHandle={projectHandle}
                       activeFile={activeFileHandle}
                       onChapterSelect={async (handle) => {
                         // オートセーブを待ってから切り替え
@@ -1339,6 +1774,14 @@ function App() {
                     <PrizePanel
                       projectSettings={projectSettings}
                       editorText={debouncedText}
+                      submissions={submissions}
+                      currentWorkId={activeWorkId}
+                      currentWorkTitle={activeWorkTitle}
+                      onAddSubmission={addSubmission}
+                      onRemoveSubmission={removeSubmission}
+                      onUpdateSubmission={updateSubmission}
+                      selectedSubmissionId={activeSubmission?.id || null}
+                      onSelectSubmission={setSelectedSubmissionId}
                       onApplyPrize={(prizeData) => {
                         setProjectSettings(prev => ({
                           ...prev,
@@ -1353,20 +1796,34 @@ function App() {
                         }));
                         // エディタ設定は変更しない（印刷準備時に別途変更）
                       }}
-                      onApplyFormat={(formatData) => {
-                        setSettings(prev => ({
-                          ...prev,
-                          charsPerLine: formatData.charsPerLine || prev.charsPerLine,
-                          linesPerPage: formatData.linesPerPage || prev.linesPerPage,
-                        }));
-                      }}
                       showToast={showToast}
                     />
                   ) : sidebarTab === 'snapshots' ? (
                     <SnapshotPanel
                       filePath={activeFileHandle ? (typeof activeFileHandle === 'string' ? activeFileHandle : (activeFileHandle.handle || activeFileHandle.name || null)) : null}
                       currentText={debouncedText}
-                      onRestore={(content) => setText(content)}
+                      onRestore={async (content, snapshot) => {
+                        if (!activeFileHandle) {
+                          showToast('保存先ファイルを確認できないため復元できません。');
+                          return;
+                        }
+                        try {
+                          const diskText = await fileSystem.readFile(activeFileHandle);
+                          const review = createRestoreReview({
+                            fileHandle: activeFileHandle,
+                            fileName: displayFileName(activeFileHandle),
+                            diskText,
+                            restoredText: content,
+                            snapshotTimestamp: snapshot?.timestamp,
+                          });
+                          restoreReviewRef.current = review;
+                          setRestoreReview(review);
+                          setText(content);
+                          setDebouncedText(content);
+                        } catch (error) {
+                          showToast(`復元準備に失敗しました: ${error?.message || error}`);
+                        }
+                      }}
                       showToast={showToast}
                       onSaveNow={async () => {
                         const fp = activeFileHandle ? (typeof activeFileHandle === 'string' ? activeFileHandle : (activeFileHandle.handle || activeFileHandle.name || '')) : '';
@@ -1374,7 +1831,7 @@ function App() {
                       }}
                     />
                   ) : sidebarTab === 'settings' ? (
-                    <div style={{ flex: 1, overflowY: 'auto' }}>
+                    <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
                       <Toolbar
                         settings={settings}
                         setSettings={setSettings}
@@ -1433,7 +1890,7 @@ function App() {
             </aside>
           );
           // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [isSidebarVisible, sidebarTab, activeTab, projectHandle, fileTree, activeFileHandle, isProjectMode, settings, projectContextMenu, savedProjectHandle, showCardCreator, isMaterialsLoading, allMaterialFiles, linkGraph, projectSettings, currentSessionChars, aiAction, aiOptions, corrections, aiModel, localModels, selectedLocalModel, isLocalConnected, candidates, snippets, notesText, presets, isDarkMode, showMetadata, debouncedText, projectSearchQuery])}
+        }, [isSidebarVisible, sidebarTab, activeTab, projectHandle, fileTree, activeFileHandle, isProjectMode, settings, projectContextMenu, savedProjectHandle, showCardCreator, isMaterialsLoading, allMaterialFiles, linkGraph, projectSettings, currentSessionChars, aiAction, aiOptions, corrections, aiModel, localModels, selectedLocalModel, isLocalConnected, candidates, snippets, notesText, presets, isDarkMode, showMetadata, text, debouncedText, projectSearchQuery, activeWorkFolderPath, submissions, workProfiles, activeWorkId, activeWorkTitle, activeSubmission])}
 
         <div className="content-wrapper" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <main className={`main-content ${showReference && activeTab !== 'reference' ? 'split-view' : ''}`} style={{ flex: 1, display: 'flex', overflow: 'hidden', flexDirection: 'column' }}>
@@ -1524,7 +1981,9 @@ function App() {
               ) : activeTab === 'preview' ? (
                 <Preview
                   text={text}
-                  settings={effectiveSettings}
+                  settings={activeSubmission?.editorFormat
+                    ? { ...effectiveSettings, ...activeSubmission.editorFormat }
+                    : effectiveSettings}
                   mode={effectiveSettings.mode}
                   onOpenLink={handleOpenLink}
                   projectHandle={projectHandle}
@@ -1533,6 +1992,7 @@ function App() {
                   workTitle={workTextData.workTitle}
                   resolveOffset={workTextData.resolveOffset}
                   onOpenSegmentFile={handleOpenSegmentFile}
+                  submissionMode={Boolean(activeSubmission)}
                 />
               ) : activeTab === 'reference' ? (
                 /* Full-screen Reference Panel */
@@ -1579,7 +2039,7 @@ function App() {
                 >
                   {isSidebarVisible ? '◀' : '▶'}
                 </button>
-                <span style={{ marginRight: '8px', fontWeight: 'bold' }}>
+                <span className="footer-file-name" title={activeFileHandle ? (typeof activeFileHandle === 'string' ? activeFileHandle : activeFileHandle.name) : '無題'}>
                   {activeFileHandle ? (typeof activeFileHandle === 'string' ? activeFileHandle.split(/[/\\]/).pop() : activeFileHandle.name) : '無題'}
                 </span>
                 {isNative && activeFileHandle && (
@@ -1592,48 +2052,35 @@ function App() {
                     📂
                   </button>
                 )}
-                {isRapidMode && (
-                  <span style={{ marginRight: '8px', padding: '1px 8px', background: '#2e7d32', color: '#fff', borderRadius: '10px', fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px' }}>🚀 爆速</span>
-                )}
-                <span style={{ opacity: 0.6 }}>
-                  {footerStats.len} 文字
+                <span className="footer-stat">
+                  {footerStats.len.toLocaleString()}字
                   {footerStats.totalManuscript > 0 && (
-                    <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}> (全体: {footerStats.totalManuscript.toLocaleString()}字)</span>
+                    <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>／全体 {footerStats.totalManuscript.toLocaleString()}字</span>
                   )}
                 </span>
-                <span style={{ margin: '0 8px', opacity: 0.2 }}>|</span>
-                <span style={{ opacity: 0.6 }}>原稿用紙 {footerStats.pages} 枚</span>
-                <span style={{ margin: '0 8px', opacity: 0.2 }}>|</span>
-                <span style={{ opacity: 0.6 }}>
+                <span className="footer-divider">|</span>
+                <span className="footer-stat">原稿用紙 {footerStats.pages}枚</span>
+                <span className="footer-divider">|</span>
+                <span className="footer-save-status" title={lastSaved ? `最終保存: ${lastSaved.toLocaleTimeString()}` : 'まだ保存されていません'}>
                   {debouncedText !== lastSavedTextRef.current && lastSaved ? (
                     <span style={{ color: '#e67e22' }}>● 未保存</span>
                   ) : (
-                    <>保存: {lastSaved ? lastSaved.toLocaleTimeString() : '---'}</>
+                    <>✓ 保存済み</>
                   )}
                 </span>
-                <span style={{ margin: '0 8px', opacity: 0.2 }}>|</span>
-                <span style={{ opacity: 0.6 }}>本日: {currentSessionChars >= 0 ? `+ ${currentSessionChars} ` : currentSessionChars} 文字</span>
-                {projectSettings?.prizeName && (
+                {nextSubmission && (
                   <>
-                    <span style={{ margin: '0 8px', opacity: 0.2 }}>|</span>
-                    <span style={{ opacity: 0.8, color: '#8e44ad' }}>
-                      🏆 {projectSettings.prizeName}: {(() => {
-                        const basis = projectSettings.pageCountBasis || '400-page';
-                        if (basis === 'char-count') {
-                          const target = projectSettings.targetChars || 0;
-                          return `${footerStats.len.toLocaleString()}字${target ? ` / ${target.toLocaleString()}字` : ''}`;
-                        } else if (basis === 'format-page') {
-                          const cpl = projectSettings.prizeCharsPerLine || 20;
-                          const lpp = projectSettings.prizeLinesPerPage || 20;
-                          return `${Math.ceil(footerStats.len / (cpl * lpp))}枚 / ${projectSettings.targetPages}枚`;
-                        } else {
-                          return `${Math.ceil(footerStats.len / 400)}枚 / ${projectSettings.targetPages}枚`;
-                        }
-                      })()}
+                    <span className="footer-divider">|</span>
+                    <span
+                      className="footer-deadline"
+                      onClick={() => { setSidebarTab('prizes'); setIsSidebarVisible(true); }}
+                      title={`${nextSubmission.workTitle} → ${nextSubmission.prizeName}（${nextSubmission.deadline}）`}
+                      style={{ opacity: 0.9, color: nextSubmission.daysLeft <= 14 ? '#dc2626' : nextSubmission.daysLeft <= 45 ? '#d97706' : '#8e44ad', fontWeight: 'bold', cursor: 'pointer' }}
+                    >
+                      📅 締切まで{nextSubmission.daysLeft}日
                     </span>
                   </>
                 )}
-                {footerStats.todoCount > 0 && (<><span style={{ margin: '0 8px', opacity: 0.2 }}>|</span><span style={{ opacity: 0.8, color: '#e65100' }}>📋 TODO: {footerStats.todoCount}件</span></>)}
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1651,80 +2098,48 @@ function App() {
                     title="文字拡大"
                     style={{ fontSize: '10px', padding: '2px 4px', marginRight: '4px' }}
                   >A+</button>
-                  <button
-                    className="footer-btn"
-                    onClick={() => setIsRapidMode(prev => !prev)}
-                    title={isRapidMode ? "爆速モード OFF (⌘⇧R)" : "爆速モード ON (⌘⇧R)"}
-                    style={{
-                      marginRight: '4px',
-                      fontWeight: isRapidMode ? 'bold' : 'normal',
-                      background: isRapidMode ? 'rgba(46, 125, 50, 0.3)' : 'none',
-                      borderRadius: '4px'
-                    }}
-                  >
-                    🚀
-                  </button>
                   <select
+                    className="footer-select"
                     value={settings.paperStyle || 'plain'}
                     onChange={(e) => setSettings(s => ({ ...s, paperStyle: e.target.value }))}
-                    style={{
-                      fontSize: '11px',
-                      padding: '2px 4px',
-                      border: '1px solid #ccc',
-                      borderRadius: '4px',
-                      background: 'var(--bg-paper)',
-                      color: 'var(--text-main)',
-                      marginRight: '4px'
-                    }}
+                    title="表示モード"
                   >
                     <option value="plain">無地</option>
                     <option value="grid">原稿用紙</option>
                     <option value="lined">ノート</option>
                     <option value="clean">クリーン</option>
                   </select>
-                  {settings.paperStyle === 'clean' && (
-                    <select
-                      value={settings.cleanFontFamily || 'var(--font-mincho)'}
-                      onChange={(e) => setSettings(s => ({ ...s, cleanFontFamily: e.target.value }))}
-                      style={{
-                        fontSize: '11px',
-                        padding: '2px 4px',
-                        border: '1px solid #ccc',
-                        borderRadius: '4px',
-                        background: 'var(--bg-paper)',
-                        color: 'var(--text-main)',
-                        marginRight: '4px',
-                        maxWidth: '90px'
-                      }}
-                    >
-                      <option value="var(--font-mincho)">明朝</option>
-                      <option value="var(--font-gothic)">ゴシック</option>
-                      <option value="'Hiragino Mincho ProN', 'Hiragino Mincho Pro', 'ヒラギノ明朝 ProN', 'ヒラギノ明朝 Pro', serif">ヒラギノ明朝</option>
-                      <option value="'Hiragino Sans', '游ゴシック', sans-serif">ヒラギノ角ゴ</option>
-                      <option value="'FOT-筑紫Aオールド明朝 Pr6N', 'FOT-筑紫Aオールド明朝 Pr6', 'Tsukushi A Old Mincho', '筑紫Aオールド明朝', '筑紫Aオールド明朝 Pr6N', serif">筑紫Aオールド明朝</option>
-                      <option value="'FOT-筑紫Bオールド明朝 Pr6N', 'FOT-筑紫Bオールド明朝 Pr6', 'Tsukushi B Old Mincho', '筑紫Bオールド明朝', '筑紫Bオールド明朝 Pr6N', serif">筑紫Bオールド明朝</option>
-                      <option value="'FOT-筑紫Cオールド明朝 Pr6N', 'FOT-筑紫Cオールド明朝 Pr6', 'Tsukushi C Old Mincho', '筑紫Cオールド明朝', '筑紫Cオールド明朝 Pr6N', serif">筑紫Cオールド明朝</option>
-                      <option value="'Meiryo', sans-serif">メイリオ</option>
-                      <option value="var(--font-hand)">紅道</option>
-                      <option value="'Klee One', cursive">クレー</option>
-                      <option value="'A-OTF 黎ミン Pr6N', 'A-OTF 黎ミン Pro', '黎ミン', serif">モリサワ 黎ミン</option>
-                      <option value="'A P-OTF 秀英にじみ明朝 StdN', 'A P-OTF 秀英にじみ明朝 Std', '秀英にじみ明朝', serif">秀英にじみ明朝</option>
-                      <option value="'02うつくし明朝体', 'うつくし明朝体', serif">うつくし明朝体</option>
-                      <option value="'A-OTF 毎日新聞明朝 Pro', '毎日新聞明朝', serif">毎日新聞明朝</option>
-                      <option value="'A-OTF A1明朝 Std', 'A1明朝', serif">A1明朝</option>
-                      <option value="'BIZ UDMincho', serif">BIZ UD明朝</option>
-                      <option value="'Kiwi Maru', serif">キウイ丸</option>
-                      <option value="'Zen Old Mincho', serif">Zenオールド明朝</option>
-                      <option value="'Hina Mincho', serif">ひな明朝</option>
-                      <option value="'Kaisei Opti', serif">解星オプティ</option>
-                      <option value="'Kaisei Tokumin', serif">解星特ミン</option>
-                      <option value="'YuMincho', 'Yu Mincho', serif">游明朝</option>
-                      <option value="'Yuji Syuku', serif">Yuji Syuku</option>
-                      <option value="'Noto Serif JP', serif">Noto Serif</option>
-                      <option value="'Noto Sans JP', sans-serif">Noto Sans</option>
-                    </select>
-                  )}
-
+                  <select
+                    className="footer-select footer-font-select"
+                    value={settings.fontFamily || 'var(--font-mincho)'}
+                    onChange={(e) => setSettings(s => ({ ...s, fontFamily: e.target.value }))}
+                    title="本文フォント"
+                  >
+                    {![
+                      'var(--font-mincho)',
+                      'var(--font-gothic)',
+                      "'Hiragino Mincho ProN', 'Hiragino Mincho Pro', 'ヒラギノ明朝 ProN', 'ヒラギノ明朝 Pro', serif",
+                      "'Hiragino Sans', '游ゴシック', sans-serif",
+                      "'YuMincho', 'Yu Mincho', serif",
+                      "'Meiryo', sans-serif",
+                      "'FOT-筑紫Aオールド明朝 Pr6N', serif",
+                      "'A-OTF A1明朝 Std', serif",
+                      'var(--font-hand)',
+                      "'Klee One', cursive"
+                    ].includes(settings.fontFamily) && (
+                      <option value={settings.fontFamily}>現在のフォント</option>
+                    )}
+                    <option value="var(--font-mincho)">明朝</option>
+                    <option value="var(--font-gothic)">ゴシック</option>
+                    <option value="'Hiragino Mincho ProN', 'Hiragino Mincho Pro', 'ヒラギノ明朝 ProN', 'ヒラギノ明朝 Pro', serif">ヒラギノ明朝</option>
+                    <option value="'Hiragino Sans', '游ゴシック', sans-serif">ヒラギノ角ゴ</option>
+                    <option value="'YuMincho', 'Yu Mincho', serif">游明朝</option>
+                    <option value="'Meiryo', sans-serif">メイリオ</option>
+                    <option value="'FOT-筑紫Aオールド明朝 Pr6N', serif">筑紫Aオールド明朝</option>
+                    <option value="'A-OTF A1明朝 Std', serif">A1明朝</option>
+                    <option value="var(--font-hand)">紅道</option>
+                    <option value="'Klee One', cursive">クレー</option>
+                  </select>
                   <button
                     className="footer-btn"
                     onClick={() => setSettings(prev => ({ ...prev, isVertical: !prev.isVertical }))}
@@ -1732,7 +2147,6 @@ function App() {
                   >
                     {settings.isVertical ? "縦" : "横"}
                   </button>
-
                   <button
                     className={`footer-btn ${activeTab === 'preview' ? 'active' : ''}`}
                     onClick={() => setActiveTab(activeTab === 'preview' ? 'editor' : 'preview')}
@@ -1744,12 +2158,23 @@ function App() {
 
                   <button
                     className="footer-btn"
-                    onClick={() => setShowReader(true)}
+                    onClick={openReader}
                     title="リーダーモードで表示 (Alt+R)"
                     style={{ marginLeft: '4px', background: 'rgba(142,68,173,0.15)', borderColor: '#8e44ad' }}
                   >
                     📖 リーダー
                   </button>
+
+                  {readerEditReturn && (
+                    <button
+                      className="footer-btn"
+                      onClick={saveAndReturnToReader}
+                      title={`${readerEditReturn.fileName || '対象ファイル'}の変更内容を確認します`}
+                      style={{ marginLeft: '4px', background: 'rgba(39,174,96,0.15)', borderColor: '#27ae60' }}
+                    >
+                      🔎 {readerEditReturn.fileName || '対象不明'} の変更を確認
+                    </button>
+                  )}
 
                   <button
                     className="footer-btn"
@@ -1861,13 +2286,142 @@ function App() {
         onCancel={confirmConfig.onCancel}
         isDanger={confirmConfig.isDanger}
       />
+      <ConflictDiffModal
+        conflict={externalConflict}
+        onClose={() => setExternalConflict(null)}
+        onUseExternal={() => {
+          if (!externalConflict) return;
+          setText(externalConflict.externalText);
+          setDebouncedText(externalConflict.externalText);
+          lastSavedTextRef.current = externalConflict.externalText;
+          externalConflictRef.current = false;
+          setExternalConflict(null);
+          showToast('外部版を読み込みました');
+        }}
+        onUseNexus={async () => {
+          if (!externalConflict) return;
+          try {
+            await fileSystem.writeFile(externalConflict.fileHandle, externalConflict.nexusText, {
+              disableJournal: settings?.enableJournaling === false,
+              expectedContent: externalConflict.externalText,
+            });
+            lastSavedTextRef.current = externalConflict.nexusText;
+            externalConflictRef.current = false;
+            setLastSaved(new Date());
+            setExternalConflict(null);
+            showToast('NEXUS版を明示的に保存しました');
+          } catch (error) {
+            showToast('保存中にファイルが再更新されました。もう一度差分を確認してください。');
+            try {
+              const externalText = await fileSystem.readFile(externalConflict.fileHandle);
+              setExternalConflict(previous => previous ? { ...previous, externalText } : previous);
+            } catch { /* 画面内の双方を保持する */ }
+          }
+        }}
+      />
+      <ReaderEditReviewModal
+        review={readerEditReview}
+        onContinue={() => {
+          if (readerEditReview?.mode === 'close') window.api?.closeCancelled?.();
+          setReaderEditReview(null);
+        }}
+        onDiscard={async () => {
+          if (!readerEditReview) return;
+          const review = readerEditReview;
+          setReaderEditReview(null);
+          if (review.mode === 'close') {
+            window.api?.closeReady?.();
+            return;
+          }
+          await workTextData.reloadWork();
+          setReaderResumeOffset(review.globalOffset);
+          setReaderEditReturn(null);
+          setShowReader(true);
+        }}
+        onSave={async () => {
+          if (!readerEditReview?.fileHandle) return;
+          const review = readerEditReview;
+          try {
+            await fileSystem.writeFile(review.fileHandle, review.currentText, {
+              disableJournal: settings?.enableJournaling === false,
+              expectedContent: review.baselineText,
+            });
+            lastSavedTextRef.current = review.currentText;
+            setLastSaved(new Date());
+            setReaderEditReview(null);
+            setReaderEditReturn(null);
+            if (review.mode === 'close') {
+              window.api?.closeReady?.();
+              return;
+            }
+            await workTextData.reloadWork();
+            setReaderResumeOffset(review.globalOffset);
+            setShowReader(true);
+          } catch (error) {
+            console.error('[reader-edit] reviewed save failed:', error);
+            if (String(error?.message || error).includes('EXTERNAL_MODIFICATION')) {
+              try {
+                const externalText = await fileSystem.readFile(review.fileHandle);
+                externalConflictRef.current = true;
+                setExternalConflict({ fileHandle: review.fileHandle, nexusText: review.currentText, externalText });
+                setReaderEditReview(null);
+                if (review.mode === 'close') window.api?.closeCancelled?.();
+              } catch {
+                setReaderEditReview({ ...review, fileHandle: null, fileName: `${review.fileName}（保存先不明）` });
+              }
+            } else {
+              showToast(`保存できませんでした: ${error?.message || error}`);
+            }
+          }
+        }}
+      />
+      <RestoreReviewModal
+        review={restoreReview}
+        onContinue={() => setRestoreReview(null)}
+        onCancel={() => {
+          const review = restoreReviewRef.current;
+          if (!review) return;
+          setText(review.diskText);
+          setDebouncedText(review.diskText);
+          lastSavedTextRef.current = review.diskText;
+          baselineFileHandleRef.current = review.fileHandle;
+          restoreReviewRef.current = null;
+          setRestoreReview(null);
+          showToast('スナップショット復元を取り消しました');
+        }}
+        onSave={async () => {
+          const review = restoreReviewRef.current;
+          if (!review) return;
+          try {
+            await fileSystem.writeFile(review.fileHandle, textRef.current, {
+              disableJournal: settings?.enableJournaling === false,
+              expectedContent: review.diskText,
+            });
+            lastSavedTextRef.current = textRef.current;
+            baselineFileHandleRef.current = review.fileHandle;
+            restoreReviewRef.current = null;
+            setRestoreReview(null);
+            setLastSaved(new Date());
+            showToast('復元内容を明示的に保存しました');
+          } catch (error) {
+            if (String(error?.message || error).includes('EXTERNAL_MODIFICATION')) {
+              externalConflictRef.current = true;
+              const externalText = await fileSystem.readFile(review.fileHandle);
+              setExternalConflict({ fileHandle: review.fileHandle, nexusText: textRef.current, externalText });
+              setRestoreReview(null);
+            } else {
+              showToast(`保存できませんでした: ${error?.message || error}`);
+            }
+          }
+        }}
+      />
 
       {showReader && (
         <ReaderView
           text={editorValue}
           settings={settings}
-          onClose={() => setShowReader(false)}
-          cursorOffset={editorRef.current?.textareaRef?.current?.selectionStart ?? 0}
+          onClose={() => { setShowReader(false); setReaderResumeOffset(null); }}
+          cursorOffset={readerResumeOffset ?? editorRef.current?.textareaRef?.current?.selectionStart ?? 0}
           onJumpToEditor={(offset) => {
             setShowReader(false);
             const tryJump = (attempts = 0) => {
@@ -1884,6 +2438,17 @@ function App() {
           workTitle={workTextData.workTitle}
           resolveOffset={workTextData.resolveOffset}
           onOpenSegmentFile={handleOpenSegmentFile}
+          onEditFromReader={editFromReader}
+          onRequestReplace={(term) => {
+            setShowReader(false);
+            setProjectSearchQuery({ term, timestamp: Date.now() });
+            setSidebarTab('navigate');
+            setSidebarSubTab('search');
+            setIsSidebarVisible(true);
+          }}
+          initialFullWork={readerResumeOffset != null}
+          chapterStatuses={workTextData.chapterStatuses}
+          loadFailures={workTextData.loadFailures}
         />
       )}
 
@@ -1912,8 +2477,12 @@ function App() {
       <AuditReportWindow 
         isOpen={sidebarTab === 'audit'} 
         onClose={() => setSidebarTab('none')} 
-        currentText={text}
+        currentText={editorValue}
         activeFile={activeFileHandle}
+        onJumpToIndex={(index) => {
+          setActiveTab('editor');
+          requestAnimationFrame(() => editorRef.current?.jumpToPosition?.(index, index));
+        }}
       />
     </div >
   );

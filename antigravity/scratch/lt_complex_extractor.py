@@ -17,6 +17,10 @@ def parse_lt_grammar(xml_path):
             
             message_elem = rule.find('message')
             message_text = "".join(message_elem.itertext()) if message_elem is not None else "文法ミスがあります。"
+            suggestions = []
+            if message_elem is not None:
+                suggestions = ["".join(item.itertext()).strip() for item in message_elem.findall('.//suggestion')]
+                suggestions = [item for item in suggestions if item]
             
             # Extract tokens
             tokens_data = []
@@ -38,7 +42,8 @@ def parse_lt_grammar(xml_path):
                         'id': rule_id,
                         'category': cat_name,
                         'tokens': tokens_data,
-                        'message': message_text
+                        'message': message_text,
+                        'suggestions': suggestions
                     })
                 
     return compiled_rules

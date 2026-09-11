@@ -1,0 +1,54 @@
+[
+  {
+    "name": "clean prose",
+    "text": "彼は大切な本を静かに読んだ。空は青かった。",
+    "expected": []
+  },
+  {
+    "name": "LanguageTool literal correction",
+    "text": "こにちは。",
+    "expected": [{ "contains": "こにちは", "suggested": "こんにちは" }]
+  },
+  {
+    "name": "NEXUS redundancy",
+    "text": "確認することができる。",
+    "expected": [{ "contains": "ことができる" }]
+  },
+  {
+    "name": "Tomarigi formal noun",
+    "text": "話す事がある。",
+    "expected": [{ "contains": "事", "engine": "Tomarigi" }]
+  },
+  {
+    "name": "Tomarigi subsidiary verb",
+    "text": "読んで置く。",
+    "expected": [{ "contains": "置く", "engine": "Tomarigi" }]
+  },
+  {
+    "name": "Tomarigi indexicals",
+    "text": "これはそれであの話だ。",
+    "expected": [{ "contains": "あの", "engine": "Tomarigi" }]
+  },
+  {
+    "name": "LanguageTool alternative",
+    "text": "彼は自身がない。",
+    "expected": [{ "contains": "自身がない", "engine": "LanguageTool" }]
+  },
+  {
+    "name": "RedPen heading structure",
+    "text": "# 第一部\n\n### 第一章\n本文。",
+    "expected": [{ "contains": "### 第一章", "engine": "RedPen" }]
+  },
+  {
+    "name": "project whitelist",
+    "text": "畏域は固有名詞である。",
+    "profile": { "whitelist": ["畏域"] },
+    "expected": []
+  },
+  {
+    "name": "fiction technique nominal endings",
+    "text": "静かな森。冷たい風。遠い鐘。",
+    "profile": { "techniques": { "allow_nominal_endings": true } },
+    "expected": []
+  }
+]

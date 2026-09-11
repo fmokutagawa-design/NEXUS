@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { fileSystem, isNative } from '../utils/fileSystem';
-import { readManifest, loadSegmentTexts } from '../utils/manifest';
+import { normalizeManifestFileName, readManifest, loadSegmentTexts } from '../utils/manifest';
 
 /**
  * @typedef {Object} OffsetEntry
@@ -33,6 +33,7 @@ export function useWorkText({ activeFileHandle, projectHandle, currentText }) {
   const currentTextRef = useRef(currentText);
   const [rawSegments, setRawSegments] = useState([]); // ディスクから読んだ生データ
   const [currentFileName, setCurrentFileName] = useState('');
+  const [loadFailures, setLoadFailures] = useState([]);
 
   // currentText が変わるたびに ref を更新（レンダリングは発生しない）
   useEffect(() => {
@@ -78,12 +79,14 @@ export function useWorkText({ activeFileHandle, projectHandle, currentText }) {
       setCurrentFileName('');
       setManifest(null);
       setWorkTitle('');
+      setLoadFailures([]);
       lastNexusPath.current = '';
       return;
     }
 
     setIsNexusFile(true);
     setIsLoading(true);
+    setLoadFailures([]);
 
     try {
       let nexusDirHandle;
@@ -106,6 +109,7 @@ export function useWorkText({ activeFileHandle, projectHandle, currentText }) {
       const mf = await readManifest(nexusDirHandle);
       if (!mf) {
         console.warn('[useWorkText] manifest.json not found or invalid');
+        setLoadFailures([{ file: 'manifest.json', reason: 'not-found-or-invalid' }]);
         setIsLoading(false);
         return;
       }
@@ -122,6 +126,7 @@ export function useWorkText({ activeFileHandle, projectHandle, currentText }) {
       lastNexusPath.current = nexusPath;
     } catch (e) {
       console.error('[useWorkText] failed to load work:', e);
+      setLoadFailures(Array.isArray(e?.failures) ? e.failures : [{ file: 'manifest.json', reason: e?.message || 'read-failed' }]);
     } finally {
       setIsLoading(false);
     }
@@ -143,7 +148,7 @@ export function useWorkText({ activeFileHandle, projectHandle, currentText }) {
 
     // 現在編集中のファイルは Ref から最新（またはデバウンス済み）を取得して差し替え
     const segmentsWithCurrent = rawSegments.map(seg => {
-      if (seg.file === currentFileName) {
+      if (normalizeManifestFileName(seg.file) === normalizeManifestFileName(currentFileName)) {
         return { ...seg, text: currentTextRef.current };
       }
       return seg;
@@ -192,6 +197,7 @@ export function useWorkText({ activeFileHandle, projectHandle, currentText }) {
           segmentId: entry.segmentId,
           displayName: entry.displayName,
           localOffset: globalOffset - entry.globalStart,
+          nexusPath: lastNexusPath.current,
         };
       }
     }
@@ -203,10 +209,35 @@ export function useWorkText({ activeFileHandle, projectHandle, currentText }) {
         segmentId: last.segmentId,
         displayName: last.displayName,
         localOffset: last.length,
+        nexusPath: lastNexusPath.current,
       };
     }
     return null;
   }, [computedOffsetMap]);
+
+  const getLatestWorkText = useCallback((latestCurrentText) => {
+    if (!rawSegments.length) return latestCurrentText ?? currentTextRef.current;
+    return rawSegments.map(seg => normalizeManifestFileName(seg.file) === normalizeManifestFileName(currentFileName)
+      ? (latestCurrentText ?? currentTextRef.current)
+      : seg.text
+    ).join('\n');
+  }, [rawSegments, currentFileName]);
+
+  const chapterStatuses = useMemo(() => {
+    const loaded = new Map(rawSegments.map(segment => [normalizeManifestFileName(segment.file), segment]));
+    const failed = new Map(loadFailures.map(failure => [normalizeManifestFileName(failure.file), failure]));
+    return (manifest?.segments || []).map(segment => {
+      const normalized = normalizeManifestFileName(segment.file);
+      const loadedSegment = loaded.get(normalized);
+      const failure = failed.get(normalized);
+      return {
+        ...segment,
+        status: failure ? 'error' : loadedSegment ? 'loaded' : isLoading ? 'loading' : 'missing',
+        characters: loadedSegment?.text?.length ?? 0,
+        reason: failure?.reason || '',
+      };
+    });
+  }, [manifest, rawSegments, loadFailures, isLoading]);
 
   return {
     isNexusFile,    // 現在のファイルが .nexus 内かどうか
@@ -217,5 +248,8 @@ export function useWorkText({ activeFileHandle, projectHandle, currentText }) {
     isLoading,      // 読み込み中フラグ
     resolveOffset,  // globalOffset → { file, localOffset } 変換関数
     reloadWork: loadWork, // 手動再読み込み
+    getLatestWorkText,
+    loadFailures,
+    chapterStatuses,
   };
 }

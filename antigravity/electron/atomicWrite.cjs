@@ -35,6 +35,15 @@ class ValidationError extends Error {
     }
 }
 
+class ConflictError extends Error {
+    constructor(message, context = {}) {
+        super(message);
+        this.name = 'ConflictError';
+        this.code = 'EXTERNAL_MODIFICATION';
+        this.context = context;
+    }
+}
+
 /**
  * ShrinkClassification: ファイルサイズの変化を分類する。
  *
@@ -157,15 +166,40 @@ async function atomicWriteTextFile(filePath, content, options = {}) {
         try { journal = require('./journal.cjs'); } catch { /* noop */ }
     }
 
+    const contentHash = typeof content === 'string' ? sha256(content) : null;
+
     // 1. 事前検証
     let previousLength;
+    const hasExpectedContent = Object.prototype.hasOwnProperty.call(options, 'expectedContent');
+    let expectedHash = null;
+    if (typeof options.expectedContent === 'string') {
+        expectedHash = sha256(options.expectedContent);
+    }
     try {
         const stat = await fsp.stat(filePath);
         // ファイルサイズをバイト単位で取り、粗い指標として使う
         // （UTF-8 なので厳密な文字数ではないが、extreme-shrink 判定には十分）
         previousLength = stat.size;
+        if (expectedHash) {
+            const currentContent = await fsp.readFile(filePath, 'utf8');
+            const currentHash = sha256(currentContent);
+            if (currentHash !== expectedHash && currentHash !== contentHash) {
+                throw new ConflictError('file was modified outside NEXUS', {
+                    filePath,
+                    expectedHash,
+                    currentHash,
+                });
+            }
+        }
     } catch (err) {
         if (err.code !== 'ENOENT') throw err;
+        if (hasExpectedContent) {
+            throw new ConflictError('file was deleted outside NEXUS', {
+                filePath,
+                expectedHash,
+                currentHash: null,
+            });
+        }
         // ファイルが存在しない：新規作成として扱う
         previousLength = null;
     }
@@ -191,7 +225,6 @@ async function atomicWriteTextFile(filePath, content, options = {}) {
     }
 
     // 2. 書き込み
-    const expectedHash = sha256(content);
     const contentBytes = Buffer.byteLength(content, 'utf8');
 
     if (journal) {
@@ -199,7 +232,7 @@ async function atomicWriteTextFile(filePath, content, options = {}) {
             ts: new Date().toISOString(),
             op: 'atomic.write.begin',
             path: filePath,
-            expectedHash,
+            expectedHash: contentHash,
             bytes: contentBytes,
         });
     }
@@ -219,14 +252,25 @@ async function atomicWriteTextFile(filePath, content, options = {}) {
         phase = 'readback';
         const readBack = await fsp.readFile(tmpPath, 'utf8');
         const readBackHash = sha256(readBack);
-        if (readBackHash !== expectedHash) {
+        if (readBackHash !== contentHash) {
             throw new Error(
-                `atomic write readback mismatch: expected ${expectedHash}, got ${readBackHash}`
+                `atomic write readback mismatch: expected ${contentHash}, got ${readBackHash}`
             );
         }
 
         // 4. atomic rename
         phase = 'rename';
+        if (expectedHash) {
+            const latestContent = await fsp.readFile(filePath, 'utf8');
+            const latestHash = sha256(latestContent);
+            if (latestHash !== expectedHash && latestHash !== contentHash) {
+                throw new ConflictError('file changed while NEXUS was saving', {
+                    filePath,
+                    expectedHash,
+                    currentHash: latestHash,
+                });
+            }
+        }
         await fsp.rename(tmpPath, filePath);
 
         // 5. 親ディレクトリ fsync
@@ -238,14 +282,14 @@ async function atomicWriteTextFile(filePath, content, options = {}) {
                 ts: new Date().toISOString(),
                 op: 'atomic.write.success',
                 path: filePath,
-                hash: expectedHash,
+                hash: contentHash,
                 bytes: contentBytes,
                 shrinkClass: validation.shrinkClass,
             });
         }
 
         return {
-            hash: expectedHash,
+            hash: contentHash,
             shrinkClass: validation.shrinkClass,
             bytes: contentBytes,
         };
@@ -400,4 +444,5 @@ module.exports = {
     classifyShrink,
     cleanupOrphanedTempFiles,
     ValidationError,
+    ConflictError,
 };

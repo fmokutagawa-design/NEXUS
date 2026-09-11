@@ -1,13 +1,16 @@
 const { app, BrowserWindow, ipcMain, dialog, shell, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const {
     atomicWriteTextFile,
     atomicWriteBinaryFile,
     cleanupOrphanedTempFiles,
     ValidationError,
+    ConflictError,
 } = require('./atomicWrite.cjs');
 const { setupTextlintHandlers } = require('./textlintMain.cjs');
+const { setupProjectLexiconHandlers } = require('./projectLexicon.cjs');
 
 const isDev = !app.isPackaged;
 
@@ -22,6 +25,7 @@ function startBridgeServer() {
     const scriptRelativePath = 'nexus_backend/bridge_server.py';
     const possiblePaths = [
         path.join(__dirname, '..', scriptRelativePath), // 開発時
+        path.join(__dirname, '..', '..', scriptRelativePath), // monorepo: antigravity の隣
         path.join(process.resourcesPath, scriptRelativePath), // ビルド後
         path.join(app.getAppPath(), scriptRelativePath) // その他
     ];
@@ -42,9 +46,15 @@ function startBridgeServer() {
     console.log(`🚀 Starting AI Bridge Server (${pythonCmd})...`);
     console.log(`   Path: ${scriptPath}`);
 
+    // インストール領域やソースツリーへDBを書かない。更新・再インストールでも残る
+    // Electronのユーザーデータ領域に軽量索引を置く。
+    const knowledgeDir = path.join(app.getPath('userData'), 'knowledge');
+    fs.mkdirSync(knowledgeDir, { recursive: true });
+    const localDbPath = path.join(knowledgeDir, 'nexus_local.sqlite3');
+
     bridgeProcess = require('child_process').spawn(pythonCmd, [scriptPath], {
         stdio: ['ignore', 'pipe', 'pipe'],
-        env: { ...process.env, PYTHONUNBUFFERED: '1' }
+        env: { ...process.env, PYTHONUNBUFFERED: '1', NEXUS_LOCAL_DB: localDbPath }
     });
 
     bridgeProcess.stdout.on('data', (data) => console.log(`[Python STDOUT] ${data}`));
@@ -114,6 +124,34 @@ function createWindow() {
             zoomFactor: 1.1 // 10% larger UI
         },
         titleBarStyle: 'hiddenInset', // Mac-like title bar
+    });
+
+    // Renderer の非同期保存が完了するまで実際の終了を保留する。
+    let closeApproved = false;
+    let closeRequestPending = false;
+    const closeReadyHandler = (event) => {
+        if (event.sender !== win.webContents) return;
+        closeApproved = true;
+        closeRequestPending = false;
+        win.close();
+    };
+    const closeCancelledHandler = (event) => {
+        if (event.sender !== win.webContents) return;
+        closeRequestPending = false;
+    };
+    ipcMain.on('app:close-ready', closeReadyHandler);
+    ipcMain.on('app:close-cancelled', closeCancelledHandler);
+    win.on('close', (event) => {
+        if (closeApproved || win.webContents.isDestroyed()) return;
+        event.preventDefault();
+        if (!closeRequestPending) {
+            closeRequestPending = true;
+            win.webContents.send('app:request-close');
+        }
+    });
+    win.on('closed', () => {
+        ipcMain.removeListener('app:close-ready', closeReadyHandler);
+        ipcMain.removeListener('app:close-cancelled', closeCancelledHandler);
     });
 
     // Customize new window behavior (window.open)
@@ -195,15 +233,20 @@ async function runStartupCleanup() {
 app.whenReady().then(() => {
     console.log('--- NEXUS Main Process Ready ---');
     setupTextlintHandlers();
+    setupProjectLexiconHandlers();
     startBridgeServer();
     createWindow();
 
     // 知識管理ウィンドウのハンドラ
-    ipcMain.handle('window:openKnowledge', async () => {
+    ipcMain.handle('window:openKnowledge', async (_event, targetPath = '') => {
         console.log('IPC Request: window:openKnowledge');
         const win = new BrowserWindow({
-            width: 1000,
-            height: 800,
+            width: 1400,
+            height: 900,
+            minWidth: 900,
+            minHeight: 650,
+            resizable: true,
+            maximizable: true,
             webPreferences: {
                 nodeIntegration: false,
                 contextIsolation: true,
@@ -212,11 +255,12 @@ app.whenReady().then(() => {
             title: 'AI 知識ベース管理',
         });
 
+        const query = `mode=knowledge&targetPath=${encodeURIComponent(String(targetPath || ''))}`;
         if (isDev) {
-            win.loadURL('http://localhost:5173?mode=knowledge');
+            win.loadURL(`http://localhost:5173?${query}`);
         } else {
             const indexPath = path.join(__dirname, '../dist/index.html');
-            win.loadURL(`file://${indexPath}?mode=knowledge`);
+            win.loadURL(`file://${indexPath}?${query}`);
         }
     });
 
@@ -347,6 +391,28 @@ ipcMain.handle('fs:readFileBinary', async (event, filePath) => {
     }
 });
 
+ipcMain.handle('fs:getFileFingerprint', async (event, filePath) => {
+    const normalizedPath = path.normalize(filePath).normalize('NFC');
+    let resolvedPath = normalizedPath;
+    try {
+        await fs.promises.access(resolvedPath);
+    } catch {
+        resolvedPath = filePath.normalize('NFD');
+    }
+    const [bytes, stat] = await Promise.all([
+        fs.promises.readFile(resolvedPath),
+        fs.promises.stat(resolvedPath),
+    ]);
+    return {
+        path: resolvedPath,
+        name: path.basename(resolvedPath),
+        size: bytes.length,
+        characterCount: Array.from(bytes.toString('utf8')).length,
+        modifiedAt: stat.mtime.toISOString(),
+        sha256: crypto.createHash('sha256').update(bytes).digest('hex'),
+    };
+});
+
 // Write File Content (Text)
 // ★ atomic write 経由で書き込む。途中クラッシュで半端なファイルが残らない。
 //    空文字列や NULL 文字は事前検証で弾く（原稿消失事故の防止）。
@@ -358,6 +424,10 @@ ipcMain.handle('fs:writeFile', async (event, filePath, content, options = {}) =>
         await atomicWriteTextFile(filePath, content, { projectRoot, ...options });
         return { ok: true };
     } catch (err) {
+        if (err instanceof ConflictError) {
+            console.warn('[atomicWrite] external modification detected', { filePath });
+            throw new Error(`EXTERNAL_MODIFICATION:${err.message}`);
+        }
         if (err instanceof ValidationError) {
             // 原稿を守るために書き込みを拒否した場合は、呼び出し側が認識できる形で返す
             console.warn(`[atomicWrite] rejected: ${err.message}`, { filePath, code: err.code });
@@ -445,19 +515,24 @@ ipcMain.handle('fs:grep', async (event, projectPath, query, options = {}) => {
     console.log(`[fs:grep] start search: "${query}" in "${targetPath}"`);
     if (!targetPath || !query) return [];
     
-    const { useRegex = false, caseSensitive = false } = options;
+    const { useRegex = false, caseSensitive = false, extensions } = options;
     const pathMod = require('path');
 
     // Windows では grep コマンドがないので Node.js でファイルスキャンする
     if (process.platform === 'win32') {
-        return await nodeGrep(targetPath, query, { useRegex, caseSensitive, pathMod });
+        return await nodeGrep(targetPath, query, { useRegex, caseSensitive, extensions, pathMod });
     }
 
     // Unix: grep コマンドを使用（高速）
     const { spawn } = require('child_process');
     const args = ['-rnI'];
+    if (Array.isArray(extensions) && extensions.length > 0) {
+        for (const extension of extensions) args.push('--include', `*${extension}`);
+    }
     if (!caseSensitive) args.push('-i');
+    // 通常検索は文字列として扱い、記号を grep の正規表現に誤解釈させない。
     if (useRegex) args.push('-E');
+    else args.push('-F');
     args.push(query, ".");
 
     return new Promise((resolve) => {
@@ -495,7 +570,7 @@ ipcMain.handle('fs:grep', async (event, projectPath, query, options = {}) => {
 });
 
 // Node.js による純粋なファイルスキャン（Windows 用フォールバック）
-async function nodeGrep(dirPath, query, { useRegex, caseSensitive, pathMod }) {
+async function nodeGrep(dirPath, query, { useRegex, caseSensitive, extensions = [], pathMod }) {
     const fsPromises = require('fs').promises;
     const results = [];
 
@@ -524,7 +599,7 @@ async function nodeGrep(dirPath, query, { useRegex, caseSensitive, pathMod }) {
                     files.push(...await collectFiles(full));
                 } else if (entry.isFile()) {
                     const ext = pathMod.extname(entry.name).toLowerCase();
-                    if (textExts.has(ext)) {
+                    if (textExts.has(ext) && (!extensions.length || extensions.includes(ext))) {
                         files.push(full);
                     }
                 }

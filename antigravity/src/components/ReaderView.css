@@ -150,6 +150,19 @@
     transition: background 0.15s;
 }
 
+.reader-toc-segment {
+    display: block;
+    max-width: 100%;
+    margin-bottom: 2px;
+    overflow: hidden;
+    color: var(--reader-muted, #777);
+    font-size: 0.72em;
+    font-weight: normal;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .reader-toc-item:hover {
     background: rgba(128, 128, 128, 0.1);
 }
@@ -174,7 +187,9 @@
     flex: 1;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
+    /* 通常のページ送りまでアニメーションさせると、連続操作時に
+       スクロール命令が滞留する。目次・検索ジャンプ側だけ smooth を指定する。 */
+    scroll-behavior: auto;
 }
 
 .reader-container.vertical {

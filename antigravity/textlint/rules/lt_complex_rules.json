@@ -20,7 +20,10 @@
         "regexp": false
       }
     ],
-    "message": "したがっては文の最後にきません。したがって「。」を削除して、文を続けるのが正しいです"
+    "message": "したがっては文の最後にきません。したがって「。」を削除して、文を続けるのが正しいです",
+    "suggestions": [
+      "したがって"
+    ]
   },
   {
     "id": "O",
@@ -43,7 +46,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。名詞を見る"
+    "message": "文法ミスがあります。名詞を見る",
+    "suggestions": [
+      "名詞を"
+    ]
   },
   {
     "id": "KAIKETUNARU",
@@ -66,7 +72,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。解決になるの間違いです。"
+    "message": "文法ミスがあります。解決になるの間違いです。",
+    "suggestions": [
+      "解決になる"
+    ]
   },
   {
     "id": "DOUSI_DEHA",
@@ -97,7 +106,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。のではの間違いです。"
+    "message": "文法ミスがあります。のではの間違いです。",
+    "suggestions": [
+      "のでは"
+    ]
   },
   {
     "id": "MEISI_DESUMU",
@@ -128,7 +140,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。に住むの間違いです。"
+    "message": "文法ミスがあります。に住むの間違いです。",
+    "suggestions": [
+      "に住む"
+    ]
   },
   {
     "id": "MOTISITE",
@@ -159,7 +174,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。用いての間違いです。"
+    "message": "文法ミスがあります。用いての間違いです。",
+    "suggestions": [
+      "用いて"
+    ]
   },
   {
     "id": "DOYATTE",
@@ -190,7 +208,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。どうやっての間違いです。"
+    "message": "文法ミスがあります。どうやっての間違いです。",
+    "suggestions": [
+      "どうやって"
+    ]
   },
   {
     "id": "WOAGARU",
@@ -213,7 +234,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。を上げるの間違いです。"
+    "message": "文法ミスがあります。を上げるの間違いです。",
+    "suggestions": [
+      "を上げる"
+    ]
   },
   {
     "id": "KOREWA",
@@ -236,7 +260,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。これはの間違いです。"
+    "message": "文法ミスがあります。これはの間違いです。",
+    "suggestions": [
+      "これは"
+    ]
   },
   {
     "id": "MEISI_YOMU",
@@ -259,7 +286,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。を読むの間違いです。"
+    "message": "文法ミスがあります。を読むの間違いです。",
+    "suggestions": [
+      "を読む"
+    ]
   },
   {
     "id": "WOSANNKASITE",
@@ -290,7 +320,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。に参加しての間違いです。"
+    "message": "文法ミスがあります。に参加しての間違いです。",
+    "suggestions": [
+      "に参加して"
+    ]
   },
   {
     "id": "DOUSI_KOTOGADEKIRU",
@@ -305,7 +338,8 @@
         "regexp": false
       }
     ],
-    "message": "「ことができる」という表現は冗長な可能性があります。"
+    "message": "「ことができる」という表現は冗長な可能性があります。",
+    "suggestions": []
   },
   {
     "id": "KINNJOHE",
@@ -328,7 +362,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。近所での間違いです。"
+    "message": "文法ミスがあります。近所での間違いです。",
+    "suggestions": [
+      "近所で"
+    ]
   },
   {
     "id": "DOUSI_GANAGAKUNARU",
@@ -359,7 +396,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。暮らしが長くなるの間違いです。"
+    "message": "文法ミスがあります。暮らしが長くなるの間違いです。",
+    "suggestions": [
+      "暮らしが長く"
+    ]
   },
   {
     "id": "DEATA",
@@ -390,7 +430,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。であったの間違いです。"
+    "message": "文法ミスがあります。であったの間違いです。",
+    "suggestions": [
+      "であった"
+    ]
   },
   {
     "id": "GAKUSEITATI",
@@ -413,7 +456,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。学生の間違いです。"
+    "message": "文法ミスがあります。学生の間違いです。",
+    "suggestions": [
+      "学生"
+    ]
   },
   {
     "id": "WOMITUKATTA",
@@ -444,7 +490,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。を見つけたの間違いです。"
+    "message": "文法ミスがあります。を見つけたの間違いです。",
+    "suggestions": [
+      "を見つけた"
+    ]
   },
   {
     "id": "ATUMETTE",
@@ -467,7 +516,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。集めての間違いです。"
+    "message": "文法ミスがあります。集めての間違いです。",
+    "suggestions": [
+      "集めて"
+    ]
   },
   {
     "id": "SAKINAKUNATTA",
@@ -498,7 +550,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。先に亡くなったの間違いです。"
+    "message": "文法ミスがあります。先に亡くなったの間違いです。",
+    "suggestions": [
+      "先に亡くなった"
+    ]
   },
   {
     "id": "ZUTTO_DOUSI_TARA",
@@ -529,7 +584,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。ずっと開けていたらの間違いです。"
+    "message": "文法ミスがあります。ずっと開けていたらの間違いです。",
+    "suggestions": [
+      "ずっと開けていたら"
+    ]
   },
   {
     "id": "HATOHAIU",
@@ -560,7 +618,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。鳩は鳴くの間違いです。"
+    "message": "文法ミスがあります。鳩は鳴くの間違いです。",
+    "suggestions": [
+      "鳩は鳴く"
+    ]
   },
   {
     "id": "KUMOMOHITOTUNAKU",
@@ -599,7 +660,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。雲一つなくの間違いです。"
+    "message": "文法ミスがあります。雲一つなくの間違いです。",
+    "suggestions": [
+      "雲一つなく"
+    ]
   },
   {
     "id": "KONITIHA",
@@ -638,7 +702,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。こんにちはの間違いです。"
+    "message": "文法ミスがあります。こんにちはの間違いです。",
+    "suggestions": [
+      "こんにちは"
+    ]
   },
   {
     "id": "HAJIMEMOSITE",
@@ -677,7 +744,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。始めましての間違いです。"
+    "message": "文法ミスがあります。始めましての間違いです。",
+    "suggestions": [
+      "始めまして"
+    ]
   },
   {
     "id": "MANABETAI",
@@ -700,7 +770,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。学びたいの間違いです。"
+    "message": "文法ミスがあります。学びたいの間違いです。",
+    "suggestions": [
+      "学びたい"
+    ]
   },
   {
     "id": "KOTOSIHASAI",
@@ -731,7 +804,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。今年で_歳の間違いです。"
+    "message": "文法ミスがあります。今年で_歳の間違いです。",
+    "suggestions": [
+      "今年で_歳"
+    ]
   },
   {
     "id": "KIKUTOKONIYORUTO",
@@ -778,7 +854,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。聞くところによるとの間違いです。"
+    "message": "文法ミスがあります。聞くところによるとの間違いです。",
+    "suggestions": [
+      "聞くところによると"
+    ]
   },
   {
     "id": "SAISYONANIKKI",
@@ -809,7 +888,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。最初の日記の間違いです。"
+    "message": "文法ミスがあります。最初の日記の間違いです。",
+    "suggestions": [
+      "最初の日記"
+    ]
   },
   {
     "id": "SENNTAKUWOARAU",
@@ -840,7 +922,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。洗濯をするの間違いです。"
+    "message": "文法ミスがあります。洗濯をするの間違いです。",
+    "suggestions": [
+      "洗濯をする"
+    ]
   },
   {
     "id": "GOWOMOTTEIRU",
@@ -887,7 +972,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。語を習得しているの間違いです。"
+    "message": "文法ミスがあります。語を習得しているの間違いです。",
+    "suggestions": [
+      "語を習得している"
+    ]
   },
   {
     "id": "DAIGAKUJI",
@@ -910,7 +998,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。大学の時の間違いです。"
+    "message": "文法ミスがあります。大学の時の間違いです。",
+    "suggestions": [
+      "大学の時"
+    ]
   },
   {
     "id": "KIREIMO",
@@ -933,7 +1024,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。きれいでの間違いです。"
+    "message": "文法ミスがあります。きれいでの間違いです。",
+    "suggestions": [
+      "きれいで"
+    ]
   },
   {
     "id": "OOKINA_MEISI",
@@ -964,7 +1058,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。大きい部屋の間違いです。"
+    "message": "文法ミスがあります。大きい部屋の間違いです。",
+    "suggestions": [
+      "大きい部屋"
+    ]
   },
   {
     "id": "MADENIYOHUKASI",
@@ -1003,7 +1100,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。まで夜更かしの間違いです。"
+    "message": "文法ミスがあります。まで夜更かしの間違いです。",
+    "suggestions": [
+      "まで夜更かし"
+    ]
   },
   {
     "id": "HUTTANAI",
@@ -1042,7 +1142,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。降らなかったの間違いです。"
+    "message": "文法ミスがあります。降らなかったの間違いです。",
+    "suggestions": [
+      "降らなかった"
+    ]
   },
   {
     "id": "SEIBUNNHAKOMUGI",
@@ -1073,7 +1176,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。材料は小麦の間違いです。"
+    "message": "文法ミスがあります。材料は小麦の間違いです。",
+    "suggestions": [
+      "材料は小麦"
+    ]
   },
   {
     "id": "NAZOKATTE",
@@ -1104,7 +1210,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。なにを買っての間違いです。"
+    "message": "文法ミスがあります。なにを買っての間違いです。",
+    "suggestions": [
+      "なにを買って"
+    ]
   },
   {
     "id": "SANNKANIIKU",
@@ -1135,7 +1244,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。参加しに行くの間違いです。"
+    "message": "文法ミスがあります。参加しに行くの間違いです。",
+    "suggestions": [
+      "参加しに行く"
+    ]
   },
   {
     "id": "TIGAUHANANI",
@@ -1166,7 +1278,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。違いはなにの間違いです。"
+    "message": "文法ミスがあります。違いはなにの間違いです。",
+    "suggestions": [
+      "違いはなに"
+    ]
   },
   {
     "id": "TAKUSANNNAHITO",
@@ -1197,7 +1312,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。たくさんの人の間違いです。"
+    "message": "文法ミスがあります。たくさんの人の間違いです。",
+    "suggestions": [
+      "たくさんの人"
+    ]
   },
   {
     "id": "YASUMIHI",
@@ -1220,7 +1338,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。休みの日の間違いです。"
+    "message": "文法ミスがあります。休みの日の間違いです。",
+    "suggestions": [
+      "休みの日"
+    ]
   },
   {
     "id": "KOMARUDESU",
@@ -1243,7 +1364,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。困りますの間違いです。"
+    "message": "文法ミスがあります。困りますの間違いです。",
+    "suggestions": [
+      "困ります"
+    ]
   },
   {
     "id": "OSAEDEKIRU",
@@ -1266,7 +1390,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。抑えられるの間違いです。"
+    "message": "文法ミスがあります。抑えられるの間違いです。",
+    "suggestions": [
+      "抑えられる"
+    ]
   },
   {
     "id": "KATURYOKUNAHITO",
@@ -1297,7 +1424,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。元気な人の間違いです。"
+    "message": "文法ミスがあります。元気な人の間違いです。",
+    "suggestions": [
+      "元気な人"
+    ]
   },
   {
     "id": "RIYUUWONAI",
@@ -1328,7 +1458,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。理由はないの間違いです。"
+    "message": "文法ミスがあります。理由はないの間違いです。",
+    "suggestions": [
+      "理由はない"
+    ]
   },
   {
     "id": "MEISI_WOARI",
@@ -1359,7 +1492,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。コーヒーがあるの間違いです。"
+    "message": "文法ミスがあります。コーヒーがあるの間違いです。",
+    "suggestions": [
+      "コーヒーがある"
+    ]
   },
   {
     "id": "MEISI_WOOWATTA",
@@ -1398,7 +1534,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。宿題をを終えたの間違いです。"
+    "message": "文法ミスがあります。宿題をを終えたの間違いです。",
+    "suggestions": [
+      "宿題をを終えた"
+    ]
   },
   {
     "id": "MEISI_WOHAJIMATTA",
@@ -1437,7 +1576,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。試験が始まったの間違いです。"
+    "message": "文法ミスがあります。試験が始まったの間違いです。",
+    "suggestions": [
+      "試験が始まった"
+    ]
   },
   {
     "id": "GATUDUKITAI",
@@ -1468,7 +1610,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。を続けたいの間違いです。"
+    "message": "文法ミスがあります。を続けたいの間違いです。",
+    "suggestions": [
+      "を続けたい"
+    ]
   },
   {
     "id": "KEKKOSITA",
@@ -1499,7 +1644,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。けっこうしたの間違いです。"
+    "message": "文法ミスがあります。けっこうしたの間違いです。",
+    "suggestions": [
+      "けっこうした"
+    ]
   },
   {
     "id": "SUBEKINOHA",
@@ -1538,7 +1686,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。すべきなのはの間違いです。"
+    "message": "文法ミスがあります。すべきなのはの間違いです。",
+    "suggestions": [
+      "すべきなのは"
+    ]
   },
   {
     "id": "NO_SURU",
@@ -1569,7 +1720,10 @@
         "regexp": false
       }
     ],
-    "message": "目的語を表すにはをを使用します。"
+    "message": "目的語を表すにはをを使用します。",
+    "suggestions": [
+      "を"
+    ]
   },
   {
     "id": "JOUKIDOORI",
@@ -1592,7 +1746,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。上記の通りの間違いです。"
+    "message": "文法ミスがあります。上記の通りの間違いです。",
+    "suggestions": [
+      "上記の通り"
+    ]
   },
   {
     "id": "NATOTONOTTEITE",
@@ -1639,7 +1796,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。に整っていての間違いです。"
+    "message": "文法ミスがあります。に整っていての間違いです。",
+    "suggestions": [
+      "に整っていて"
+    ]
   },
   {
     "id": "GOHENNJI",
@@ -1662,7 +1822,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。お返事の間違いです。"
+    "message": "文法ミスがあります。お返事の間違いです。",
+    "suggestions": [
+      "お返事"
+    ]
   },
   {
     "id": "MUZUKASITO",
@@ -1685,7 +1848,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。むずかしいとの間違いです。"
+    "message": "文法ミスがあります。むずかしいとの間違いです。",
+    "suggestions": [
+      "むずかしいと"
+    ]
   },
   {
     "id": "KEDO",
@@ -1708,7 +1874,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。けどの間違いです。"
+    "message": "文法ミスがあります。けどの間違いです。",
+    "suggestions": [
+      "けど"
+    ]
   },
   {
     "id": "KANOJOHA_MEISI_GAIRU",
@@ -1755,7 +1924,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。彼女には友達がいるの間違いです。"
+    "message": "文法ミスがあります。彼女には友達がいるの間違いです。",
+    "suggestions": [
+      "彼女には友達がいる"
+    ]
   },
   {
     "id": "KOTAEGAMATIGAETA",
@@ -1794,7 +1966,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。答えを間違えたの間違いです。"
+    "message": "文法ミスがあります。答えを間違えたの間違いです。",
+    "suggestions": [
+      "答えを間違えた"
+    ]
   },
   {
     "id": "MOKUTEKINIAKIRAKA",
@@ -1825,7 +2000,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。目的を明らかの間違いです。"
+    "message": "文法ミスがあります。目的を明らかの間違いです。",
+    "suggestions": [
+      "目的を明らか"
+    ]
   },
   {
     "id": "CHIGAI",
@@ -1856,7 +2034,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。違っての間違いです。"
+    "message": "文法ミスがあります。違っての間違いです。",
+    "suggestions": [
+      "違って"
+    ]
   },
   {
     "id": "CHIGATTA",
@@ -1887,7 +2068,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。違ったの間違いです。"
+    "message": "文法ミスがあります。違ったの間違いです。",
+    "suggestions": [
+      "違った"
+    ]
   },
   {
     "id": "OMACHIDOU",
@@ -1918,7 +2102,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。お待ちどうの間違いです。"
+    "message": "文法ミスがあります。お待ちどうの間違いです。",
+    "suggestions": [
+      "お待ちどう"
+    ]
   },
   {
     "id": "MOTOZUKU",
@@ -1941,7 +2128,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。基づくの間違いです。"
+    "message": "文法ミスがあります。基づくの間違いです。",
+    "suggestions": [
+      "基づく"
+    ]
   },
   {
     "id": "IWAZUMOKANA",
@@ -1980,7 +2170,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。言わずもがなの間違いです。"
+    "message": "文法ミスがあります。言わずもがなの間違いです。",
+    "suggestions": [
+      "言わずもがな"
+    ]
   },
   {
     "id": "SIITEHAKOTOWOSISONNZURU",
@@ -2051,7 +2244,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。急いては事を仕損じるの間違いです。"
+    "message": "文法ミスがあります。急いては事を仕損じるの間違いです。",
+    "suggestions": [
+      "急いては事を仕損じる"
+    ]
   },
   {
     "id": "NEGAWAKUBA",
@@ -2082,7 +2278,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。願わくはの間違いです。"
+    "message": "文法ミスがあります。願わくはの間違いです。",
+    "suggestions": [
+      "願わくは"
+    ]
   },
   {
     "id": "HANANIKAKENAI",
@@ -2129,7 +2328,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。鼻に掛けないの間違いです。"
+    "message": "文法ミスがあります。鼻に掛けないの間違いです。",
+    "suggestions": [
+      "鼻に掛けない"
+    ]
   },
   {
     "id": "HARADADASII",
@@ -2168,7 +2370,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。腹立たしいの間違いです。"
+    "message": "文法ミスがあります。腹立たしいの間違いです。",
+    "suggestions": [
+      "腹立たしい"
+    ]
   },
   {
     "id": "HETENAKANNGAEYASUMUNINITARI",
@@ -2231,7 +2436,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。下手の考え休むに似たりの間違いです。"
+    "message": "文法ミスがあります。下手の考え休むに似たりの間違いです。",
+    "suggestions": [
+      "下手の考え休むに似たり"
+    ]
   },
   {
     "id": "MATIDOUSII",
@@ -2262,7 +2470,10 @@
         "regexp": true
       }
     ],
-    "message": "文法ミスがあります。待ちどおしいの間違いです。"
+    "message": "文法ミスがあります。待ちどおしいの間違いです。",
+    "suggestions": [
+      "待ちどおしい"
+    ]
   },
   {
     "id": "MARENIMINU",
@@ -2301,7 +2512,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。稀に見るの間違いです。"
+    "message": "文法ミスがあります。稀に見るの間違いです。",
+    "suggestions": [
+      "稀に見る"
+    ]
   },
   {
     "id": "MITIHIKI",
@@ -2332,7 +2546,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。満ち干の間違いです。"
+    "message": "文法ミスがあります。満ち干の間違いです。",
+    "suggestions": [
+      "満ち干"
+    ]
   },
   {
     "id": "MIKKATOAKEZU",
@@ -2379,7 +2596,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。三日に上げずの間違いです。"
+    "message": "文法ミスがあります。三日に上げずの間違いです。",
+    "suggestions": [
+      "三日に上げず"
+    ]
   },
   {
     "id": "YAMONAKU",
@@ -2410,7 +2630,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。やむなくの間違いです。"
+    "message": "文法ミスがあります。やむなくの間違いです。",
+    "suggestions": [
+      "やむなく"
+    ]
   },
   {
     "id": "YAMUOEZU",
@@ -2449,7 +2672,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。やむをえずの間違いです。"
+    "message": "文法ミスがあります。やむをえずの間違いです。",
+    "suggestions": [
+      "やむをえず"
+    ]
   },
   {
     "id": "WARAWOMOSUGARU",
@@ -2488,7 +2714,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。藁にも縋るの間違いです。"
+    "message": "文法ミスがあります。藁にも縋るの間違いです。",
+    "suggestions": [
+      "藁にも縋る"
+    ]
   },
   {
     "id": "TUKUZUKU",
@@ -2511,7 +2740,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。つくづくの間違いです。"
+    "message": "文法ミスがあります。つくづくの間違いです。",
+    "suggestions": [
+      "つくづく"
+    ]
   },
   {
     "id": "TUREZURE",
@@ -2534,7 +2766,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。つれづれの間違いです。"
+    "message": "文法ミスがあります。つれづれの間違いです。",
+    "suggestions": [
+      "つれづれ"
+    ]
   },
   {
     "id": "ZURAI",
@@ -2557,7 +2792,10 @@
         "regexp": true
       }
     ],
-    "message": "文法ミスがあります。づらいの間違いです。"
+    "message": "文法ミスがあります。づらいの間違いです。",
+    "suggestions": [
+      "づらい"
+    ]
   },
   {
     "id": "TAAINAI",
@@ -2580,7 +2818,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。たわい無いの間違いです。"
+    "message": "文法ミスがあります。たわい無いの間違いです。",
+    "suggestions": [
+      "たわい無い"
+    ]
   },
   {
     "id": "ENAI",
@@ -2619,7 +2860,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。ざるを得ないの間違いです。"
+    "message": "文法ミスがあります。ざるを得ないの間違いです。",
+    "suggestions": [
+      "ざるを得ない"
+    ]
   },
   {
     "id": "AJIAWASERU",
@@ -2642,7 +2886,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。味わわせるの間違いです。"
+    "message": "誤字があります。味わわせるの間違いです。",
+    "suggestions": [
+      "味わわせる"
+    ]
   },
   {
     "id": "ARAKASAMA",
@@ -2673,7 +2920,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。あからさまの間違いです。"
+    "message": "誤字があります。あからさまの間違いです。",
+    "suggestions": [
+      "あからさま"
+    ]
   },
   {
     "id": "AKUGYAKUHIDOU",
@@ -2696,7 +2946,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。悪逆無道の間違いです。"
+    "message": "誤字があります。悪逆無道の間違いです。",
+    "suggestions": [
+      "悪逆無道"
+    ]
   },
   {
     "id": "ATOHEMOSAKINIMOHIKENU",
@@ -2767,7 +3020,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。後へも先へも行かぬの間違いです。"
+    "message": "誤字があります。後へも先へも行かぬの間違いです。",
+    "suggestions": [
+      "後へも先へも行かぬ"
+    ]
   },
   {
     "id": "IZASIRAZU",
@@ -2798,7 +3054,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。いさ知らずの間違いです。"
+    "message": "誤字があります。いさ知らずの間違いです。",
+    "suggestions": [
+      "いさ知らず"
+    ]
   },
   {
     "id": "ITINENNHUNKI",
@@ -2821,7 +3080,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。一念発起の間違いです。"
+    "message": "誤字があります。一念発起の間違いです。",
+    "suggestions": [
+      "一念発起"
+    ]
   },
   {
     "id": "ISSOKUSYOKUHATU",
@@ -2852,7 +3114,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。一触即発の間違いです。"
+    "message": "誤字があります。一触即発の間違いです。",
+    "suggestions": [
+      "一触即発"
+    ]
   },
   {
     "id": "INAGAOUNIMO",
@@ -2899,7 +3164,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。弥が上にもの間違いです。"
+    "message": "誤字があります。弥が上にもの間違いです。",
+    "suggestions": [
+      "弥が上にも"
+    ]
   },
   {
     "id": "ISSOUNOKOTO",
@@ -2930,7 +3198,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。いっそのことの間違いです。"
+    "message": "誤字があります。いっそのことの間違いです。",
+    "suggestions": [
+      "いっそのこと"
+    ]
   },
   {
     "id": "ARUKUHODOU",
@@ -2953,7 +3224,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。動く歩道の間違いです。"
+    "message": "誤字があります。動く歩道の間違いです。",
+    "suggestions": [
+      "動く歩道"
+    ]
   },
   {
     "id": "UYOUKYOKUSETU",
@@ -2984,7 +3258,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。紆余曲折の間違いです。"
+    "message": "誤字があります。紆余曲折の間違いです。",
+    "suggestions": [
+      "紆余曲折"
+    ]
   },
   {
     "id": "URUOBOE",
@@ -3007,7 +3284,10 @@
         "regexp": true
       }
     ],
-    "message": "誤字があります。うろ覚えの間違いです"
+    "message": "誤字があります。うろ覚えの間違いです",
+    "suggestions": [
+      "うろ覚え"
+    ]
   },
   {
     "id": "EIENTO",
@@ -3030,7 +3310,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。延延との間違いです。"
+    "message": "誤字があります。延延との間違いです。",
+    "suggestions": [
+      "延延と"
+    ]
   },
   {
     "id": "OMOIMOTUKANAI",
@@ -3069,7 +3352,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。思いも寄らないの間違いです。"
+    "message": "誤字があります。思いも寄らないの間違いです。",
+    "suggestions": [
+      "思いも寄らない"
+    ]
   },
   {
     "id": "OMOTOMEYASUI",
@@ -3100,7 +3386,10 @@
         "regexp": true
       }
     ],
-    "message": "誤字があります。お求めに成り易いの間違いです。"
+    "message": "誤字があります。お求めに成り易いの間違いです。",
+    "suggestions": [
+      "お求めに成り易い"
+    ]
   },
   {
     "id": "OYAKUMEGOMEN",
@@ -3131,7 +3420,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。御役御免の間違いです。"
+    "message": "誤字があります。御役御免の間違いです。",
+    "suggestions": [
+      "御役御免"
+    ]
   },
   {
     "id": "AOIROTOIKI",
@@ -3154,7 +3446,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。青息吐息の間違いです。"
+    "message": "誤字があります。青息吐息の間違いです。",
+    "suggestions": [
+      "青息吐息"
+    ]
   },
   {
     "id": "YOIKOTODARAKE",
@@ -3185,7 +3480,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。良い事尽くめの間違いです。"
+    "message": "誤字があります。良い事尽くめの間違いです。",
+    "suggestions": [
+      "良い事尽くめ"
+    ]
   },
   {
     "id": "UNOMETAKANOME",
@@ -3224,7 +3522,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。鵜の目鷹の目の間違いです。"
+    "message": "誤字があります。鵜の目鷹の目の間違いです。",
+    "suggestions": [
+      "鵜の目鷹の目"
+    ]
   },
   {
     "id": "OIKANEMASENN",
@@ -3263,7 +3564,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。負いかねますの間違いです。"
+    "message": "誤字があります。負いかねますの間違いです。",
+    "suggestions": [
+      "負いかねます"
+    ]
   },
   {
     "id": "OBOTUKANU",
@@ -3302,7 +3606,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。覚束無いの間違いです。"
+    "message": "誤字があります。覚束無いの間違いです。",
+    "suggestions": [
+      "覚束無い"
+    ]
   },
   {
     "id": "OMEIBANNKAI",
@@ -3325,7 +3632,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。汚名返上の間違いです。"
+    "message": "誤字があります。汚名返上の間違いです。",
+    "suggestions": [
+      "汚名返上"
+    ]
   },
   {
     "id": "KANPUUMASATU",
@@ -3348,7 +3658,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。乾布摩擦の間違いです。"
+    "message": "誤字があります。乾布摩擦の間違いです。",
+    "suggestions": [
+      "乾布摩擦"
+    ]
   },
   {
     "id": "KATAKUSOUSA",
@@ -3371,7 +3684,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。家宅捜索の間違いです。"
+    "message": "誤字があります。家宅捜索の間違いです。",
+    "suggestions": [
+      "家宅捜索"
+    ]
   },
   {
     "id": "KAKEGAI",
@@ -3394,7 +3710,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。掛け替えの間違いです。"
+    "message": "誤字があります。掛け替えの間違いです。",
+    "suggestions": [
+      "掛け替え"
+    ]
   },
   {
     "id": "KAIMAKIKU",
@@ -3425,7 +3744,10 @@
         "regexp": true
       }
     ],
-    "message": "誤字があります。垣間見るの間違いです。"
+    "message": "誤字があります。垣間見るの間違いです。",
+    "suggestions": [
+      "垣間見る"
+    ]
   },
   {
     "id": "KAZENOUWASA",
@@ -3456,7 +3778,10 @@
         "regexp": true
       }
     ],
-    "message": "誤字があります。風の便りの間違いです。"
+    "message": "誤字があります。風の便りの間違いです。",
+    "suggestions": [
+      "風の便り"
+    ]
   },
   {
     "id": "KITAIDAORE",
@@ -3479,7 +3804,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。期待外れの間違いです。"
+    "message": "誤字があります。期待外れの間違いです。",
+    "suggestions": [
+      "期待外れ"
+    ]
   },
   {
     "id": "KYUUTAIZEN",
@@ -3502,7 +3830,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。旧態依然の間違いです。"
+    "message": "誤字があります。旧態依然の間違いです。",
+    "suggestions": [
+      "旧態依然"
+    ]
   },
   {
     "id": "GIRONHAKUTYUU",
@@ -3525,7 +3856,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。議論白熱の間違いです。"
+    "message": "誤字があります。議論白熱の間違いです。",
+    "suggestions": [
+      "議論白熱"
+    ]
   },
   {
     "id": "TEIJIBANN",
@@ -3548,7 +3882,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。掲示板の間違いです。"
+    "message": "誤字があります。掲示板の間違いです。",
+    "suggestions": [
+      "掲示板"
+    ]
   },
   {
     "id": "KOKEOROSU",
@@ -3571,7 +3908,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。扱き下ろすの間違いです。"
+    "message": "誤字があります。扱き下ろすの間違いです。",
+    "suggestions": [
+      "扱き下ろす"
+    ]
   },
   {
     "id": "OKYOUJYUKUDASAI",
@@ -3602,7 +3942,10 @@
         "regexp": true
       }
     ],
-    "message": "誤字があります。御教示下さいの間違いです。"
+    "message": "誤字があります。御教示下さいの間違いです。",
+    "suggestions": [
+      "御教示下さい"
+    ]
   },
   {
     "id": "KOTEIGAINEN",
@@ -3625,7 +3968,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。固定観念の間違いです。"
+    "message": "誤字があります。固定観念の間違いです。",
+    "suggestions": [
+      "固定観念"
+    ]
   },
   {
     "id": "KENNKENNGAKUGAKU",
@@ -3648,7 +3994,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。喧喧囂囂の間違いです。"
+    "message": "誤字があります。喧喧囂囂の間違いです。",
+    "suggestions": [
+      "喧喧囂囂"
+    ]
   },
   {
     "id": "SONJASOKORA",
@@ -3679,7 +4028,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。そんじょそこらの間違いです。"
+    "message": "誤字があります。そんじょそこらの間違いです。",
+    "suggestions": [
+      "そんじょそこら"
+    ]
   },
   {
     "id": "SAKIDORU",
@@ -3702,7 +4054,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。先取りするの間違いです。"
+    "message": "誤字があります。先取りするの間違いです。",
+    "suggestions": [
+      "先取りする"
+    ]
   },
   {
     "id": "JIDENNSYA",
@@ -3733,7 +4088,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。じてん車の間違いです。"
+    "message": "誤字があります。じてん車の間違いです。",
+    "suggestions": [
+      "じてん車"
+    ]
   },
   {
     "id": "SIJOUMEIDAI",
@@ -3756,7 +4114,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。至上命令の間違いです。"
+    "message": "誤字があります。至上命令の間違いです。",
+    "suggestions": [
+      "至上命令"
+    ]
   },
   {
     "id": "KISETUGARA",
@@ -3779,7 +4140,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。時節柄の間違いです。"
+    "message": "誤字があります。時節柄の間違いです。",
+    "suggestions": [
+      "時節柄"
+    ]
   },
   {
     "id": "SYUKKETUSI",
@@ -3802,7 +4166,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。失血死の間違いです。"
+    "message": "誤字があります。失血死の間違いです。",
+    "suggestions": [
+      "失血死"
+    ]
   },
   {
     "id": "JISSUNNDAI",
@@ -3825,7 +4192,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。実物大の間違いです。"
+    "message": "誤字があります。実物大の間違いです。",
+    "suggestions": [
+      "実物大"
+    ]
   },
   {
     "id": "IKIIWOGU",
@@ -3848,7 +4218,10 @@
         "regexp": true
       }
     ],
-    "message": "誤字があります。死に急ぐの間違いです。"
+    "message": "誤字があります。死に急ぐの間違いです。",
+    "suggestions": [
+      "死に急ぐ"
+    ]
   },
   {
     "id": "SYAKAIHOUJINN",
@@ -3871,7 +4244,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。社団法人の間違いです。"
+    "message": "誤字があります。社団法人の間違いです。",
+    "suggestions": [
+      "社団法人"
+    ]
   },
   {
     "id": "SYANIMUNI",
@@ -3902,7 +4278,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。遮二無二の間違いです。"
+    "message": "誤字があります。遮二無二の間違いです。",
+    "suggestions": [
+      "遮二無二"
+    ]
   },
   {
     "id": "SYOUKONIMONAKU",
@@ -3941,7 +4320,10 @@
         "regexp": true
       }
     ],
-    "message": "誤字があります。性懲りも無くの間違いです。"
+    "message": "誤字があります。性懲りも無くの間違いです。",
+    "suggestions": [
+      "性懲りも無く"
+    ]
   },
   {
     "id": "SYOSINNWASURURUBEKARAZU",
@@ -3988,7 +4370,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。初心忘るべからずの間違いです。"
+    "message": "誤字があります。初心忘るべからずの間違いです。",
+    "suggestions": [
+      "初心忘るべからず"
+    ]
   },
   {
     "id": "IAWNUGAHOTOKE",
@@ -4027,7 +4412,10 @@
         "regexp": true
       }
     ],
-    "message": "誤字があります。知らぬが仏の間違いです。"
+    "message": "誤字があります。知らぬが仏の間違いです。",
+    "suggestions": [
+      "知らぬが仏"
+    ]
   },
   {
     "id": "SIROUTOHADASI",
@@ -4050,7 +4438,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。素人離れの間違いです。"
+    "message": "誤字があります。素人離れの間違いです。",
+    "suggestions": [
+      "素人離れ"
+    ]
   },
   {
     "id": "KUTISAKISANNZUNN",
@@ -4073,7 +4464,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。舌先三寸の間違いです。"
+    "message": "誤字があります。舌先三寸の間違いです。",
+    "suggestions": [
+      "舌先三寸"
+    ]
   },
   {
     "id": "HITUKOI",
@@ -4096,7 +4490,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。しつこいの間違いです。"
+    "message": "誤字があります。しつこいの間違いです。",
+    "suggestions": [
+      "しつこい"
+    ]
   },
   {
     "id": "JINNSEIITARUTOKOROSEIZANNARI",
@@ -4143,7 +4540,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。人間いたるところ青山ありの間違いです。"
+    "message": "誤字があります。人間いたるところ青山ありの間違いです。",
+    "suggestions": [
+      "人間いたるところ青山あり"
+    ]
   },
   {
     "id": "SETIGANAI",
@@ -4182,7 +4582,10 @@
         "regexp": true
       }
     ],
-    "message": "誤字があります。せちがらいの間違いです。"
+    "message": "誤字があります。せちがらいの間違いです。",
+    "suggestions": [
+      "せちがらい"
+    ]
   },
   {
     "id": "KUTUJOKUSENN",
@@ -4205,7 +4608,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。雪辱戦の間違いです。"
+    "message": "誤字があります。雪辱戦の間違いです。",
+    "suggestions": [
+      "雪辱戦"
+    ]
   },
   {
     "id": "JIKISOUSOU",
@@ -4228,7 +4634,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。時期尚早の間違いです。"
+    "message": "誤字があります。時期尚早の間違いです。",
+    "suggestions": [
+      "時期尚早"
+    ]
   },
   {
     "id": "SYUSIGAE",
@@ -4251,7 +4660,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。宗旨変えの間違いです。"
+    "message": "誤字があります。宗旨変えの間違いです。",
+    "suggestions": [
+      "宗旨変え"
+    ]
   },
   {
     "id": "SUTORI-TOKINGU",
@@ -4274,7 +4686,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。ストリーキングの間違いです。"
+    "message": "誤字があります。ストリーキングの間違いです。",
+    "suggestions": [
+      "ストリーキング"
+    ]
   },
   {
     "id": "DARASINAI",
@@ -4297,7 +4712,10 @@
         "regexp": true
       }
     ],
-    "message": "誤字があります。しだらないの間違いです。"
+    "message": "誤字があります。しだらないの間違いです。",
+    "suggestions": [
+      "しだらない"
+    ]
   },
   {
     "id": "DAIENNDANN",
@@ -4320,7 +4738,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。大団円の間違いです。"
+    "message": "誤字があります。大団円の間違いです。",
+    "suggestions": [
+      "大団円"
+    ]
   },
   {
     "id": "TAISYORYOUHOU",
@@ -4343,7 +4764,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。対症療法の間違いです。"
+    "message": "誤字があります。対症療法の間違いです。",
+    "suggestions": [
+      "対症療法"
+    ]
   },
   {
     "id": "TOBUTORIATOWONIGOSAZU",
@@ -4398,7 +4822,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。立つ鳥跡を濁さずの間違いです。"
+    "message": "誤字があります。立つ鳥跡を濁さずの間違いです。",
+    "suggestions": [
+      "立つ鳥跡を濁さず"
+    ]
   },
   {
     "id": "TYOSAKUKENNIHANN",
@@ -4429,7 +4856,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。著作権法違反の間違いです。"
+    "message": "誤字があります。著作権法違反の間違いです。",
+    "suggestions": [
+      "著作権法違反"
+    ]
   },
   {
     "id": "KOUTUUDOME",
@@ -4452,7 +4882,10 @@
         "regexp": true
       }
     ],
-    "message": "誤字があります。通行止めの間違いです。"
+    "message": "誤字があります。通行止めの間違いです。",
+    "suggestions": [
+      "通行止め"
+    ]
   },
   {
     "id": "TEMOTIBUTASA",
@@ -4491,7 +4924,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。てもちぶさたの間違いです。"
+    "message": "誤字があります。てもちぶさたの間違いです。",
+    "suggestions": [
+      "てもちぶさた"
+    ]
   },
   {
     "id": "TENIOHA",
@@ -4530,7 +4966,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。てにをはの間違いです。"
+    "message": "誤字があります。てにをはの間違いです。",
+    "suggestions": [
+      "てにをは"
+    ]
   },
   {
     "id": "TENNTITENNMEI",
@@ -4553,7 +4992,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。天地神明の間違いです。"
+    "message": "誤字があります。天地神明の間違いです。",
+    "suggestions": [
+      "天地神明"
+    ]
   },
   {
     "id": "TORITUKUHIMAMONAI",
@@ -4592,7 +5034,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。取り付く島もないの間違いです。"
+    "message": "誤字があります。取り付く島もないの間違いです。",
+    "suggestions": [
+      "取り付く島もない"
+    ]
   },
   {
     "id": "TORUMONOMOTORAZU",
@@ -4639,7 +5084,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。取る物も取り敢えずの間違いです。"
+    "message": "誤字があります。取る物も取り敢えずの間違いです。",
+    "suggestions": [
+      "取る物も取り敢えず"
+    ]
   },
   {
     "id": "DEHUXORUTOSUTANDA-DO",
@@ -4662,7 +5110,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。デファクトスタンダードの間違いです。"
+    "message": "誤字があります。デファクトスタンダードの間違いです。",
+    "suggestions": [
+      "デファクトスタンダード"
+    ]
   },
   {
     "id": "NEMUKEME",
@@ -4685,7 +5136,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。寝惚け眼の間違いです。"
+    "message": "誤字があります。寝惚け眼の間違いです。",
+    "suggestions": [
+      "寝惚け眼"
+    ]
   },
   {
     "id": "NOUARUTAKAHATUMEWOkAKUSU",
@@ -4748,7 +5202,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。能ある鷹はめを隠すの間違いです。"
+    "message": "誤字があります。能ある鷹はめを隠すの間違いです。",
+    "suggestions": [
+      "能ある鷹はめを隠す"
+    ]
   },
   {
     "id": "HATARAKIZUKUME",
@@ -4779,7 +5236,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。働き詰めの間違いです。"
+    "message": "誤字があります。働き詰めの間違いです。",
+    "suggestions": [
+      "働き詰め"
+    ]
   },
   {
     "id": "RYOUHU",
@@ -4802,7 +5262,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。頒布の間違いです。"
+    "message": "誤字があります。頒布の間違いです。",
+    "suggestions": [
+      "頒布"
+    ]
   },
   {
     "id": "HIONOMITINIMOOTORU",
@@ -4857,7 +5320,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。人の道にもとるの間違いです。"
+    "message": "誤字があります。人の道にもとるの間違いです。",
+    "suggestions": [
+      "人の道にもとる"
+    ]
   },
   {
     "id": "BOUBIROKU",
@@ -4888,7 +5354,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。備忘録の間違いです。"
+    "message": "誤字があります。備忘録の間違いです。",
+    "suggestions": [
+      "備忘録"
+    ]
   },
   {
     "id": "HITOTUHENNJI",
@@ -4911,7 +5380,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。二つ返事の間違いです。"
+    "message": "誤字があります。二つ返事の間違いです。",
+    "suggestions": [
+      "二つ返事"
+    ]
   },
   {
     "id": "MAKERUTOMOOTORANAI",
@@ -4958,7 +5430,10 @@
         "regexp": true
       }
     ],
-    "message": "誤字があります。勝るとも劣らないの間違いです。"
+    "message": "誤字があります。勝るとも劣らないの間違いです。",
+    "suggestions": [
+      "勝るとも劣らない"
+    ]
   },
   {
     "id": "MUNESANZUN",
@@ -4981,7 +5456,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。胸三寸の間違いです。"
+    "message": "誤字があります。胸三寸の間違いです。",
+    "suggestions": [
+      "胸三寸"
+    ]
   },
   {
     "id": "MOZUKUTONARUTRANSPO",
@@ -5012,7 +5490,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。もくずとなるの間違いです。"
+    "message": "誤字があります。もくずとなるの間違いです。",
+    "suggestions": [
+      "もくずとなる"
+    ]
   },
   {
     "id": "MOUSIWAKEGOZAIMASENN",
@@ -5051,7 +5532,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。申し訳ないの間違いです。"
+    "message": "誤字があります。申し訳ないの間違いです。",
+    "suggestions": [
+      "申し訳ない"
+    ]
   },
   {
     "id": "YAKIMAWASI",
@@ -5074,7 +5558,10 @@
         "regexp": true
       }
     ],
-    "message": "誤字があります。焼き増しの間違いです。"
+    "message": "誤字があります。焼き増しの間違いです。",
+    "suggestions": [
+      "焼き増し"
+    ]
   },
   {
     "id": "YAMAAI",
@@ -5097,7 +5584,10 @@
         "regexp": true
       }
     ],
-    "message": "誤字があります。山間の間違いです。"
+    "message": "誤字があります。山間の間違いです。",
+    "suggestions": [
+      "山間"
+    ]
   },
   {
     "id": "BOUBOKUMINN",
@@ -5120,7 +5610,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。遊牧民の間違いです。"
+    "message": "誤字があります。遊牧民の間違いです。",
+    "suggestions": [
+      "遊牧民"
+    ]
   },
   {
     "id": "YUKIYAKONNKONNARAREYAKONNKONN",
@@ -5183,7 +5676,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。雪やこんこあられやこんこの間違いです。"
+    "message": "誤字があります。雪やこんこあられやこんこの間違いです。",
+    "suggestions": [
+      "雪やこんこあられやこんこ"
+    ]
   },
   {
     "id": "RIRONNSEIZENN",
@@ -5206,7 +5702,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。理路整然の間違いです。"
+    "message": "誤字があります。理路整然の間違いです。",
+    "suggestions": [
+      "理路整然"
+    ]
   },
   {
     "id": "REKKITOSITA",
@@ -5245,7 +5744,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。歴としたの間違いです。"
+    "message": "誤字があります。歴としたの間違いです。",
+    "suggestions": [
+      "歴とした"
+    ]
   },
   {
     "id": "WARUDAKUMI",
@@ -5268,7 +5770,10 @@
         "regexp": false
       }
     ],
-    "message": "誤字があります。悪巧みの間違いです。"
+    "message": "誤字があります。悪巧みの間違いです。",
+    "suggestions": [
+      "悪巧み"
+    ]
   },
   {
     "id": "ATARAZUTOMOTOOKARAZU",
@@ -5323,7 +5828,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。中らずといえども遠からずの間違いです"
+    "message": "誤変換です。中らずといえども遠からずの間違いです",
+    "suggestions": [
+      "中らずといえども遠からず"
+    ]
   },
   {
     "id": "ASAZUKE",
@@ -5346,7 +5854,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。朝漬けの間違いです。"
+    "message": "誤変換です。朝漬けの間違いです。",
+    "suggestions": [
+      "朝漬け"
+    ]
   },
   {
     "id": "AIKURUSII",
@@ -5369,7 +5880,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。愛くるしいの間違いです。"
+    "message": "誤変換です。愛くるしいの間違いです。",
+    "suggestions": [
+      "愛くるしい"
+    ]
   },
   {
     "id": "AIKOTOBA",
@@ -5392,7 +5906,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。合い言葉の間違いです"
+    "message": "誤変換です。合い言葉の間違いです",
+    "suggestions": [
+      "合い言葉"
+    ]
   },
   {
     "id": "AONISAI",
@@ -5423,7 +5940,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。青二才の間違いです。"
+    "message": "誤変換です。青二才の間違いです。",
+    "suggestions": [
+      "青二才"
+    ]
   },
   {
     "id": "AKUTAI",
@@ -5446,7 +5966,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。悪態の間違いです。"
+    "message": "誤変換です。悪態の間違いです。",
+    "suggestions": [
+      "悪態"
+    ]
   },
   {
     "id": "ISSEIITIDAI",
@@ -5477,7 +6000,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。一世一代の間違いです。"
+    "message": "誤変換です。一世一代の間違いです。",
+    "suggestions": [
+      "一世一代"
+    ]
   },
   {
     "id": "IGAITO",
@@ -5500,7 +6026,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。意外との間違いです。"
+    "message": "誤変換です。意外との間違いです。",
+    "suggestions": [
+      "意外と"
+    ]
   },
   {
     "id": "YUUISA",
@@ -5523,7 +6052,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。優位差の間違いです。"
+    "message": "誤変換です。優位差の間違いです。",
+    "suggestions": [
+      "優位差"
+    ]
   },
   {
     "id": "UTYOUTEN",
@@ -5546,7 +6078,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。有頂天の間違いです。"
+    "message": "誤変換です。有頂天の間違いです。",
+    "suggestions": [
+      "有頂天"
+    ]
   },
   {
     "id": "OUGI",
@@ -5569,7 +6104,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。奥義の間違いです。"
+    "message": "誤変換です。奥義の間違いです。",
+    "suggestions": [
+      "奥義"
+    ]
   },
   {
     "id": "AIMAI",
@@ -5592,7 +6130,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。曖昧の間違いです。"
+    "message": "誤変換です。曖昧の間違いです。",
+    "suggestions": [
+      "曖昧"
+    ]
   },
   {
     "id": "ANNZENNHOSYOU",
@@ -5615,7 +6156,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。安全保障の間違いです。"
+    "message": "誤変換です。安全保障の間違いです。",
+    "suggestions": [
+      "安全保障"
+    ]
   },
   {
     "id": "ANNNOJOU",
@@ -5646,7 +6190,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。案の定の間違いです。"
+    "message": "誤変換です。案の定の間違いです。",
+    "suggestions": [
+      "案の定"
+    ]
   },
   {
     "id": "ARUPUSUITIMANNJYAKU",
@@ -5685,7 +6232,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。アルプス一万尺の間違いです。"
+    "message": "誤変換です。アルプス一万尺の間違いです。",
+    "suggestions": [
+      "アルプス一万尺"
+    ]
   },
   {
     "id": "IKUDOUONN",
@@ -5716,7 +6266,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。異口同音の間違いです。"
+    "message": "誤変換です。異口同音の間違いです。",
+    "suggestions": [
+      "異口同音"
+    ]
   },
   {
     "id": "ISIHYOUJI",
@@ -5739,7 +6292,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。意思表示の間違いです。"
+    "message": "誤変換です。意思表示の間違いです。",
+    "suggestions": [
+      "意思表示"
+    ]
   },
   {
     "id": "ISOGASII",
@@ -5762,7 +6318,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。忙しいの間違いです。"
+    "message": "誤変換です。忙しいの間違いです。",
+    "suggestions": [
+      "忙しい"
+    ]
   },
   {
     "id": "ITAZURANIJIKANNGASUGIRU",
@@ -5809,7 +6368,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。徒に時間が過ぎるの間違いです。"
+    "message": "誤変換です。徒に時間が過ぎるの間違いです。",
+    "suggestions": [
+      "徒に時間が過ぎる"
+    ]
   },
   {
     "id": "ITIHAYAKU",
@@ -5832,7 +6394,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。逸早くの間違いです。"
+    "message": "誤変換です。逸早くの間違いです。",
+    "suggestions": [
+      "逸早く"
+    ]
   },
   {
     "id": "ITIMATUNOHUANN",
@@ -5871,7 +6436,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。一抹の不安の間違いです。"
+    "message": "誤変換です。一抹の不安の間違いです。",
+    "suggestions": [
+      "一抹の不安"
+    ]
   },
   {
     "id": "ITIRITU",
@@ -5894,7 +6462,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。一律の間違いです。"
+    "message": "連合関係がおかしいです。一律の間違いです。",
+    "suggestions": [
+      "一律"
+    ]
   },
   {
     "id": "IKKAINOISI",
@@ -5933,7 +6504,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。一介の医師の間違いです。"
+    "message": "誤変換です。一介の医師の間違いです。",
+    "suggestions": [
+      "一介の医師"
+    ]
   },
   {
     "id": "IKKATU",
@@ -5956,7 +6530,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。一括の間違いです。"
+    "message": "誤変換です。一括の間違いです。",
+    "suggestions": [
+      "一括"
+    ]
   },
   {
     "id": "IKKANNNOOWARI",
@@ -5987,7 +6564,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。一巻の終わりの間違いです。"
+    "message": "誤変換です。一巻の終わりの間違いです。",
+    "suggestions": [
+      "一巻の終わり"
+    ]
   },
   {
     "id": "ISSINNDOUTAI",
@@ -6010,7 +6590,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。一心同体の間違いです。"
+    "message": "誤変換です。一心同体の間違いです。",
+    "suggestions": [
+      "一心同体"
+    ]
   },
   {
     "id": "ISSUINOYUME",
@@ -6041,7 +6624,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。一炊の夢の間違いです。"
+    "message": "誤変換です。一炊の夢の間違いです。",
+    "suggestions": [
+      "一炊の夢"
+    ]
   },
   {
     "id": "ISSEINI",
@@ -6072,7 +6658,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。一斉にの間違いです。"
+    "message": "誤変換です。一斉にの間違いです。",
+    "suggestions": [
+      "一斉に"
+    ]
   },
   {
     "id": "IPPENNTOU",
@@ -6095,7 +6684,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。一辺倒の間違いです。"
+    "message": "誤変換です。一辺倒の間違いです。",
+    "suggestions": [
+      "一辺倒"
+    ]
   },
   {
     "id": "IHATUWOTUGU",
@@ -6126,7 +6718,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。衣鉢を継ぐの間違いです。"
+    "message": "誤変換です。衣鉢を継ぐの間違いです。",
+    "suggestions": [
+      "衣鉢を継ぐ"
+    ]
   },
   {
     "id": "IMADANI",
@@ -6149,7 +6744,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。未だにの間違いです。"
+    "message": "誤変換です。未だにの間違いです。",
+    "suggestions": [
+      "未だに"
+    ]
   },
   {
     "id": "IMISINNTYOU",
@@ -6172,7 +6770,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。意味深長の間違いです。"
+    "message": "誤変換です。意味深長の間違いです。",
+    "suggestions": [
+      "意味深長"
+    ]
   },
   {
     "id": "IMAHANOGIWA",
@@ -6211,7 +6812,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。今際の際の間違いです。"
+    "message": "誤変換です。今際の際の間違いです。",
+    "suggestions": [
+      "今際の際"
+    ]
   },
   {
     "id": "IMOHORI",
@@ -6234,7 +6838,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。芋掘りの間違いです。"
+    "message": "誤変換です。芋掘りの間違いです。",
+    "suggestions": [
+      "芋掘り"
+    ]
   },
   {
     "id": "OTYAWOIRERU",
@@ -6273,7 +6880,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。御茶を淹れるの間違いです。"
+    "message": "誤変換です。御茶を淹れるの間違いです。",
+    "suggestions": [
+      "御茶を淹れる"
+    ]
   },
   {
     "id": "IWAKANN",
@@ -6304,7 +6914,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。違和感の間違いです。"
+    "message": "誤変換です。違和感の間違いです。",
+    "suggestions": [
+      "違和感"
+    ]
   },
   {
     "id": "KOKOTIYOI",
@@ -6327,7 +6940,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。心地好いの間違いです。"
+    "message": "誤変換です。心地好いの間違いです。",
+    "suggestions": [
+      "心地好い"
+    ]
   },
   {
     "id": "UKIME",
@@ -6350,7 +6966,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。憂き目の間違いです。"
+    "message": "誤変換です。憂き目の間違いです。",
+    "suggestions": [
+      "憂き目"
+    ]
   },
   {
     "id": "USIRODATE",
@@ -6373,7 +6992,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。後ろ盾の間違いです。"
+    "message": "誤変換です。後ろ盾の間違いです。",
+    "suggestions": [
+      "後ろ盾"
+    ]
   },
   {
     "id": "UZUDAKAI",
@@ -6396,7 +7018,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。堆いの間違いです。"
+    "message": "誤変換です。堆いの間違いです。",
+    "suggestions": [
+      "堆い"
+    ]
   },
   {
     "id": "USOHUKU",
@@ -6419,7 +7044,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。嘯くの間違いです。"
+    "message": "誤変換です。嘯くの間違いです。",
+    "suggestions": [
+      "嘯く"
+    ]
   },
   {
     "id": "UMEMUKU",
@@ -6442,7 +7070,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。呻くの間違いです。"
+    "message": "誤変換です。呻くの間違いです。",
+    "suggestions": [
+      "呻く"
+    ]
   },
   {
     "id": "URASABISII",
@@ -6465,7 +7096,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。心寂しいの間違いです。"
+    "message": "誤変換です。心寂しいの間違いです。",
+    "suggestions": [
+      "心寂しい"
+    ]
   },
   {
     "id": "URUSAGATAE",
@@ -6488,7 +7122,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。うるさ型の間違いです。"
+    "message": "誤変換です。うるさ型の間違いです。",
+    "suggestions": [
+      "うるさ型"
+    ]
   },
   {
     "id": "EIKIWOYASINAU",
@@ -6519,7 +7156,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。英気を養うの間違いです。"
+    "message": "誤変換です。英気を養うの間違いです。",
+    "suggestions": [
+      "英気を養う"
+    ]
   },
   {
     "id": "EIKYUSENNPANN",
@@ -6542,7 +7182,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。A級戦犯の間違いです。"
+    "message": "誤変換です。A級戦犯の間違いです。",
+    "suggestions": [
+      "A級戦犯"
+    ]
   },
   {
     "id": "ENNENNTYOUDANORETU",
@@ -6581,7 +7224,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。蜿蜒長蛇の列の間違いです。"
+    "message": "誤変換です。蜿蜒長蛇の列の間違いです。",
+    "suggestions": [
+      "蜿蜒長蛇の列"
+    ]
   },
   {
     "id": "ENNSYOU",
@@ -6604,7 +7250,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。延焼の間違いです。"
+    "message": "誤変換です。延焼の間違いです。",
+    "suggestions": [
+      "延焼"
+    ]
   },
   {
     "id": "ENNRYO",
@@ -6627,7 +7276,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。遠慮の間違いです。"
+    "message": "誤変換です。遠慮の間違いです。",
+    "suggestions": [
+      "遠慮"
+    ]
   },
   {
     "id": "OUTAI",
@@ -6650,7 +7302,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。応対の間違いです。"
+    "message": "誤変換です。応対の間違いです。",
+    "suggestions": [
+      "応対"
+    ]
   },
   {
     "id": "OOBANNHURUMAI",
@@ -6673,7 +7328,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。椀飯振る舞いの間違いです。"
+    "message": "誤変換です。椀飯振る舞いの間違いです。",
+    "suggestions": [
+      "椀飯振る舞い"
+    ]
   },
   {
     "id": "OETU",
@@ -6696,7 +7354,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。嗚咽の間違いです。"
+    "message": "誤変換です。嗚咽の間違いです。",
+    "suggestions": [
+      "嗚咽"
+    ]
   },
   {
     "id": "OOINI",
@@ -6719,7 +7380,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。大いにの間違いです。"
+    "message": "誤変換です。大いにの間違いです。",
+    "suggestions": [
+      "大いに"
+    ]
   },
   {
     "id": "OKASIRA",
@@ -6742,7 +7406,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。尾頭の間違いです。"
+    "message": "誤変換です。尾頭の間違いです。",
+    "suggestions": [
+      "尾頭"
+    ]
   },
   {
     "id": "OKUMENNMONAKU",
@@ -6781,7 +7448,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。臆面もなくの間違いです。"
+    "message": "誤変換です。臆面もなくの間違いです。",
+    "suggestions": [
+      "臆面もなく"
+    ]
   },
   {
     "id": "OSIKISE",
@@ -6804,7 +7474,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。御仕着せの間違いです。"
+    "message": "誤変換です。御仕着せの間違いです。",
+    "suggestions": [
+      "御仕着せ"
+    ]
   },
   {
     "id": "OSIROKO",
@@ -6827,7 +7500,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。白粉の間違いです。"
+    "message": "誤変換です。白粉の間違いです。",
+    "suggestions": [
+      "白粉"
+    ]
   },
   {
     "id": "OSOMAKI",
@@ -6850,7 +7526,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。遅蒔きの間違いです。"
+    "message": "誤変換です。遅蒔きの間違いです。",
+    "suggestions": [
+      "遅蒔き"
+    ]
   },
   {
     "id": "OTAHUKU",
@@ -6881,7 +7560,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。阿多福の間違いです。"
+    "message": "誤変換です。阿多福の間違いです。",
+    "suggestions": [
+      "阿多福"
+    ]
   },
   {
     "id": "ODORASETE",
@@ -6912,7 +7594,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。躍せての間違いです。"
+    "message": "誤変換です。躍せての間違いです。",
+    "suggestions": [
+      "躍せて"
+    ]
   },
   {
     "id": "ONINOSAKURANN",
@@ -6943,7 +7628,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。鬼の霍乱の間違いです。"
+    "message": "誤変換です。鬼の霍乱の間違いです。",
+    "suggestions": [
+      "鬼の霍乱"
+    ]
   },
   {
     "id": "OMOKAJIIPPAI",
@@ -6974,7 +7662,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。面舵いっぱいの間違いです。"
+    "message": "誤変換です。面舵いっぱいの間違いです。",
+    "suggestions": [
+      "面舵いっぱい"
+    ]
   },
   {
     "id": "OYAHUKOU",
@@ -6997,7 +7688,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。親不孝の間違いです。"
+    "message": "誤変換です。親不孝の間違いです。",
+    "suggestions": [
+      "親不孝"
+    ]
   },
   {
     "id": "ORIMAZERU",
@@ -7020,7 +7714,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。織り交ぜるの間違いです。"
+    "message": "誤変換です。織り交ぜるの間違いです。",
+    "suggestions": [
+      "織り交ぜる"
+    ]
   },
   {
     "id": "OURI",
@@ -7043,7 +7740,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。卸売の間違いです。"
+    "message": "誤変換です。卸売の間違いです。",
+    "suggestions": [
+      "卸売"
+    ]
   },
   {
     "id": "ONNNOJI",
@@ -7074,7 +7774,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。御の字の間違いです。"
+    "message": "誤変換です。御の字の間違いです。",
+    "suggestions": [
+      "御の字"
+    ]
   },
   {
     "id": "KAWASE",
@@ -7097,7 +7800,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。為替の間違いです。"
+    "message": "誤変換です。為替の間違いです。",
+    "suggestions": [
+      "為替"
+    ]
   },
   {
     "id": "KAKURITSUBUNPU",
@@ -7120,7 +7826,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。確率分布の間違いです。"
+    "message": "誤変換です。確率分布の間違いです。",
+    "suggestions": [
+      "確率分布"
+    ]
   },
   {
     "id": "KAKUREMINOJYUTU",
@@ -7159,7 +7868,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。隠れ蓑の術の間違いです。"
+    "message": "誤変換です。隠れ蓑の術の間違いです。",
+    "suggestions": [
+      "隠れ蓑の術"
+    ]
   },
   {
     "id": "KATAHIJIHARU",
@@ -7190,7 +7902,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。肩肘張るの間違いです。"
+    "message": "誤変換です。肩肘張るの間違いです。",
+    "suggestions": [
+      "肩肘張る"
+    ]
   },
   {
     "id": "KADOTEKI",
@@ -7213,7 +7928,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。過渡的の間違いです。"
+    "message": "誤変換です。過渡的の間違いです。",
+    "suggestions": [
+      "過渡的"
+    ]
   },
   {
     "id": "KANNNINN",
@@ -7236,7 +7954,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。堪忍の間違いです。"
+    "message": "誤変換です。堪忍の間違いです。",
+    "suggestions": [
+      "堪忍"
+    ]
   },
   {
     "id": "KANNBENN",
@@ -7259,7 +7980,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。勘弁の間違いです。"
+    "message": "誤変換です。勘弁の間違いです。",
+    "suggestions": [
+      "勘弁"
+    ]
   },
   {
     "id": "MOHANNKAITOU",
@@ -7282,7 +8006,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。模範解答の間違いです。"
+    "message": "誤変換です。模範解答の間違いです。",
+    "suggestions": [
+      "模範解答"
+    ]
   },
   {
     "id": "KAKIIREDOKI",
@@ -7313,7 +8040,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。書き入れ時の間違いです。"
+    "message": "誤変換です。書き入れ時の間違いです。",
+    "suggestions": [
+      "書き入れ時"
+    ]
   },
   {
     "id": "KAKUU",
@@ -7336,7 +8066,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。架空の間違い。"
+    "message": "誤変換です。架空の間違い。",
+    "suggestions": [
+      "架空"
+    ]
   },
   {
     "id": "GAKEPPUTI",
@@ -7367,7 +8100,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。崖っ縁の間違いです。"
+    "message": "誤変換です。崖っ縁の間違いです。",
+    "suggestions": [
+      "崖っ縁"
+    ]
   },
   {
     "id": "KAGEHINATA",
@@ -7390,7 +8126,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。陰日向の間違いです。"
+    "message": "誤変換です。陰日向の間違いです。",
+    "suggestions": [
+      "陰日向"
+    ]
   },
   {
     "id": "KATIKANN",
@@ -7413,7 +8152,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。価値観の間違いです。"
+    "message": "誤変換です。価値観の間違いです。",
+    "suggestions": [
+      "価値観"
+    ]
   },
   {
     "id": "KANNSINNSURU",
@@ -7436,7 +8178,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です感心するの間違いです。"
+    "message": "誤変換です感心するの間違いです。",
+    "suggestions": [
+      "感心する"
+    ]
   },
   {
     "id": "KANNTIGAI",
@@ -7459,7 +8204,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。勘違いの間違いです。"
+    "message": "誤変換です。勘違いの間違いです。",
+    "suggestions": [
+      "勘違い"
+    ]
   },
   {
     "id": "KANNHEKI",
@@ -7482,7 +8230,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。完璧の間違いです。"
+    "message": "誤変換です。完璧の間違いです。",
+    "suggestions": [
+      "完璧"
+    ]
   },
   {
     "id": "KANNREKI",
@@ -7505,7 +8256,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。還暦の間違いです。"
+    "message": "誤変換です。還暦の間違いです。",
+    "suggestions": [
+      "還暦"
+    ]
   },
   {
     "id": "KIKAIGAKUSYUU",
@@ -7528,7 +8282,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。機械学習の間違いです。"
+    "message": "誤変換です。機械学習の間違いです。",
+    "suggestions": [
+      "機械学習"
+    ]
   },
   {
     "id": "KIKKYUU",
@@ -7551,7 +8308,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。喫緊の間違いです。"
+    "message": "誤変換です。喫緊の間違いです。",
+    "suggestions": [
+      "喫緊"
+    ]
   },
   {
     "id": "KIBUTUSONGAIZAI",
@@ -7582,7 +8342,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。器物損壊罪の間違いです。"
+    "message": "誤変換です。器物損壊罪の間違いです。",
+    "suggestions": [
+      "器物損壊罪"
+    ]
   },
   {
     "id": "GYOKUSEKIKONGOU",
@@ -7605,7 +8368,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。玉石混淆の間違いです"
+    "message": "誤変換です。玉石混淆の間違いです",
+    "suggestions": [
+      "玉石混淆"
+    ]
   },
   {
     "id": "KIKIIPPATU",
@@ -7636,7 +8402,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。危機一髪の間違いです。"
+    "message": "誤変換です。危機一髪の間違いです。",
+    "suggestions": [
+      "危機一髪"
+    ]
   },
   {
     "id": "KIGENN",
@@ -7659,7 +8428,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。機嫌の間違いです。"
+    "message": "誤変換です。機嫌の間違いです。",
+    "suggestions": [
+      "機嫌"
+    ]
   },
   {
     "id": "KISYOKUMANNSAI",
@@ -7682,7 +8454,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。喜色満面の間違いです。"
+    "message": "誤変換です。喜色満面の間違いです。",
+    "suggestions": [
+      "喜色満面"
+    ]
   },
   {
     "id": "KYUKYO",
@@ -7705,7 +8480,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。急遽の間違いです。"
+    "message": "誤変換です。急遽の間違いです。",
+    "suggestions": [
+      "急遽"
+    ]
   },
   {
     "id": "KYUUTEI",
@@ -7728,7 +8506,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。宮廷の間違いです。"
+    "message": "誤変換です。宮廷の間違いです。",
+    "suggestions": [
+      "宮廷"
+    ]
   },
   {
     "id": "KUNOU",
@@ -7751,7 +8532,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。苦悩の間違いです"
+    "message": "誤変換です。苦悩の間違いです",
+    "suggestions": [
+      "苦悩"
+    ]
   },
   {
     "id": "KEKKAOURAI",
@@ -7774,7 +8558,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。結果オーライの間違いです。"
+    "message": "誤変換です。結果オーライの間違いです。",
+    "suggestions": [
+      "結果オーライ"
+    ]
   },
   {
     "id": "GEKIYAKU",
@@ -7797,7 +8584,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。劇薬の間違いです。"
+    "message": "誤変換です。劇薬の間違いです。",
+    "suggestions": [
+      "劇薬"
+    ]
   },
   {
     "id": "KOBURAGAERI",
@@ -7820,7 +8610,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。腓返りの間違いです。"
+    "message": "誤変換です。腓返りの間違いです。",
+    "suggestions": [
+      "腓返り"
+    ]
   },
   {
     "id": "KOUGANNMUTI",
@@ -7843,7 +8636,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。厚顔無恥の間違いです。"
+    "message": "誤変換です。厚顔無恥の間違いです。",
+    "suggestions": [
+      "厚顔無恥"
+    ]
   },
   {
     "id": "KOUGI",
@@ -7866,7 +8662,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。講義の間違いです。"
+    "message": "誤変換です。講義の間違いです。",
+    "suggestions": [
+      "講義"
+    ]
   },
   {
     "id": "KOUSEIBUSSITU",
@@ -7897,7 +8696,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。抗生物質の間違いです。"
+    "message": "誤変換です。抗生物質の間違いです。",
+    "suggestions": [
+      "抗生物質"
+    ]
   },
   {
     "id": "KOUTYAKU",
@@ -7920,7 +8722,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。膠着の間違いです。"
+    "message": "誤変換です。膠着の間違いです。",
+    "suggestions": [
+      "膠着"
+    ]
   },
   {
     "id": "KOUTOUBENNRONN",
@@ -7943,7 +8748,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。口頭弁論の間違いです。"
+    "message": "誤変換です。口頭弁論の間違いです。",
+    "suggestions": [
+      "口頭弁論"
+    ]
   },
   {
     "id": "KOUBAI",
@@ -7966,7 +8774,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。購買の間違いです。"
+    "message": "誤変換です。購買の間違いです。",
+    "suggestions": [
+      "購買"
+    ]
   },
   {
     "id": "KOUHYOU",
@@ -7989,7 +8800,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。公表の間違いです。"
+    "message": "誤変換です。公表の間違いです。",
+    "suggestions": [
+      "公表"
+    ]
   },
   {
     "id": "GOKAKU",
@@ -8012,7 +8826,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。互角の間違いです。"
+    "message": "誤変換です。互角の間違いです。",
+    "suggestions": [
+      "互角"
+    ]
   },
   {
     "id": "KOKAISYA",
@@ -8035,7 +8852,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。子会社の間違いです。"
+    "message": "誤変換です。子会社の間違いです。",
+    "suggestions": [
+      "子会社"
+    ]
   },
   {
     "id": "KOTONOHOKA",
@@ -8066,7 +8886,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。殊の外の間違いです。"
+    "message": "誤変換です。殊の外の間違いです。",
+    "suggestions": [
+      "殊の外"
+    ]
   },
   {
     "id": "KOBETUHOUMONN",
@@ -8089,7 +8912,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。個別訪問の間違いです。"
+    "message": "誤変換です。個別訪問の間違いです。",
+    "suggestions": [
+      "個別訪問"
+    ]
   },
   {
     "id": "KOYUUMEISI",
@@ -8120,7 +8946,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。固有名詞の間違いです。"
+    "message": "誤変換です。固有名詞の間違いです。",
+    "suggestions": [
+      "固有名詞"
+    ]
   },
   {
     "id": "KORITUMUENN",
@@ -8143,7 +8972,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。孤立無援の間違いです。"
+    "message": "誤変換です。孤立無援の間違いです。",
+    "suggestions": [
+      "孤立無援"
+    ]
   },
   {
     "id": "GORIMUTYUU",
@@ -8174,7 +9006,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。五里霧中の間違いです。"
+    "message": "誤変換です。五里霧中の間違いです。",
+    "suggestions": [
+      "五里霧中"
+    ]
   },
   {
     "id": "KONNRANN",
@@ -8197,7 +9032,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。混乱の間違いです。"
+    "message": "誤変換です。混乱の間違いです。",
+    "suggestions": [
+      "混乱"
+    ]
   },
   {
     "id": "KAIKETU",
@@ -8220,7 +9058,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。怪傑の間違いです。"
+    "message": "誤変換です。怪傑の間違いです。",
+    "suggestions": [
+      "怪傑"
+    ]
   },
   {
     "id": "GAITOU",
@@ -8243,7 +9084,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。該当の間違いです。"
+    "message": "誤変換です。該当の間違いです。",
+    "suggestions": [
+      "該当"
+    ]
   },
   {
     "id": "KAETTEYOKUNAI",
@@ -8282,7 +9126,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。却ってよくないの間違いです。"
+    "message": "誤変換です。却ってよくないの間違いです。",
+    "suggestions": [
+      "却ってよくない"
+    ]
   },
   {
     "id": "KAKAADENNKA",
@@ -8321,7 +9168,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。嚊天下の間違いです。"
+    "message": "誤変換です。嚊天下の間違いです。",
+    "suggestions": [
+      "嚊天下"
+    ]
   },
   {
     "id": "GAKAI",
@@ -8344,7 +9194,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。瓦解の間違いです。"
+    "message": "誤変換です。瓦解の間違いです。",
+    "suggestions": [
+      "瓦解"
+    ]
   },
   {
     "id": "KASITANNPOSEKININN",
@@ -8375,7 +9228,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。瑕疵担保責任の間違いです。"
+    "message": "誤変換です。瑕疵担保責任の間違いです。",
+    "suggestions": [
+      "瑕疵担保責任"
+    ]
   },
   {
     "id": "KATATIDORU",
@@ -8398,7 +9254,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。象るの間違いです。"
+    "message": "誤変換です。象るの間違いです。",
+    "suggestions": [
+      "象る"
+    ]
   },
   {
     "id": "KARITATERU",
@@ -8421,7 +9280,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。駆り立てるの間違いです。"
+    "message": "誤変換です。駆り立てるの間違いです。",
+    "suggestions": [
+      "駆り立てる"
+    ]
   },
   {
     "id": "GARYOUTENNSEI",
@@ -8460,7 +9322,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。画竜点睛の間違いです。"
+    "message": "誤変換です。画竜点睛の間違いです。",
+    "suggestions": [
+      "画竜点睛"
+    ]
   },
   {
     "id": "GANNMAE",
@@ -8483,7 +9348,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。眼前の間違いです。"
+    "message": "誤変換です。眼前の間違いです。",
+    "suggestions": [
+      "眼前"
+    ]
   },
   {
     "id": "KANNZENNTYOUAKU",
@@ -8514,7 +9382,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。勧善懲悪の間違いです。"
+    "message": "誤変換です。勧善懲悪の間違いです。",
+    "suggestions": [
+      "勧善懲悪"
+    ]
   },
   {
     "id": "KANNNISAWARU",
@@ -8545,7 +9416,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。癇に障るの間違いです。"
+    "message": "誤変換です。癇に障るの間違いです。",
+    "suggestions": [
+      "癇に障る"
+    ]
   },
   {
     "id": "KIITAHUU",
@@ -8576,7 +9450,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。利いた風の間違いです。"
+    "message": "誤変換です。利いた風の間違いです。",
+    "suggestions": [
+      "利いた風"
+    ]
   },
   {
     "id": "GISONNKINN",
@@ -8599,7 +9476,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。義捐金の間違いです。"
+    "message": "誤変換です。義捐金の間違いです。",
+    "suggestions": [
+      "義捐金"
+    ]
   },
   {
     "id": "KOKYUUKIKANN",
@@ -8630,7 +9510,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。呼吸器官の間違いです。"
+    "message": "誤変換です。呼吸器官の間違いです。",
+    "suggestions": [
+      "呼吸器官"
+    ]
   },
   {
     "id": "KIMAJIME",
@@ -8653,7 +9536,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。生真面目の間違いです。"
+    "message": "誤変換です。生真面目の間違いです。",
+    "suggestions": [
+      "生真面目"
+    ]
   },
   {
     "id": "KIMARIGAWARUI",
@@ -8692,7 +9578,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。決まりが良いの間違いです。"
+    "message": "誤変換です。決まりが良いの間違いです。",
+    "suggestions": [
+      "決まりが良い"
+    ]
   },
   {
     "id": "KIMI",
@@ -8715,7 +9604,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。黄身の間違いです。"
+    "message": "誤変換です。黄身の間違いです。",
+    "suggestions": [
+      "黄身"
+    ]
   },
   {
     "id": "GIHEI",
@@ -8738,7 +9630,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。欺瞞の間違いです。"
+    "message": "誤変換です。欺瞞の間違いです。",
+    "suggestions": [
+      "欺瞞"
+    ]
   },
   {
     "id": "KYUUKYUU",
@@ -8761,7 +9656,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。救急の間違いです。"
+    "message": "誤変換です。救急の間違いです。",
+    "suggestions": [
+      "救急"
+    ]
   },
   {
     "id": "KYUUYAKUSEISYO",
@@ -8784,7 +9682,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。旧約聖書の間違いです。"
+    "message": "誤変換です。旧約聖書の間違いです。",
+    "suggestions": [
+      "旧約聖書"
+    ]
   },
   {
     "id": "KYOUKIRANNBU",
@@ -8807,7 +9708,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。狂喜乱舞の間違いです。"
+    "message": "誤変換です。狂喜乱舞の間違いです。",
+    "suggestions": [
+      "狂喜乱舞"
+    ]
   },
   {
     "id": "KYOUMISINNSINN",
@@ -8830,7 +9734,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。興味津津の間違いです。"
+    "message": "誤変換です。興味津津の間違いです。",
+    "suggestions": [
+      "興味津津"
+    ]
   },
   {
     "id": "KYORON",
@@ -8853,7 +9760,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。教諭の間違いです。"
+    "message": "誤変換です。教諭の間違いです。",
+    "suggestions": [
+      "教諭"
+    ]
   },
   {
     "id": "KINNKOU",
@@ -8876,7 +9786,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。均衡の間違いです。"
+    "message": "誤変換です。均衡の間違いです。",
+    "suggestions": [
+      "均衡"
+    ]
   },
   {
     "id": "KUSSINN",
@@ -8899,7 +9812,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。屈伸の間違いです。"
+    "message": "誤変換です。屈伸の間違いです。",
+    "suggestions": [
+      "屈伸"
+    ]
   },
   {
     "id": "KUTUNUGI",
@@ -8922,7 +9838,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。沓脱ぎの間違いです。"
+    "message": "誤変換です。沓脱ぎの間違いです。",
+    "suggestions": [
+      "沓脱ぎ"
+    ]
   },
   {
     "id": "KUNIYABURETESANNGAARI",
@@ -8969,7 +9888,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。国破れて山河がありの間違いです。"
+    "message": "誤変換です。国破れて山河がありの間違いです。",
+    "suggestions": [
+      "国破れて山河があり"
+    ]
   },
   {
     "id": "KUBIJIKKENN",
@@ -8992,7 +9914,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。首実検の間違いです。"
+    "message": "誤変換です。首実検の間違いです。",
+    "suggestions": [
+      "首実検"
+    ]
   },
   {
     "id": "KUMISIYASUI",
@@ -9023,7 +9948,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。与し易いの間違いです。"
+    "message": "誤変換です。与し易いの間違いです。",
+    "suggestions": [
+      "与し易い"
+    ]
   },
   {
     "id": "GUNNKANN",
@@ -9046,7 +9974,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。軍艦の間違いです。"
+    "message": "誤変換です。軍艦の間違いです。",
+    "suggestions": [
+      "軍艦"
+    ]
   },
   {
     "id": "KENNKOUKOTU",
@@ -9069,7 +10000,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。肩甲骨の間違いです。"
+    "message": "誤変換です。肩甲骨の間違いです。",
+    "suggestions": [
+      "肩甲骨"
+    ]
   },
   {
     "id": "KESINN",
@@ -9092,7 +10026,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。化身の間違いです。"
+    "message": "誤変換です。化身の間違いです。",
+    "suggestions": [
+      "化身"
+    ]
   },
   {
     "id": "KESSENNTOUHYOU",
@@ -9115,7 +10052,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。決選投票の間違いです。"
+    "message": "誤変換です。決選投票の間違いです。",
+    "suggestions": [
+      "決選投票"
+    ]
   },
   {
     "id": "KETUMAKUENN",
@@ -9146,7 +10086,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。結膜炎の間違いです。"
+    "message": "誤変換です。結膜炎の間違いです。",
+    "suggestions": [
+      "結膜炎"
+    ]
   },
   {
     "id": "GENNKABAIKYAKU",
@@ -9169,7 +10112,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。減価償却の間違いです。"
+    "message": "誤変換です。減価償却の間違いです。",
+    "suggestions": [
+      "減価償却"
+    ]
   },
   {
     "id": "KENNTOUTIGAI",
@@ -9192,7 +10138,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。見当違いの間違いです。"
+    "message": "誤変換です。見当違いの間違いです。",
+    "suggestions": [
+      "見当違い"
+    ]
   },
   {
     "id": "GENNSI",
@@ -9215,7 +10164,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。元帥の間違いです。"
+    "message": "誤変換です。元帥の間違いです。",
+    "suggestions": [
+      "元帥"
+    ]
   },
   {
     "id": "KENNMOHORORO",
@@ -9254,7 +10206,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。けんもほろろの間違いです。"
+    "message": "誤変換です。けんもほろろの間違いです。",
+    "suggestions": [
+      "けんもほろろ"
+    ]
   },
   {
     "id": "KOII",
@@ -9277,7 +10232,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。濃いの間違いです。"
+    "message": "誤変換です。濃いの間違いです。",
+    "suggestions": [
+      "濃い"
+    ]
   },
   {
     "id": "KEIYAKUKOUKAI",
@@ -9300,7 +10258,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。契約更改の間違いです。"
+    "message": "誤変換です。契約更改の間違いです。",
+    "suggestions": [
+      "契約更改"
+    ]
   },
   {
     "id": "KOUGAKUSINN",
@@ -9323,7 +10284,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。向学心の間違いです。"
+    "message": "誤変換です。向学心の間違いです。",
+    "suggestions": [
+      "向学心"
+    ]
   },
   {
     "id": "KOUKANNSINNKENN",
@@ -9346,7 +10310,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。交感神経の間違いです。"
+    "message": "誤変換です。交感神経の間違いです。",
+    "suggestions": [
+      "交感神経"
+    ]
   },
   {
     "id": "KOUSEIOSORUBESI",
@@ -9385,7 +10352,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。後生畏る可しの間違いです。"
+    "message": "誤変換です。後生畏る可しの間違いです。",
+    "suggestions": [
+      "後生畏る可し"
+    ]
   },
   {
     "id": "KOSITANNTANN",
@@ -9416,7 +10386,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。虎視眈眈の間違いです。"
+    "message": "誤変換です。虎視眈眈の間違いです。",
+    "suggestions": [
+      "虎視眈眈"
+    ]
   },
   {
     "id": "GOJINN",
@@ -9439,7 +10412,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。御仁の間違いです。"
+    "message": "誤変換です。御仁の間違いです。",
+    "suggestions": [
+      "御仁"
+    ]
   },
   {
     "id": "KOPPAMIJINN",
@@ -9478,7 +10454,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。木っ端微塵の間違いです。"
+    "message": "誤変換です。木っ端微塵の間違いです。",
+    "suggestions": [
+      "木っ端微塵"
+    ]
   },
   {
     "id": "GOHASANN",
@@ -9501,7 +10480,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。御破算の間違いです。"
+    "message": "誤変換です。御破算の間違いです。",
+    "suggestions": [
+      "御破算"
+    ]
   },
   {
     "id": "KOREWOKINI",
@@ -9532,7 +10514,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。これを機の間違いです。"
+    "message": "誤変換です。これを機の間違いです。",
+    "suggestions": [
+      "これを機"
+    ]
   },
   {
     "id": "KOEDAKA",
@@ -9563,7 +10548,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。声高の間違いです。"
+    "message": "誤変換です。声高の間違いです。",
+    "suggestions": [
+      "声高"
+    ]
   },
   {
     "id": "JIKISOUSOUIMARK",
@@ -9586,7 +10574,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。時期尚早の間違いです。"
+    "message": "誤変換です。時期尚早の間違いです。",
+    "suggestions": [
+      "時期尚早"
+    ]
   },
   {
     "id": "SUZAMASII",
@@ -9617,7 +10608,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。凄まじいの間違いです。"
+    "message": "誤変換です。凄まじいの間違いです。",
+    "suggestions": [
+      "凄まじい"
+    ]
   },
   {
     "id": "SAMEYAMANU",
@@ -9648,7 +10642,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。覚め遣らぬの間違いです。"
+    "message": "誤変換です。覚め遣らぬの間違いです。",
+    "suggestions": [
+      "覚め遣らぬ"
+    ]
   },
   {
     "id": "SAIKOUTYOU",
@@ -9671,7 +10668,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。最高潮の間違いです。"
+    "message": "誤変換です。最高潮の間違いです。",
+    "suggestions": [
+      "最高潮"
+    ]
   },
   {
     "id": "SATTOU",
@@ -9694,7 +10694,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。殺到の間違いです。"
+    "message": "誤変換です。殺到の間違いです。",
+    "suggestions": [
+      "殺到"
+    ]
   },
   {
     "id": "SATOSU",
@@ -9717,7 +10720,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。諭すの間違いです。"
+    "message": "誤変換です。諭すの間違いです。",
+    "suggestions": [
+      "諭す"
+    ]
   },
   {
     "id": "SANMIITTAI",
@@ -9740,7 +10746,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。三位一体の間違いです。"
+    "message": "誤変換です。三位一体の間違いです。",
+    "suggestions": [
+      "三位一体"
+    ]
   },
   {
     "id": "JINJIIDOU",
@@ -9763,7 +10772,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。人事異動の間違いです。"
+    "message": "誤変換です。人事異動の間違いです。",
+    "suggestions": [
+      "人事異動"
+    ]
   },
   {
     "id": "JIGAJISANN",
@@ -9786,7 +10798,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。自画自賛の間違いです。"
+    "message": "誤変換です。自画自賛の間違いです。",
+    "suggestions": [
+      "自画自賛"
+    ]
   },
   {
     "id": "SIKOUSAKUGO",
@@ -9809,7 +10824,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。試行錯誤の間違いです。"
+    "message": "誤変換です。試行錯誤の間違いです。",
+    "suggestions": [
+      "試行錯誤"
+    ]
   },
   {
     "id": "SITUGIOUTOU",
@@ -9840,7 +10858,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。質疑応答の間違いです。"
+    "message": "誤変換です。質疑応答の間違いです。",
+    "suggestions": [
+      "質疑応答"
+    ]
   },
   {
     "id": "SINIMONOGURUI",
@@ -9871,7 +10892,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。死に物狂いの間違いです。"
+    "message": "誤変換です。死に物狂いの間違いです。",
+    "suggestions": [
+      "死に物狂い"
+    ]
   },
   {
     "id": "SIBUTOI",
@@ -9894,7 +10918,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。しぶといの間違いです。"
+    "message": "誤変換です。しぶといの間違いです。",
+    "suggestions": [
+      "しぶとい"
+    ]
   },
   {
     "id": "SIMATU",
@@ -9917,7 +10944,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。始末の間違いです。"
+    "message": "誤変換です。始末の間違いです。",
+    "suggestions": [
+      "始末"
+    ]
   },
   {
     "id": "SEKININNTENNKA",
@@ -9940,7 +10970,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。責任転嫁の間違いです。"
+    "message": "誤変換です。責任転嫁の間違いです。",
+    "suggestions": [
+      "責任転嫁"
+    ]
   },
   {
     "id": "SYAKOUJIREI",
@@ -9971,7 +11004,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。社交辞令の間違いです。"
+    "message": "誤変換です。社交辞令の間違いです。",
+    "suggestions": [
+      "社交辞令"
+    ]
   },
   {
     "id": "JISINNKAJOU",
@@ -9994,7 +11030,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。自信過剰の間違いです。"
+    "message": "誤変換です。自信過剰の間違いです。",
+    "suggestions": [
+      "自信過剰"
+    ]
   },
   {
     "id": "JYUUOUMUJINN",
@@ -10017,7 +11056,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。縦横無尽の間違いです。"
+    "message": "誤変換です。縦横無尽の間違いです。",
+    "suggestions": [
+      "縦横無尽"
+    ]
   },
   {
     "id": "SITADUDUMI",
@@ -10040,7 +11082,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。舌鼓の間違いです。"
+    "message": "誤変換です。舌鼓の間違いです。",
+    "suggestions": [
+      "舌鼓"
+    ]
   },
   {
     "id": "SYUUKAKU",
@@ -10063,7 +11108,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。収穫の間違いです。"
+    "message": "誤変換です。収穫の間違いです。",
+    "suggestions": [
+      "収穫"
+    ]
   },
   {
     "id": "SYUUKANNSI",
@@ -10086,7 +11134,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。週刊誌の間違いです。"
+    "message": "誤変換です。週刊誌の間違いです。",
+    "suggestions": [
+      "週刊誌"
+    ]
   },
   {
     "id": "ZUTABUKURO",
@@ -10117,7 +11168,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。ずだぶくろの間違いです。"
+    "message": "誤変換です。ずだぶくろの間違いです。",
+    "suggestions": [
+      "ずだぶくろ"
+    ]
   },
   {
     "id": "SEKIZUIDOUBUTU",
@@ -10140,7 +11194,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。脊椎動物の間違いです。"
+    "message": "誤変換です。脊椎動物の間違いです。",
+    "suggestions": [
+      "脊椎動物"
+    ]
   },
   {
     "id": "SAIDAIMORASAZU",
@@ -10171,7 +11228,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。細大漏らさずの間違いです。"
+    "message": "誤変換です。細大漏らさずの間違いです。",
+    "suggestions": [
+      "細大漏らさず"
+    ]
   },
   {
     "id": "SAIBAI",
@@ -10194,7 +11254,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。栽培の間違いです。"
+    "message": "誤変換です。栽培の間違いです。",
+    "suggestions": [
+      "栽培"
+    ]
   },
   {
     "id": "SANNHANNKIKANN",
@@ -10225,7 +11288,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。三半規管の間違いです。"
+    "message": "誤変換です。三半規管の間違いです。",
+    "suggestions": [
+      "三半規管"
+    ]
   },
   {
     "id": "GPANN",
@@ -10248,7 +11314,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。ジーパンの間違いです。"
+    "message": "誤変換です。ジーパンの間違いです。",
+    "suggestions": [
+      "ジーパン"
+    ]
   },
   {
     "id": "SISIODOSI",
@@ -10271,7 +11340,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。鹿威しの間違いです。"
+    "message": "誤変換です。鹿威しの間違いです。",
+    "suggestions": [
+      "鹿威し"
+    ]
   },
   {
     "id": "SISOUKENNKO",
@@ -10294,7 +11366,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。志操堅固の間違いです。"
+    "message": "誤変換です。志操堅固の間違いです。",
+    "suggestions": [
+      "志操堅固"
+    ]
   },
   {
     "id": "SITIMENNDOKUSAI",
@@ -10317,7 +11392,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。しち面倒臭いの間違いです。"
+    "message": "誤変換です。しち面倒臭いの間違いです。",
+    "suggestions": [
+      "しち面倒臭い"
+    ]
   },
   {
     "id": "SIMERU",
@@ -10340,7 +11418,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。沁みるの間違いです。"
+    "message": "誤変換です。沁みるの間違いです。",
+    "suggestions": [
+      "沁みる"
+    ]
   },
   {
     "id": "JAKKANN",
@@ -10363,7 +11444,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。弱冠の間違いです。"
+    "message": "誤変換です。弱冠の間違いです。",
+    "suggestions": [
+      "弱冠"
+    ]
   },
   {
     "id": "SYARE",
@@ -10386,7 +11470,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。洒落の間違いです。"
+    "message": "誤変換です。洒落の間違いです。",
+    "suggestions": [
+      "洒落"
+    ]
   },
   {
     "id": "SYUUSYUUGATUKANAI",
@@ -10425,7 +11512,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。収拾がつかないの間違いです。"
+    "message": "誤変換です。収拾がつかないの間違いです。",
+    "suggestions": [
+      "収拾がつかない"
+    ]
   },
   {
     "id": "SYUUJINNKANNSI",
@@ -10448,7 +11538,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。衆人環視の間違いです。"
+    "message": "誤変換です。衆人環視の間違いです。",
+    "suggestions": [
+      "衆人環視"
+    ]
   },
   {
     "id": "SYUKUSYOU",
@@ -10471,7 +11564,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。縮小の間違いです。"
+    "message": "誤変換です。縮小の間違いです。",
+    "suggestions": [
+      "縮小"
+    ]
   },
   {
     "id": "SYUKOU",
@@ -10494,7 +11590,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。趣向の間違いです。"
+    "message": "誤変換です。趣向の間違いです。",
+    "suggestions": [
+      "趣向"
+    ]
   },
   {
     "id": "JYUNNSUIMUTI",
@@ -10525,7 +11624,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。純真無垢の間違いです。"
+    "message": "誤変換です。純真無垢の間違いです。",
+    "suggestions": [
+      "純真無垢"
+    ]
   },
   {
     "id": "JUNNHUDOU",
@@ -10548,7 +11650,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。順不同の間違いです。"
+    "message": "誤変換です。順不同の間違いです。",
+    "suggestions": [
+      "順不同"
+    ]
   },
   {
     "id": "JUNNREIDOU",
@@ -10579,7 +11684,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。鍾乳洞の間違いです。"
+    "message": "誤変換です。鍾乳洞の間違いです。",
+    "suggestions": [
+      "鍾乳洞"
+    ]
   },
   {
     "id": "SYOGYOUMUJYOU",
@@ -10602,7 +11710,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。諸行無常の間違いです。"
+    "message": "誤変換です。諸行無常の間違いです。",
+    "suggestions": [
+      "諸行無常"
+    ]
   },
   {
     "id": "SYOKUJIRYOUHOU",
@@ -10625,7 +11736,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。食餌療法の間違いです。"
+    "message": "誤変換です。食餌療法の間違いです。",
+    "suggestions": [
+      "食餌療法"
+    ]
   },
   {
     "id": "JOJONI",
@@ -10656,7 +11770,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。徐徐にの間違いです。"
+    "message": "誤変換です。徐徐にの間違いです。",
+    "suggestions": [
+      "徐徐に"
+    ]
   },
   {
     "id": "SYOSEIJYUTU",
@@ -10687,7 +11804,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。処世術の間違いです。"
+    "message": "誤変換です。処世術の間違いです。",
+    "suggestions": [
+      "処世術"
+    ]
   },
   {
     "id": "JYOMAKUSIKI",
@@ -10710,7 +11830,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。除幕式の間違いです。"
+    "message": "誤変換です。除幕式の間違いです。",
+    "suggestions": [
+      "除幕式"
+    ]
   },
   {
     "id": "SYOYOUJIKANN",
@@ -10733,7 +11856,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。所要時間の間違いです。"
+    "message": "誤変換です。所要時間の間違いです。",
+    "suggestions": [
+      "所要時間"
+    ]
   },
   {
     "id": "JIRAIGENN",
@@ -10756,7 +11882,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。地雷原の間違いです。"
+    "message": "誤変換です。地雷原の間違いです。",
+    "suggestions": [
+      "地雷原"
+    ]
   },
   {
     "id": "JIRITUSINNKEI",
@@ -10779,7 +11908,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。自律神経の間違いです。"
+    "message": "誤変換です。自律神経の間違いです。",
+    "suggestions": [
+      "自律神経"
+    ]
   },
   {
     "id": "JIGAREGOE",
@@ -10810,7 +11942,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。嗄れ声の間違いです。"
+    "message": "誤変換です。嗄れ声の間違いです。",
+    "suggestions": [
+      "嗄れ声"
+    ]
   },
   {
     "id": "SINNKIITENN",
@@ -10833,7 +11968,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。心機一転の間違いです。"
+    "message": "誤変換です。心機一転の間違いです。",
+    "suggestions": [
+      "心機一転"
+    ]
   },
   {
     "id": "JINNKOUEISEI",
@@ -10856,7 +11994,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。人工衛星の間違いです。"
+    "message": "誤変換です。人工衛星の間違いです。",
+    "suggestions": [
+      "人工衛星"
+    ]
   },
   {
     "id": "SINNKOKUZAI",
@@ -10879,7 +12020,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。親告罪の間違いです。"
+    "message": "誤変換です。親告罪の間違いです。",
+    "suggestions": [
+      "親告罪"
+    ]
   },
   {
     "id": "SINNJIJITU",
@@ -10902,7 +12046,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。新事実の間違いです。"
+    "message": "誤変換です。新事実の間違いです。",
+    "suggestions": [
+      "新事実"
+    ]
   },
   {
     "id": "SINNSINNSUIJAKU",
@@ -10933,7 +12080,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。心神耗弱の間違いです。"
+    "message": "誤変換です。心神耗弱の間違いです。",
+    "suggestions": [
+      "心神耗弱"
+    ]
   },
   {
     "id": "SINNHANNNINN",
@@ -10956,7 +12106,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。真犯人の間違いです。"
+    "message": "誤変換です。真犯人の間違いです。",
+    "suggestions": [
+      "真犯人"
+    ]
   },
   {
     "id": "SINNPYOU",
@@ -10979,7 +12132,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。信憑の間違いです。"
+    "message": "誤変換です。信憑の間違いです。",
+    "suggestions": [
+      "信憑"
+    ]
   },
   {
     "id": "SINNBOU",
@@ -11002,7 +12158,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。辛抱の間違いです。"
+    "message": "誤変換です。辛抱の間違いです。",
+    "suggestions": [
+      "辛抱"
+    ]
   },
   {
     "id": "JISSENNSURU",
@@ -11025,7 +12184,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。実践するの間違いです。"
+    "message": "誤変換です。実践するの間違いです。",
+    "suggestions": [
+      "実践する"
+    ]
   },
   {
     "id": "SUIRENN",
@@ -11048,7 +12210,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。睡蓮の間違いです。"
+    "message": "誤変換です。睡蓮の間違いです。",
+    "suggestions": [
+      "睡蓮"
+    ]
   },
   {
     "id": "SUUDONN",
@@ -11071,7 +12236,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。素うどんの間違いです。"
+    "message": "誤変換です。素うどんの間違いです。",
+    "suggestions": [
+      "素うどん"
+    ]
   },
   {
     "id": "ZUGAITOTU",
@@ -11094,7 +12262,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。頭蓋骨の間違いです。"
+    "message": "誤変換です。頭蓋骨の間違いです。",
+    "suggestions": [
+      "頭蓋骨"
+    ]
   },
   {
     "id": "ZUNINORU",
@@ -11125,7 +12296,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。図に乗るの間違いです。"
+    "message": "誤変換です。図に乗るの間違いです。",
+    "suggestions": [
+      "図に乗る"
+    ]
   },
   {
     "id": "SUNNDENOTOKORODE",
@@ -11172,7 +12346,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。既での所での間違いです。"
+    "message": "誤変換です。既での所での間違いです。",
+    "suggestions": [
+      "既での所で"
+    ]
   },
   {
     "id": "SEIKONNTUKIHATERU",
@@ -11195,7 +12372,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。精根尽き果てるの間違いです。"
+    "message": "誤変換です。精根尽き果てるの間違いです。",
+    "suggestions": [
+      "精根尽き"
+    ]
   },
   {
     "id": "SEITOUHA",
@@ -11218,7 +12398,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。正統派の間違いです。"
+    "message": "誤変換です。正統派の間違いです。",
+    "suggestions": [
+      "正統派"
+    ]
   },
   {
     "id": "SEKAISEIHUKU",
@@ -11241,7 +12424,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。世界征服の間違いです。"
+    "message": "誤変換です。世界征服の間違いです。",
+    "suggestions": [
+      "世界征服"
+    ]
   },
   {
     "id": "ZETTAIZETUMEI",
@@ -11264,7 +12450,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。絶体絶命の間違いです。"
+    "message": "誤変換です。絶体絶命の間違いです。",
+    "suggestions": [
+      "絶体絶命"
+    ]
   },
   {
     "id": "SETUWOMAGERU",
@@ -11295,7 +12484,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。節を曲げるの間違いです。"
+    "message": "誤変換です。節を曲げるの間違いです。",
+    "suggestions": [
+      "節を曲げる"
+    ]
   },
   {
     "id": "ZEHI",
@@ -11318,7 +12510,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。是非の間違いです。"
+    "message": "誤変換です。是非の間違いです。",
+    "suggestions": [
+      "是非"
+    ]
   },
   {
     "id": "SENNSENNHUKOKU",
@@ -11341,7 +12536,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。宣戦布告の間違いです。"
+    "message": "誤変換です。宣戦布告の間違いです。",
+    "suggestions": [
+      "宣戦布告"
+    ]
   },
   {
     "id": "ZENNMENNTEKI",
@@ -11364,7 +12562,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。全面的の間違いです。"
+    "message": "誤変換です。全面的の間違いです。",
+    "suggestions": [
+      "全面的"
+    ]
   },
   {
     "id": "JINNMONN",
@@ -11387,7 +12588,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。専門の間違いです。"
+    "message": "誤変換です。専門の間違いです。",
+    "suggestions": [
+      "専門"
+    ]
   },
   {
     "id": "SOUSOUTARUJINNBUTU",
@@ -11410,7 +12614,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。錚錚たる人物の間違いです。"
+    "message": "誤変換です。錚錚たる人物の間違いです。",
+    "suggestions": [
+      "錚錚たる"
+    ]
   },
   {
     "id": "SOSSENNSOKKETU",
@@ -11441,7 +12648,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。速戦即決の間違いです。"
+    "message": "誤変換です。速戦即決の間違いです。",
+    "suggestions": [
+      "速戦即決"
+    ]
   },
   {
     "id": "SOSSENN",
@@ -11464,7 +12674,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。率先の間違いです。"
+    "message": "誤変換です。率先の間違いです。",
+    "suggestions": [
+      "率先"
+    ]
   },
   {
     "id": "SODEHURIAUMOTASYOUNOENN",
@@ -11527,7 +12740,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。袖振り合うも多生の縁の間違いです。"
+    "message": "誤変換です。袖振り合うも多生の縁の間違いです。",
+    "suggestions": [
+      "袖振り合うも多生の縁"
+    ]
   },
   {
     "id": "HANASIWOSORASU",
@@ -11558,7 +12774,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。話を逸らすの間違いです。"
+    "message": "誤変換です。話を逸らすの間違いです。",
+    "suggestions": [
+      "話を逸らす"
+    ]
   },
   {
     "id": "SONNSYOKU",
@@ -11581,7 +12800,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。遜色の間違いです。"
+    "message": "誤変換です。遜色の間違いです。",
+    "suggestions": [
+      "遜色"
+    ]
   },
   {
     "id": "TYUUDURI",
@@ -11604,7 +12826,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。宙吊りの間違いです。"
+    "message": "誤変換です。宙吊りの間違いです。",
+    "suggestions": [
+      "宙吊り"
+    ]
   },
   {
     "id": "TAIKANN",
@@ -11627,7 +12852,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。戴冠の間違いです。"
+    "message": "誤変換です。戴冠の間違いです。",
+    "suggestions": [
+      "戴冠"
+    ]
   },
   {
     "id": "TAIGIMEIBUNN",
@@ -11650,7 +12878,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。大義名分の間違いです。"
+    "message": "誤変換です。大義名分の間違いです。",
+    "suggestions": [
+      "大義名分"
+    ]
   },
   {
     "id": "TAIHUUIKKA",
@@ -11673,7 +12904,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。台風一過の間違いです。"
+    "message": "誤変換です。台風一過の間違いです。",
+    "suggestions": [
+      "台風一過"
+    ]
   },
   {
     "id": "TAKANENOHANA",
@@ -11704,7 +12938,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。高嶺の花の間違いです。"
+    "message": "誤変換です。高嶺の花の間違いです。",
+    "suggestions": [
+      "高嶺の花"
+    ]
   },
   {
     "id": "TAKAMINOKENNBUTU",
@@ -11735,7 +12972,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。高みの見物の間違いです。"
+    "message": "誤変換です。高みの見物の間違いです。",
+    "suggestions": [
+      "高みの見物"
+    ]
   },
   {
     "id": "TATAZUMU",
@@ -11766,7 +13006,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。佇むの間違いです。"
+    "message": "誤変換です。佇むの間違いです。",
+    "suggestions": [
+      "佇む"
+    ]
   },
   {
     "id": "TATARI",
@@ -11789,7 +13032,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。祟りの間違いです。"
+    "message": "誤変換です。祟りの間違いです。",
+    "suggestions": [
+      "祟り"
+    ]
   },
   {
     "id": "TATOEBANASI",
@@ -11812,7 +13058,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。譬え話の間違いです。"
+    "message": "誤変換です。譬え話の間違いです。",
+    "suggestions": [
+      "譬え話"
+    ]
   },
   {
     "id": "TAMANOKOSI",
@@ -11843,7 +13092,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。玉の輿の間違いです。"
+    "message": "誤変換です。玉の輿の間違いです。",
+    "suggestions": [
+      "玉の輿"
+    ]
   },
   {
     "id": "TANNKA",
@@ -11866,7 +13118,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。担架の間違いです。"
+    "message": "誤変換です。担架の間違いです。",
+    "suggestions": [
+      "担架"
+    ]
   },
   {
     "id": "DEBUSYOU",
@@ -11889,7 +13144,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。出不精の間違いです。"
+    "message": "誤変換です。出不精の間違いです。",
+    "suggestions": [
+      "出不精"
+    ]
   },
   {
     "id": "TANNSOKINN",
@@ -11912,7 +13170,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。炭疽菌の間違いです。"
+    "message": "誤変換です。炭疽菌の間違いです。",
+    "suggestions": [
+      "炭疽菌"
+    ]
   },
   {
     "id": "TANNTEKINI",
@@ -11943,7 +13204,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。端的にの間違いです。"
+    "message": "誤変換です。端的にの間違いです。",
+    "suggestions": [
+      "端的に"
+    ]
   },
   {
     "id": "TANNTOUTYOKUNYUU",
@@ -11966,7 +13230,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。単刀直入の間違いです。"
+    "message": "誤変換です。単刀直入の間違いです。",
+    "suggestions": [
+      "単刀直入"
+    ]
   },
   {
     "id": "TANNPAKUSITU",
@@ -11989,7 +13256,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。蛋白質の間違いです。"
+    "message": "誤変換です。蛋白質の間違いです。",
+    "suggestions": [
+      "蛋白質"
+    ]
   },
   {
     "id": "TYAKUHUKU",
@@ -12012,7 +13282,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。着服の間違いです。"
+    "message": "誤変換です。着服の間違いです。",
+    "suggestions": [
+      "着服"
+    ]
   },
   {
     "id": "TYOUAI",
@@ -12035,7 +13308,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。寵愛の間違いです。"
+    "message": "誤変換です。寵愛の間違いです。",
+    "suggestions": [
+      "寵愛"
+    ]
   },
   {
     "id": "TYOUKANNZU",
@@ -12058,7 +13334,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。鳥瞰図の間違いです。"
+    "message": "誤変換です。鳥瞰図の間違いです。",
+    "suggestions": [
+      "鳥瞰図"
+    ]
   },
   {
     "id": "TYOSUITI",
@@ -12081,7 +13360,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。貯水池の間違いです。"
+    "message": "誤変換です。貯水池の間違いです。",
+    "suggestions": [
+      "貯水池"
+    ]
   },
   {
     "id": "TINAMAGUSAI",
@@ -12104,7 +13386,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。血腥いの間違いです。"
+    "message": "誤変換です。血腥いの間違いです。",
+    "suggestions": [
+      "血腥い"
+    ]
   },
   {
     "id": "DEKUNOBOU",
@@ -12135,7 +13420,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。木偶の坊の間違いです。"
+    "message": "誤変換です。木偶の坊の間違いです。",
+    "suggestions": [
+      "木偶の坊"
+    ]
   },
   {
     "id": "TEMIJIKA",
@@ -12158,7 +13446,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。手短の間違いです。"
+    "message": "誤変換です。手短の間違いです。",
+    "suggestions": [
+      "手短"
+    ]
   },
   {
     "id": "TERAKOYA",
@@ -12181,7 +13472,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。寺子屋の間違いです。"
+    "message": "誤変換です。寺子屋の間違いです。",
+    "suggestions": [
+      "寺子屋"
+    ]
   },
   {
     "id": "TENNGAIKODOKU",
@@ -12204,7 +13498,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。天涯孤独の間違いです。"
+    "message": "誤変換です。天涯孤独の間違いです。",
+    "suggestions": [
+      "天涯孤独"
+    ]
   },
   {
     "id": "TENNSYUKAKU",
@@ -12227,7 +13524,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。天守閣の間違いです。"
+    "message": "誤変換です。天守閣の間違いです。",
+    "suggestions": [
+      "天守閣"
+    ]
   },
   {
     "id": "DOKAESI",
@@ -12250,7 +13550,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。度外視の間違いです。"
+    "message": "誤変換です。度外視の間違いです。",
+    "suggestions": [
+      "度外視"
+    ]
   },
   {
     "id": "TORIDADASARERU",
@@ -12273,7 +13576,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。取り沙汰されるの間違いです。"
+    "message": "誤変換です。取り沙汰されるの間違いです。",
+    "suggestions": [
+      "取り沙汰される"
+    ]
   },
   {
     "id": "HINNYOKU",
@@ -12296,7 +13602,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。貪欲の間違いです。"
+    "message": "誤変換です。貪欲の間違いです。",
+    "suggestions": [
+      "貪欲"
+    ]
   },
   {
     "id": "TOITADASU",
@@ -12319,7 +13628,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。問い質すの間違いです。"
+    "message": "誤変換です。問い質すの間違いです。",
+    "suggestions": [
+      "問い質す"
+    ]
   },
   {
     "id": "HUJIISU",
@@ -12342,7 +13654,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。籐椅子の間違いです。"
+    "message": "誤変換です。籐椅子の間違いです。",
+    "suggestions": [
+      "籐椅子"
+    ]
   },
   {
     "id": "TOUJISYA",
@@ -12365,7 +13680,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。当事者の間違いです。"
+    "message": "誤変換です。当事者の間違いです。",
+    "suggestions": [
+      "当事者"
+    ]
   },
   {
     "id": "TOORIIPPENN",
@@ -12388,7 +13706,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。通り一遍の間違いです。"
+    "message": "誤変換です。通り一遍の間違いです。",
+    "suggestions": [
+      "通り一遍"
+    ]
   },
   {
     "id": "TOTIKANN",
@@ -12411,7 +13732,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。土地鑑の間違いです。"
+    "message": "誤変換です。土地鑑の間違いです。",
+    "suggestions": [
+      "土地鑑"
+    ]
   },
   {
     "id": "DOYOUNOUSINOHI",
@@ -12442,7 +13766,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。土用の丑の日の間違いです。"
+    "message": "誤変換です。土用の丑の日の間違いです。",
+    "suggestions": [
+      "土用の丑の日"
+    ]
   },
   {
     "id": "TONNBOGAERI",
@@ -12465,7 +13792,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。蜻蛉返りの間違いです。"
+    "message": "誤変換です。蜻蛉返りの間違いです。",
+    "suggestions": [
+      "蜻蛉返り"
+    ]
   },
   {
     "id": "TOOZAKERU",
@@ -12488,7 +13818,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。遠ざけるの間違いです。"
+    "message": "誤変換です。遠ざけるの間違いです。",
+    "suggestions": [
+      "遠ざける"
+    ]
   },
   {
     "id": "TUMAYOUJI",
@@ -12511,7 +13844,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。爪楊枝の間違いです。"
+    "message": "誤変換です。爪楊枝の間違いです。",
+    "suggestions": [
+      "爪楊枝"
+    ]
   },
   {
     "id": "TEITARAKU",
@@ -12542,7 +13878,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。体たらくの間違いです。"
+    "message": "誤変換です。体たらくの間違いです。",
+    "suggestions": [
+      "体たらく"
+    ]
   },
   {
     "id": "SEKINNNTUIKYUU",
@@ -12565,7 +13904,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。責任追及の間違いです。"
+    "message": "誤変換です。責任追及の間違いです。",
+    "suggestions": [
+      "責任追及"
+    ]
   },
   {
     "id": "DETTIAGERU",
@@ -12588,7 +13930,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。捏上げるの間違いです。"
+    "message": "誤変換です。捏上げるの間違いです。",
+    "suggestions": [
+      "捏上げる"
+    ]
   },
   {
     "id": "TEBANASIDEHOMERU",
@@ -12627,7 +13972,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。手放でほめるの間違いです。"
+    "message": "誤変換です。手放でほめるの間違いです。",
+    "suggestions": [
+      "手放でほめる"
+    ]
   },
   {
     "id": "TOIEDOMO",
@@ -12658,7 +14006,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。と雖もの間違いです。"
+    "message": "誤変換です。と雖もの間違いです。",
+    "suggestions": [
+      "と雖も"
+    ]
   },
   {
     "id": "TOUSENNBANNGOU",
@@ -12681,7 +14032,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。当籤番号の間違いです。"
+    "message": "誤変換です。当籤番号の間違いです。",
+    "suggestions": [
+      "当籤番号"
+    ]
   },
   {
     "id": "NAKAZUTOBAZU",
@@ -12720,7 +14074,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。鳴かず飛ばずの間違いです。"
+    "message": "誤変換です。鳴かず飛ばずの間違いです。",
+    "suggestions": [
+      "鳴かず飛ばず"
+    ]
   },
   {
     "id": "NAKABA",
@@ -12743,7 +14100,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。半ばの間違いです。"
+    "message": "誤変換です。半ばの間違いです。",
+    "suggestions": [
+      "半ば"
+    ]
   },
   {
     "id": "NASINOTUBUTE",
@@ -12774,7 +14134,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。梨の礫の間違いです。"
+    "message": "誤変換です。梨の礫の間違いです。",
+    "suggestions": [
+      "梨の礫"
+    ]
   },
   {
     "id": "NIKUHAKU",
@@ -12797,7 +14160,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。肉薄の間違いです。"
+    "message": "誤変換です。肉薄の間違いです。",
+    "suggestions": [
+      "肉薄"
+    ]
   },
   {
     "id": "NASEBANARU",
@@ -12828,7 +14194,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。為せば成るの間違いです。"
+    "message": "誤変換です。為せば成るの間違いです。",
+    "suggestions": [
+      "為せば成る"
+    ]
   },
   {
     "id": "NAMABYOHOU",
@@ -12875,7 +14244,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。生兵法の間違いです。"
+    "message": "誤変換です。生兵法の間違いです。",
+    "suggestions": [
+      "生兵法"
+    ]
   },
   {
     "id": "NARENARESII",
@@ -12906,7 +14278,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。馴れ馴れしいの間違いです。"
+    "message": "誤変換です。馴れ馴れしいの間違いです。",
+    "suggestions": [
+      "馴れ馴れしい"
+    ]
   },
   {
     "id": "NENNGARANENNJYUU",
@@ -12929,7 +14304,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。年がら年中の間違いです。"
+    "message": "誤変換です。年がら年中の間違いです。",
+    "suggestions": [
+      "年がら年中"
+    ]
   },
   {
     "id": "NENNPOU",
@@ -12952,7 +14330,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。年俸の間違いです。"
+    "message": "誤変換です。年俸の間違いです。",
+    "suggestions": [
+      "年俸"
+    ]
   },
   {
     "id": "NOUKIGU",
@@ -12975,7 +14356,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。農機具の間違いです。"
+    "message": "誤変換です。農機具の間違いです。",
+    "suggestions": [
+      "農機具"
+    ]
   },
   {
     "id": "NURETEDEAWA",
@@ -13014,7 +14398,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。濡れ手で粟の間違いです。"
+    "message": "誤変換です。濡れ手で粟の間違いです。",
+    "suggestions": [
+      "濡れ手で粟"
+    ]
   },
   {
     "id": "BAKUSINN",
@@ -13037,7 +14424,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。驀進の間違いです。"
+    "message": "誤変換です。驀進の間違いです。",
+    "suggestions": [
+      "驀進"
+    ]
   },
   {
     "id": "BAKUDAI",
@@ -13060,7 +14450,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。莫大の間違いです。"
+    "message": "誤変換です。莫大の間違いです。",
+    "suggestions": [
+      "莫大"
+    ]
   },
   {
     "id": "HATYOU",
@@ -13083,7 +14476,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。波長の間違いです。"
+    "message": "誤変換です。波長の間違いです。",
+    "suggestions": [
+      "波長"
+    ]
   },
   {
     "id": "HAPPOUSUTIRO-RU",
@@ -13106,7 +14502,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。発泡スチロールの間違いです。"
+    "message": "誤変換です。発泡スチロールの間違いです。",
+    "suggestions": [
+      "発泡スチロール"
+    ]
   },
   {
     "id": "HANAMUKE",
@@ -13129,7 +14528,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。餞の間違いです。"
+    "message": "誤変換です。餞の間違いです。",
+    "suggestions": [
+      "餞"
+    ]
   },
   {
     "id": "BANNJIKYUUSU",
@@ -13160,7 +14562,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。万事休すの間違いです。"
+    "message": "誤変換です。万事休すの間違いです。",
+    "suggestions": [
+      "万事休す"
+    ]
   },
   {
     "id": "BIMYOU",
@@ -13183,7 +14588,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。微妙の間違いです。"
+    "message": "誤変換です。微妙の間違いです。",
+    "suggestions": [
+      "微妙"
+    ]
   },
   {
     "id": "HURI-NOKYAKU",
@@ -13214,7 +14622,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。振りの客の間違いです。"
+    "message": "誤変換です。振りの客の間違いです。",
+    "suggestions": [
+      "振りの客"
+    ]
   },
   {
     "id": "HUNNSYOKUKESSAI",
@@ -13237,7 +14648,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。粉飾決算の間違いです。"
+    "message": "誤変換です。粉飾決算の間違いです。",
+    "suggestions": [
+      "粉飾決算"
+    ]
   },
   {
     "id": "HUKAKETU",
@@ -13260,7 +14674,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。不可欠の間違いです。"
+    "message": "誤変換です。不可欠の間違いです。",
+    "suggestions": [
+      "不可欠"
+    ]
   },
   {
     "id": "HUKYOUWAWONN",
@@ -13291,7 +14708,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。不協和音の間違いです。"
+    "message": "誤変換です。不協和音の間違いです。",
+    "suggestions": [
+      "不協和音"
+    ]
   },
   {
     "id": "HUKUZOU",
@@ -13314,7 +14734,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。腹蔵の間違いです。"
+    "message": "誤変換です。腹蔵の間違いです。",
+    "suggestions": [
+      "腹蔵"
+    ]
   },
   {
     "id": "BUSYOUHIGE",
@@ -13337,7 +14760,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。無精髭の間違いです。"
+    "message": "誤変換です。無精髭の間違いです。",
+    "suggestions": [
+      "無精髭"
+    ]
   },
   {
     "id": "HURYOUSAIKENN",
@@ -13360,7 +14786,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。不良債権の間違いです。"
+    "message": "誤変換です。不良債権の間違いです。",
+    "suggestions": [
+      "不良債権"
+    ]
   },
   {
     "id": "HUWARAIDOU",
@@ -13383,7 +14812,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。附和雷同の間違いです。"
+    "message": "誤変換です。附和雷同の間違いです。",
+    "suggestions": [
+      "附和雷同"
+    ]
   },
   {
     "id": "BUNNMEIKAIKA",
@@ -13406,7 +14838,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。文明開化の間違いです。"
+    "message": "誤変換です。文明開化の間違いです。",
+    "suggestions": [
+      "文明開化"
+    ]
   },
   {
     "id": "HEIKOUKANNKAKU",
@@ -13429,7 +14864,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。平衡感覚の間違いです。"
+    "message": "誤変換です。平衡感覚の間違いです。",
+    "suggestions": [
+      "平衡感覚"
+    ]
   },
   {
     "id": "HERIKUDARU",
@@ -13452,7 +14890,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。遜るの間違いです。"
+    "message": "誤変換です。遜るの間違いです。",
+    "suggestions": [
+      "遜る"
+    ]
   },
   {
     "id": "HOUKI",
@@ -13475,7 +14916,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。蜂起の間違いです。"
+    "message": "誤変換です。蜂起の間違いです。",
+    "suggestions": [
+      "蜂起"
+    ]
   },
   {
     "id": "HOUTUI",
@@ -13498,7 +14942,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。放逐の間違いです。"
+    "message": "誤変換です。放逐の間違いです。",
+    "suggestions": [
+      "放逐"
+    ]
   },
   {
     "id": "HOUDOU",
@@ -13521,7 +14968,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。報道の間違いです。"
+    "message": "誤変換です。報道の間違いです。",
+    "suggestions": [
+      "報道"
+    ]
   },
   {
     "id": "HOUBENN",
@@ -13544,7 +14994,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。方便の間違いです。"
+    "message": "誤変換です。方便の間違いです。",
+    "suggestions": [
+      "方便"
+    ]
   },
   {
     "id": "HOUMONN",
@@ -13567,7 +15020,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。訪問の間違いです。"
+    "message": "誤変換です。訪問の間違いです。",
+    "suggestions": [
+      "訪問"
+    ]
   },
   {
     "id": "HOUYOURYOKU",
@@ -13590,7 +15046,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。包容力の間違いです。"
+    "message": "誤変換です。包容力の間違いです。",
+    "suggestions": [
+      "包容力"
+    ]
   },
   {
     "id": "HOSYOUKINN",
@@ -13613,7 +15072,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。保証金の間違いです。"
+    "message": "誤変換です。保証金の間違いです。",
+    "suggestions": [
+      "保証金"
+    ]
   },
   {
     "id": "MORITATERU",
@@ -13636,7 +15098,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。守り立てるの間違いです。"
+    "message": "誤変換です。守り立てるの間違いです。",
+    "suggestions": [
+      "守り立てる"
+    ]
   },
   {
     "id": "MAGASASU",
@@ -13667,7 +15132,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。魔が差すの間違いです。"
+    "message": "誤変換です。魔が差すの間違いです。",
+    "suggestions": [
+      "魔が差す"
+    ]
   },
   {
     "id": "MAKAHUSIGI",
@@ -13690,7 +15158,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。摩訶不思議の間違いです。"
+    "message": "誤変換です。摩訶不思議の間違いです。",
+    "suggestions": [
+      "摩訶不思議"
+    ]
   },
   {
     "id": "MAHOUJINN",
@@ -13713,7 +15184,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。魔方陣の間違いです。"
+    "message": "誤変換です。魔方陣の間違いです。",
+    "suggestions": [
+      "魔方陣"
+    ]
   },
   {
     "id": "MIGAWARI",
@@ -13736,7 +15210,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。見代わりの間違いです。"
+    "message": "誤変換です。見代わりの間違いです。",
+    "suggestions": [
+      "見代わり"
+    ]
   },
   {
     "id": "MIKIWAMERU",
@@ -13759,7 +15236,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。見極めるの間違いです。"
+    "message": "誤変換です。見極めるの間違いです。",
+    "suggestions": [
+      "見極める"
+    ]
   },
   {
     "id": "MIZUMIZUSII",
@@ -13790,7 +15270,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。瑞瑞しいの間違いです。"
+    "message": "誤変換です。瑞瑞しいの間違いです。",
+    "suggestions": [
+      "瑞瑞しい"
+    ]
   },
   {
     "id": "MISEINENN",
@@ -13813,7 +15296,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。未成年の間違いです。"
+    "message": "誤変換です。未成年の間違いです。",
+    "suggestions": [
+      "未成年"
+    ]
   },
   {
     "id": "MITORERU",
@@ -13836,7 +15322,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。見蕩れるの間違いです。"
+    "message": "誤変換です。見蕩れるの間違いです。",
+    "suggestions": [
+      "見蕩れる"
+    ]
   },
   {
     "id": "MUGAMUTYUU",
@@ -13867,7 +15356,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。無我夢中の間違いです。"
+    "message": "誤変換です。無我夢中の間違いです。",
+    "suggestions": [
+      "無我夢中"
+    ]
   },
   {
     "id": "MEISI",
@@ -13890,7 +15382,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。名刺の間違いです。"
+    "message": "誤変換です。名刺の間違いです。",
+    "suggestions": [
+      "名刺"
+    ]
   },
   {
     "id": "MEGURUMEKU",
@@ -13913,7 +15408,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。目眩くの間違いです。"
+    "message": "誤変換です。目眩くの間違いです。",
+    "suggestions": [
+      "目眩く"
+    ]
   },
   {
     "id": "MOKUDOKU",
@@ -13936,7 +15434,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。黙読の間違いです。"
+    "message": "誤変換です。黙読の間違いです。",
+    "suggestions": [
+      "黙読"
+    ]
   },
   {
     "id": "MOKUHIKENN",
@@ -13967,7 +15468,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。黙秘権の間違いです。"
+    "message": "誤変換です。黙秘権の間違いです。",
+    "suggestions": [
+      "黙秘権"
+    ]
   },
   {
     "id": "MONUKENOKARA",
@@ -14006,7 +15510,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。蛻けの殻の間違いです。"
+    "message": "誤変換です。蛻けの殻の間違いです。",
+    "suggestions": [
+      "蛻けの殻"
+    ]
   },
   {
     "id": "MANNJOUITTI",
@@ -14029,7 +15536,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。満場一致の間違いです。"
+    "message": "誤変換です。満場一致の間違いです。",
+    "suggestions": [
+      "満場一致"
+    ]
   },
   {
     "id": "YAWARAGU",
@@ -14052,7 +15562,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。和らぐの間違いです。"
+    "message": "誤変換です。和らぐの間違いです。",
+    "suggestions": [
+      "和らぐ"
+    ]
   },
   {
     "id": "YUUSYUNOBI",
@@ -14083,7 +15596,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。有終の美の間違いです。"
+    "message": "誤変換です。有終の美の間違いです。",
+    "suggestions": [
+      "有終の美"
+    ]
   },
   {
     "id": "YOKOURENNSYUU",
@@ -14106,7 +15622,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。予行演習の間違いです。"
+    "message": "誤変換です。予行演習の間違いです。",
+    "suggestions": [
+      "予行演習"
+    ]
   },
   {
     "id": "YOMIGAERU",
@@ -14129,7 +15648,10 @@
         "regexp": true
       }
     ],
-    "message": "誤変換です。蘇るの間違いです。"
+    "message": "誤変換です。蘇るの間違いです。",
+    "suggestions": [
+      "蘇る"
+    ]
   },
   {
     "id": "YOYUUSYAKUSYAKU",
@@ -14160,7 +15682,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。余裕綽綽の間違いです。"
+    "message": "誤変換です。余裕綽綽の間違いです。",
+    "suggestions": [
+      "余裕綽綽"
+    ]
   },
   {
     "id": "YAKIMOTIYAKI",
@@ -14183,7 +15708,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。焼き餅焼きの間違いです。"
+    "message": "誤変換です。焼き餅焼きの間違いです。",
+    "suggestions": [
+      "焼き餅焼き"
+    ]
   },
   {
     "id": "YAKUBYOUGAMI",
@@ -14214,7 +15742,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。疫病神の間違いです。"
+    "message": "誤変換です。疫病神の間違いです。",
+    "suggestions": [
+      "疫病神"
+    ]
   },
   {
     "id": "RAKKASEI",
@@ -14237,7 +15768,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。落花生の間違いです。"
+    "message": "誤変換です。落花生の間違いです。",
+    "suggestions": [
+      "落花生"
+    ]
   },
   {
     "id": "RISOUKYOU",
@@ -14260,7 +15794,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。理想郷の間違いです。"
+    "message": "誤変換です。理想郷の間違いです。",
+    "suggestions": [
+      "理想郷"
+    ]
   },
   {
     "id": "RYUUGENNHIGO",
@@ -14291,7 +15828,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。流言蜚語の間違いです。"
+    "message": "誤変換です。流言蜚語の間違いです。",
+    "suggestions": [
+      "流言蜚語"
+    ]
   },
   {
     "id": "RENNKINNJYUTU",
@@ -14322,7 +15862,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。錬金術の間違いです。"
+    "message": "誤変換です。錬金術の間違いです。",
+    "suggestions": [
+      "錬金術"
+    ]
   },
   {
     "id": "ROTENSYOU",
@@ -14345,7 +15888,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。露天商の間違いです。"
+    "message": "誤変換です。露天商の間違いです。",
+    "suggestions": [
+      "露天商"
+    ]
   },
   {
     "id": "ROKEHANN",
@@ -14368,7 +15914,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。ロケハンの間違いです。"
+    "message": "誤変換です。ロケハンの間違いです。",
+    "suggestions": [
+      "ロケハン"
+    ]
   },
   {
     "id": "WAZAMONO",
@@ -14391,7 +15940,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。業物の間違いです。"
+    "message": "誤変換です。業物の間違いです。",
+    "suggestions": [
+      "業物"
+    ]
   },
   {
     "id": "WAIRO",
@@ -14414,7 +15966,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。賄賂の間違いです。"
+    "message": "誤変換です。賄賂の間違いです。",
+    "suggestions": [
+      "賄賂"
+    ]
   },
   {
     "id": "WAKIAIAI",
@@ -14445,7 +16000,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。和気藹藹の間違いです。"
+    "message": "誤変換です。和気藹藹の間違いです。",
+    "suggestions": [
+      "和気藹藹"
+    ]
   },
   {
     "id": "WAKOU",
@@ -14468,7 +16026,10 @@
         "regexp": false
       }
     ],
-    "message": "誤変換です。倭寇の間違いです。"
+    "message": "誤変換です。倭寇の間違いです。",
+    "suggestions": [
+      "倭寇"
+    ]
   },
   {
     "id": "AINOTE",
@@ -14499,7 +16060,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。合いの手を入れるの間違いです。"
+    "message": "連合関係がおかしいです。合いの手を入れるの間違いです。",
+    "suggestions": [
+      "合いの手を入れる"
+    ]
   },
   {
     "id": "ITIDOU",
@@ -14530,7 +16094,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。一堂に会するの間違いです。"
+    "message": "連合関係がおかしいです。一堂に会するの間違いです。",
+    "suggestions": [
+      "一堂に会"
+    ]
   },
   {
     "id": "ISSI",
@@ -14561,7 +16128,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。一矢を報いるの間違いです。"
+    "message": "連合関係がおかしいです。一矢を報いるの間違いです。",
+    "suggestions": [
+      "一矢を報いる"
+    ]
   },
   {
     "id": "ASIMOTO",
@@ -14592,7 +16162,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。足をすくうの間違いです。"
+    "message": "連合関係がおかしいです。足をすくうの間違いです。",
+    "suggestions": [
+      "足をすくう"
+    ]
   },
   {
     "id": "AKARUMI",
@@ -14623,7 +16196,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。明るみに出るの間違いです。"
+    "message": "連合関係がおかしいです。明るみに出るの間違いです。",
+    "suggestions": [
+      "明るみに出る"
+    ]
   },
   {
     "id": "IGO",
@@ -14654,7 +16230,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。囲碁を打つの間違いです。"
+    "message": "連合関係がおかしいです。囲碁を打つの間違いです。",
+    "suggestions": [
+      "囲碁を打つ"
+    ]
   },
   {
     "id": "IKARISINTOUNITASSURU",
@@ -14693,7 +16272,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。怒り心頭に発するの間違いです。"
+    "message": "連合関係がおかしいです。怒り心頭に発するの間違いです。",
+    "suggestions": [
+      "怒り心頭に発する"
+    ]
   },
   {
     "id": "HIKKENNOKATIARI",
@@ -14724,7 +16306,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。一見の価値有りの間違いです。"
+    "message": "連合関係がおかしいです。一見の価値有りの間違いです。",
+    "suggestions": [
+      "一見の価値"
+    ]
   },
   {
     "id": "ISSYUNSAKIHAYAMI",
@@ -14763,7 +16348,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。一寸先は闇の間違いです。"
+    "message": "連合関係がおかしいです。一寸先は闇の間違いです。",
+    "suggestions": [
+      "一寸先は闇"
+    ]
   },
   {
     "id": "INROUWOWATASU",
@@ -14794,7 +16382,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。引導を渡すの間違いです。"
+    "message": "連合関係がおかしいです。引導を渡すの間違いです。",
+    "suggestions": [
+      "引導を渡す"
+    ]
   },
   {
     "id": "UNTIKUWOTARERU",
@@ -14833,7 +16424,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。薀蓄を傾けるの間違いです。"
+    "message": "連合関係がおかしいです。薀蓄を傾けるの間違いです。",
+    "suggestions": [
+      "薀蓄を傾ける"
+    ]
   },
   {
     "id": "ESAWOAGERU",
@@ -14864,7 +16458,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。餌をやるの間違いです。"
+    "message": "連合関係がおかしいです。餌をやるの間違いです。",
+    "suggestions": [
+      "餌をやる"
+    ]
   },
   {
     "id": "ERIMOTOWOTADASU",
@@ -14895,7 +16492,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。襟を正すの間違いです。"
+    "message": "連合関係がおかしいです。襟を正すの間違いです。",
+    "suggestions": [
+      "襟を正す"
+    ]
   },
   {
     "id": "AKANOTANINN",
@@ -14926,7 +16526,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。赤の他人の間違いです。"
+    "message": "連合関係がおかしいです。赤の他人の間違いです。",
+    "suggestions": [
+      "赤の他人"
+    ]
   },
   {
     "id": "ENHAKINAMONO",
@@ -14957,7 +16560,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。縁は異なものの間違いです。"
+    "message": "連合関係がおかしいです。縁は異なものの間違いです。",
+    "suggestions": [
+      "縁は異"
+    ]
   },
   {
     "id": "ONWOKISERU",
@@ -14988,7 +16594,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。恩に着せるの間違いです。"
+    "message": "連合関係がおかしいです。恩に着せるの間違いです。",
+    "suggestions": [
+      "恩に着せる"
+    ]
   },
   {
     "id": "UEHESITAHENOOOSAWAGI",
@@ -15043,7 +16652,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。上を下への大騒ぎの間違いです。"
+    "message": "連合関係がおかしいです。上を下への大騒ぎの間違いです。",
+    "suggestions": [
+      "上を下への大騒ぎ"
+    ]
   },
   {
     "id": "KAOWOUKAGAU",
@@ -15074,7 +16686,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。顔色を窺うの間違いです。"
+    "message": "連合関係がおかしいです。顔色を窺うの間違いです。",
+    "suggestions": [
+      "顔色を窺う"
+    ]
   },
   {
     "id": "GISINANKIWOIDAKU",
@@ -15105,7 +16720,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。疑心暗鬼を生ずの間違いです。"
+    "message": "連合関係がおかしいです。疑心暗鬼を生ずの間違いです。",
+    "suggestions": [
+      "疑心暗鬼を生ず"
+    ]
   },
   {
     "id": "KIZUNAGAHUKAI",
@@ -15136,7 +16754,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。絆が強いの間違いです。"
+    "message": "連合関係がおかしいです。絆が強いの間違いです。",
+    "suggestions": [
+      "絆が強い"
+    ]
   },
   {
     "id": "KUJYUUWOAJIWAU",
@@ -15167,7 +16788,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。苦汁を嘗めるの間違いです。"
+    "message": "連合関係がおかしいです。苦汁を嘗めるの間違いです。",
+    "suggestions": [
+      "苦汁を嘗める"
+    ]
   },
   {
     "id": "KUTIGURUMAWOAWASERU",
@@ -15198,7 +16822,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。口車に乗るの間違いです。"
+    "message": "連合関係がおかしいです。口車に乗るの間違いです。",
+    "suggestions": [
+      "口車に乗る"
+    ]
   },
   {
     "id": "KOUBEWOKAIGERU",
@@ -15229,7 +16856,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。首を傾げるの間違いです。"
+    "message": "連合関係がおかしいです。首を傾げるの間違いです。",
+    "suggestions": [
+      "首を傾げる"
+    ]
   },
   {
     "id": "HISSINOKAKUGO",
@@ -15260,7 +16890,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。決死の覚悟の間違いです。"
+    "message": "連合関係がおかしいです。決死の覚悟の間違いです。",
+    "suggestions": [
+      "決死の覚悟"
+    ]
   },
   {
     "id": "SIROKUROWOTUKERU",
@@ -15291,7 +16924,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。黒白をつけるの間違いです。"
+    "message": "連合関係がおかしいです。黒白をつけるの間違いです。",
+    "suggestions": [
+      "黒白をつける"
+    ]
   },
   {
     "id": "KUSINOHAGANUKETAYOU",
@@ -15338,7 +16974,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。櫛の歯が欠けるの間違いです"
+    "message": "連合関係がおかしいです。櫛の歯が欠けるの間違いです",
+    "suggestions": [
+      "櫛の歯が欠ける"
+    ]
   },
   {
     "id": "KENRYOKUNIOMONETTE",
@@ -15393,7 +17032,10 @@
         "regexp": false
       }
     ],
-    "message": "権力におもねっての間違いです"
+    "message": "権力におもねっての間違いです",
+    "suggestions": [
+      "権力におもねって"
+    ]
   },
   {
     "id": "KASSAIWOSAKEBU",
@@ -15424,7 +17066,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。快哉を叫ぶの間違いです。"
+    "message": "連合関係がおかしいです。快哉を叫ぶの間違いです。",
+    "suggestions": [
+      "快哉を叫ぶ"
+    ]
   },
   {
     "id": "KASANIKAKARU",
@@ -15455,7 +17100,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。傘に懸かるの間違いです。"
+    "message": "連合関係がおかしいです。傘に懸かるの間違いです。",
+    "suggestions": [
+      "傘に懸かる"
+    ]
   },
   {
     "id": "KATUWOIRERU",
@@ -15486,7 +17134,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。活を入れるの間違いです。"
+    "message": "連合関係がおかしいです。活を入れるの間違いです。",
+    "suggestions": [
+      "活を入れる"
+    ]
   },
   {
     "id": "KAHOUHANETEMATE",
@@ -15533,7 +17184,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。果報は寝て待ての間違いです。"
+    "message": "連合関係がおかしいです。果報は寝て待ての間違いです。",
+    "suggestions": [
+      "果報は寝て待て"
+    ]
   },
   {
     "id": "KIMONIMEIJIRU",
@@ -15564,7 +17218,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。肝に銘じるの間違いです。"
+    "message": "連合関係がおかしいです。肝に銘じるの間違いです。",
+    "suggestions": [
+      "肝に銘じる"
+    ]
   },
   {
     "id": "KIGAHURERU",
@@ -15595,7 +17252,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。気が触れるの間違いです。"
+    "message": "連合関係がおかしいです。気が触れるの間違いです。",
+    "suggestions": [
+      "気が触れる"
+    ]
   },
   {
     "id": "KERIWOTUKERU",
@@ -15626,7 +17286,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。けりをつけるの間違いで"
+    "message": "連合関係がおかしいです。けりをつけるの間違いで",
+    "suggestions": [
+      "けりをつける"
+    ]
   },
   {
     "id": "KUTIWONIGOSU",
@@ -15657,7 +17320,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。言葉を濁すの間違いです。"
+    "message": "連合関係がおかしいです。言葉を濁すの間違いです。",
+    "suggestions": [
+      "言葉を濁す"
+    ]
   },
   {
     "id": "MIWOTAWAWA",
@@ -15688,7 +17354,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。枝も撓の間違いです。"
+    "message": "連合関係がおかしいです。枝も撓の間違いです。",
+    "suggestions": [
+      "枝も撓"
+    ]
   },
   {
     "id": "TEKIWOSIRIONOREWOSIREBAHYAKUSENNAYAUKARAZU",
@@ -15783,7 +17452,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。彼を知り己を知れば百戦殆からずの間違いです。"
+    "message": "連合関係がおかしいです。彼を知り己を知れば百戦殆からずの間違いです。",
+    "suggestions": [
+      "彼を知り己を知れば百戦殆からず"
+    ]
   },
   {
     "id": "KYAKKOUWOATUMERU",
@@ -15814,7 +17486,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。脚光を浴びるの間違いです。"
+    "message": "連合関係がおかしいです。脚光を浴びるの間違いです。",
+    "suggestions": [
+      "脚光を浴びる"
+    ]
   },
   {
     "id": "SYOKUSYUGAUGOKU",
@@ -15845,7 +17520,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。食指が動くの間違いです。"
+    "message": "連合関係がおかしいです。食指が動くの間違いです。",
+    "suggestions": [
+      "食指が動く"
+    ]
   },
   {
     "id": "SIRAHANOYAWOATERU",
@@ -15892,7 +17570,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。白羽の矢が立つの間違いです。"
+    "message": "連合関係がおかしいです。白羽の矢が立つの間違いです。",
+    "suggestions": [
+      "白羽の矢が立つ"
+    ]
   },
   {
     "id": "SENNKENNNOME",
@@ -15923,7 +17604,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。先見の明の間違いです。"
+    "message": "連合関係がおかしいです。先見の明の間違いです。",
+    "suggestions": [
+      "先見の明"
+    ]
   },
   {
     "id": "SAIHAIWOHURUU",
@@ -15954,7 +17638,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。采配を振るの間違いです。"
+    "message": "連合関係がおかしいです。采配を振るの間違いです。",
+    "suggestions": [
+      "采配を振る"
+    ]
   },
   {
     "id": "SYOUGI",
@@ -15985,7 +17672,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。将棋を指すの間違いです。"
+    "message": "連合関係がおかしいです。将棋を指すの間違いです。",
+    "suggestions": [
+      "将棋を指す"
+    ]
   },
   {
     "id": "HYOUJUNNWOAWASERU",
@@ -16016,7 +17706,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。照準を合わせるの間違いです。"
+    "message": "連合関係がおかしいです。照準を合わせるの間違いです。",
+    "suggestions": [
+      "照準を合わせる"
+    ]
   },
   {
     "id": "SITYUUNIKATUWOERU",
@@ -16063,7 +17756,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。死中に活を求めるの間違いです。"
+    "message": "連合関係がおかしいです。死中に活を求めるの間違いです。",
+    "suggestions": [
+      "死中に活を求める"
+    ]
   },
   {
     "id": "SINOGIWOKEZURU",
@@ -16094,7 +17790,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。鎬を削るの間違いです。"
+    "message": "連合関係がおかしいです。鎬を削るの間違いです。",
+    "suggestions": [
+      "鎬を削る"
+    ]
   },
   {
     "id": "NANAMENIKAMAERU",
@@ -16125,7 +17824,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。斜に構えるの間違いです。"
+    "message": "連合関係がおかしいです。斜に構えるの間違いです。",
+    "suggestions": [
+      "斜に構える"
+    ]
   },
   {
     "id": "OSIMOOSARENU",
@@ -16172,7 +17874,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。押しも押されもせぬの間違いです。"
+    "message": "連合関係がおかしいです。押しも押されもせぬの間違いです。",
+    "suggestions": [
+      "押しも押されもせぬ"
+    ]
   },
   {
     "id": "TAITYOUWOKOWASU",
@@ -16203,7 +17908,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。体調を崩すの間違いです。"
+    "message": "連合関係がおかしいです。体調を崩すの間違いです。",
+    "suggestions": [
+      "体調を崩す"
+    ]
   },
   {
     "id": "NINOTETUWOHUMU",
@@ -16250,7 +17958,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。轍を踏むの間違いです。"
+    "message": "連合関係がおかしいです。轍を踏むの間違いです。",
+    "suggestions": [
+      "轍を踏む"
+    ]
   },
   {
     "id": "DOJIWOSURU",
@@ -16281,7 +17992,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。どじを踏むの間違いです。"
+    "message": "連合関係がおかしいです。どじを踏むの間違いです。",
+    "suggestions": [
+      "どじを踏む"
+    ]
   },
   {
     "id": "KIRYOUGAOOKII",
@@ -16312,7 +18026,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。度量が大きいの間違いです。"
+    "message": "連合関係がおかしいです。度量が大きいの間違いです。",
+    "suggestions": [
+      "度量が大きい"
+    ]
   },
   {
     "id": "TENNKANOHOUTOU",
@@ -16343,7 +18060,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。伝家の宝刀の間違いです。"
+    "message": "連合関係がおかしいです。伝家の宝刀の間違いです。",
+    "suggestions": [
+      "伝家の宝刀"
+    ]
   },
   {
     "id": "TIDETIWOARASOU",
@@ -16390,7 +18110,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。血で血を洗うの間違いです。"
+    "message": "連合関係がおかしいです。血で血を洗うの間違いです。",
+    "suggestions": [
+      "血で血を洗う"
+    ]
   },
   {
     "id": "HARAWATAGAYOJIRERU",
@@ -16421,7 +18144,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。腹の皮が捩れるの間違いです。"
+    "message": "連合関係がおかしいです。腹の皮が捩れるの間違いです。",
+    "suggestions": [
+      "腹の皮が捩れる"
+    ]
   },
   {
     "id": "TADEKUUMUSIMOSUKIZUKI",
@@ -16476,7 +18202,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。蓼食う虫も好き好きの間違いです。"
+    "message": "連合関係がおかしいです。蓼食う虫も好き好きの間違いです。",
+    "suggestions": [
+      "蓼食う虫も好き好き"
+    ]
   },
   {
     "id": "NORUKASORUKA",
@@ -16507,7 +18236,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。伸るか反るかの間違いです。"
+    "message": "連合関係がおかしいです。伸るか反るかの間違いです。",
+    "suggestions": [
+      "伸るか反る"
+    ]
   },
   {
     "id": "NINOKUGADENAI",
@@ -16538,7 +18270,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。二の句が継げないの間違いです。"
+    "message": "連合関係がおかしいです。二の句が継げないの間違いです。",
+    "suggestions": [
+      "二の句が継げない"
+    ]
   },
   {
     "id": "NENNTOUNIIRERU",
@@ -16569,7 +18304,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。念頭に置くの間違いです。"
+    "message": "連合関係がおかしいです。念頭に置くの間違いです。",
+    "suggestions": [
+      "念頭に置く"
+    ]
   },
   {
     "id": "NETUNIUNASARERU",
@@ -16600,7 +18338,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。熱に浮かされるの間違いです。"
+    "message": "連合関係がおかしいです。熱に浮かされるの間違いです。",
+    "suggestions": [
+      "熱に浮かされる"
+    ]
   },
   {
     "id": "NODOGAKAWAKU",
@@ -16631,7 +18372,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。喉が渇くの間違いです。"
+    "message": "連合関係がおかしいです。喉が渇くの間違いです。",
+    "suggestions": [
+      "喉が渇く"
+    ]
   },
   {
     "id": "HANAMIGASAKU",
@@ -16662,7 +18406,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。花実が咲くの間違いです。"
+    "message": "連合関係がおかしいです。花実が咲くの間違いです。",
+    "suggestions": [
+      "花実が咲く"
+    ]
   },
   {
     "id": "HARAGANIEKURIKAERU",
@@ -16693,7 +18440,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。腸が煮え繰り返るの間違いです。"
+    "message": "連合関係がおかしいです。腸が煮え繰り返るの間違いです。",
+    "suggestions": [
+      "腸が煮え繰り返る"
+    ]
   },
   {
     "id": "HARAWOKUKURU",
@@ -16724,7 +18474,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。腹を据えるの間違いです。"
+    "message": "連合関係がおかしいです。腹を据えるの間違いです。",
+    "suggestions": [
+      "腹を据える"
+    ]
   },
   {
     "id": "BAKYAKUWODASU",
@@ -16755,7 +18508,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。馬脚を露わすの間違いです。"
+    "message": "連合関係がおかしいです。馬脚を露わすの間違いです。",
+    "suggestions": [
+      "馬脚を露わす"
+    ]
   },
   {
     "id": "KONNSENNTOWONUKU",
@@ -16786,7 +18542,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。プラグを抜くの間違いです。"
+    "message": "連合関係がおかしいです。プラグを抜くの間違いです。",
+    "suggestions": [
+      "プラグを抜く"
+    ]
   },
   {
     "id": "HIMAWOMOTEASOBU",
@@ -16817,7 +18576,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。暇を持て余すの間違いです。"
+    "message": "連合関係がおかしいです。暇を持て余すの間違いです。",
+    "suggestions": [
+      "暇を持て余す"
+    ]
   },
   {
     "id": "HYOUTANNKARAKOMAGADERU",
@@ -16864,7 +18626,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。瓢箪から駒が出るの間違いです。"
+    "message": "連合関係がおかしいです。瓢箪から駒が出るの間違いです。",
+    "suggestions": [
+      "瓢箪から駒が出る"
+    ]
   },
   {
     "id": "HIBUTAWOKITTEOTOSU",
@@ -16911,7 +18676,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。火蓋を切るの間違いです。"
+    "message": "連合関係がおかしいです。火蓋を切るの間違いです。",
+    "suggestions": [
+      "火蓋を切る"
+    ]
   },
   {
     "id": "MUSHI",
@@ -16942,7 +18710,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。虫の知らせの間違いです。"
+    "message": "連合関係がおかしいです。虫の知らせの間違いです。",
+    "suggestions": [
+      "虫の知らせ"
+    ]
   },
   {
     "id": "MATOWOIRU",
@@ -16973,7 +18744,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。的を射るの間違いです。"
+    "message": "連合関係がおかしいです。的を射るの間違いです。",
+    "suggestions": [
+      "的を射る"
+    ]
   },
   {
     "id": "MEHASIGAKIKU",
@@ -17004,7 +18778,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。目端が利くの間違いです。"
+    "message": "連合関係がおかしいです。目端が利くの間違いです。",
+    "suggestions": [
+      "目端が利く"
+    ]
   },
   {
     "id": "MOZUKUTONARU",
@@ -17035,7 +18812,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。藻屑となるの間違いです。"
+    "message": "連合関係がおかしいです。藻屑となるの間違いです。",
+    "suggestions": [
+      "藻屑となる"
+    ]
   },
   {
     "id": "YAKEBOKKURINIHIGATUKU",
@@ -17098,7 +18878,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。焼けぼっくいに火が付くの間違いです。"
+    "message": "連合関係がおかしいです。焼けぼっくいに火が付くの間違いです。",
+    "suggestions": [
+      "焼けぼっくいに火が付く"
+    ]
   },
   {
     "id": "ROUTAINIMUTIUTU",
@@ -17129,7 +18912,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。老骨に鞭打つの間違いです。"
+    "message": "連合関係がおかしいです。老骨に鞭打つの間違いです。",
+    "suggestions": [
+      "老骨に鞭打つ"
+    ]
   },
   {
     "id": "RIKANIKANNMURIWOTADASU",
@@ -17176,7 +18962,10 @@
         "regexp": true
       }
     ],
-    "message": "連合関係がおかしいです。李下に冠をたたさずの間違いです。"
+    "message": "連合関係がおかしいです。李下に冠をたたさずの間違いです。",
+    "suggestions": [
+      "李下に冠をたたさず"
+    ]
   },
   {
     "id": "RUINHARUIWOYOBU",
@@ -17223,7 +19012,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。類は友を呼ぶの間違いです。"
+    "message": "連合関係がおかしいです。類は友を呼ぶの間違いです。",
+    "suggestions": [
+      "類は友を呼ぶ"
+    ]
   },
   {
     "id": "RINKUWOHARU",
@@ -17254,7 +19046,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。リンクを張るの間違いです。"
+    "message": "連合関係がおかしいです。リンクを張るの間違いです。",
+    "suggestions": [
+      "リンクを張る"
+    ]
   },
   {
     "id": "WARUTAKURAMI",
@@ -17301,7 +19096,10 @@
         "regexp": false
       }
     ],
-    "message": "連合関係がおかしいです。渡る世間は鬼はないの間違いです。"
+    "message": "連合関係がおかしいです。渡る世間は鬼はないの間違いです。",
+    "suggestions": [
+      "渡る世間は鬼はない"
+    ]
   },
   {
     "id": "SUBETEITIINN",
@@ -17324,7 +19122,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。一任の間違いです。"
+    "message": "重複しています。一任の間違いです。",
+    "suggestions": [
+      "一任"
+    ]
   },
   {
     "id": "INISIENOMUKASI",
@@ -17355,7 +19156,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。古の間違いです。"
+    "message": "重複しています。古の間違いです。",
+    "suggestions": [
+      "古"
+    ]
   },
   {
     "id": "SINNNENNAKEMASITEOMEDETOUGOZAIMASU",
@@ -17418,7 +19222,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。明けましておめでとうございますの間違いです。"
+    "message": "重複しています。明けましておめでとうございますの間違いです。",
+    "suggestions": [
+      "明けましておめでとうございます"
+    ]
   },
   {
     "id": "ENTENKANOMOTO",
@@ -17449,7 +19256,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。炎天下の間違いです。"
+    "message": "重複しています。炎天下の間違いです。",
+    "suggestions": [
+      "炎天下"
+    ]
   },
   {
     "id": "OSSYARARERU",
@@ -17472,7 +19282,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。仰るの間違いです。"
+    "message": "重複しています。仰るの間違いです。",
+    "suggestions": [
+      "仰る"
+    ]
   },
   {
     "id": "KAKUISAMA",
@@ -17495,7 +19308,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。各位の間違いです。"
+    "message": "重複しています。各位の間違いです。",
+    "suggestions": [
+      "各位"
+    ]
   },
   {
     "id": "GANNNTANNNOASA",
@@ -17526,7 +19342,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。元旦の間違いです。"
+    "message": "重複しています。元旦の間違いです。",
+    "suggestions": [
+      "元旦"
+    ]
   },
   {
     "id": "KYOSIKIWOAGERU",
@@ -17557,7 +19376,10 @@
         "regexp": true
       }
     ],
-    "message": "重複しています。挙式するの間違いです。"
+    "message": "重複しています。挙式するの間違いです。",
+    "suggestions": [
+      "挙式する"
+    ]
   },
   {
     "id": "GAISENNKIKOKU",
@@ -17580,7 +19402,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。凱旋の間違いです。"
+    "message": "重複しています。凱旋の間違いです。",
+    "suggestions": [
+      "凱旋"
+    ]
   },
   {
     "id": "KETTANNNOATO",
@@ -17611,7 +19436,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。血痕の間違いです。"
+    "message": "重複しています。血痕の間違いです。",
+    "suggestions": [
+      "血痕"
+    ]
   },
   {
     "id": "KANETEKARANOKENNANN",
@@ -17650,7 +19478,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。懸案の間違いです。"
+    "message": "重複しています。懸案の間違いです。",
+    "suggestions": [
+      "懸案"
+    ]
   },
   {
     "id": "IMANOGENNJOU",
@@ -17681,7 +19512,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。現状の間違いです。"
+    "message": "重複しています。現状の間違いです。",
+    "suggestions": [
+      "現状"
+    ]
   },
   {
     "id": "OKARADAGOJIAIKUDASAI",
@@ -17728,7 +19562,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。御自愛下さいの間違いです。"
+    "message": "重複しています。御自愛下さいの間違いです。",
+    "suggestions": [
+      "御自愛下さい"
+    ]
   },
   {
     "id": "KOSYOUTYUU",
@@ -17751,7 +19588,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。故障の間違いです。"
+    "message": "重複しています。故障の間違いです。",
+    "suggestions": [
+      "故障"
+    ]
   },
   {
     "id": "ITIBANNSAIGO",
@@ -17774,7 +19614,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。最後の間違いです。"
+    "message": "重複しています。最後の間違いです。",
+    "suggestions": [
+      "最後"
+    ]
   },
   {
     "id": "MAZUSAISYONI",
@@ -17797,7 +19640,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。最初の間違いです。"
+    "message": "重複しています。最初の間違いです。",
+    "suggestions": [
+      "最初"
+    ]
   },
   {
     "id": "JINNRYOKUWOTUKUSU",
@@ -17828,7 +19674,10 @@
         "regexp": true
       }
     ],
-    "message": "重複しています。尽力するの間違いです。"
+    "message": "重複しています。尽力するの間違いです。",
+    "suggestions": [
+      "尽力する"
+    ]
   },
   {
     "id": "SAKENOSAKANA",
@@ -17859,7 +19708,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。肴の間違いです。"
+    "message": "重複しています。肴の間違いです。",
+    "suggestions": [
+      "肴"
+    ]
   },
   {
     "id": "SYATEIKYORI",
@@ -17882,7 +19734,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。射程の間違いです。"
+    "message": "重複しています。射程の間違いです。",
+    "suggestions": [
+      "射程"
+    ]
   },
   {
     "id": "SINNTOUNIJYUKURYOSURU",
@@ -17913,7 +19768,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。熟慮の間違いです。"
+    "message": "重複しています。熟慮の間違いです。",
+    "suggestions": [
+      "熟慮"
+    ]
   },
   {
     "id": "JYUUSEIONN",
@@ -17936,7 +19794,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。銃声の間違いです。"
+    "message": "重複しています。銃声の間違いです。",
+    "suggestions": [
+      "銃声"
+    ]
   },
   {
     "id": "SEIZOUME-KA-",
@@ -17959,7 +19820,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。製造業者の間違いです。"
+    "message": "重複しています。製造業者の間違いです。",
+    "suggestions": [
+      "製造業者"
+    ]
   },
   {
     "id": "YOBUNNNAZEINIKU",
@@ -17990,7 +19854,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。贅肉の間違いです。"
+    "message": "重複しています。贅肉の間違いです。",
+    "suggestions": [
+      "贅肉"
+    ]
   },
   {
     "id": "SETUJOKUWOHARASU",
@@ -18021,7 +19888,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。雪辱するの間違いです。"
+    "message": "重複しています。雪辱するの間違いです。",
+    "suggestions": [
+      "雪辱する"
+    ]
   },
   {
     "id": "ZONNBOUNOKIKI",
@@ -18052,7 +19922,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。存亡の機の間違いです。"
+    "message": "重複しています。存亡の機の間違いです。",
+    "suggestions": [
+      "存亡の機"
+    ]
   },
   {
     "id": "HAKKIRIDANNGENN",
@@ -18075,7 +19948,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。断言の間違いです。"
+    "message": "重複しています。断言の間違いです。",
+    "suggestions": [
+      "断言"
+    ]
   },
   {
     "id": "HANNZAIWOOKASU",
@@ -18106,7 +19982,10 @@
         "regexp": true
       }
     ],
-    "message": "重複しています。罪を犯すの間違いです。"
+    "message": "重複しています。罪を犯すの間違いです。",
+    "suggestions": [
+      "罪を犯す"
+    ]
   },
   {
     "id": "DANNTOTUNOITII",
@@ -18145,7 +20024,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。断トツの間違いです。"
+    "message": "重複しています。断トツの間違いです。",
+    "suggestions": [
+      "断トツ"
+    ]
   },
   {
     "id": "ISINOTUBUTE",
@@ -18176,7 +20058,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。礫の間違いです。"
+    "message": "重複しています。礫の間違いです。",
+    "suggestions": [
+      "礫"
+    ]
   },
   {
     "id": "NAITEIGAKIMARU",
@@ -18207,7 +20092,10 @@
         "regexp": true
       }
     ],
-    "message": "重複しています。内定するの間違いです。"
+    "message": "重複しています。内定するの間違いです。",
+    "suggestions": [
+      "内定する"
+    ]
   },
   {
     "id": "HATUDEBYU-",
@@ -18230,7 +20118,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。デビューの間違いです。"
+    "message": "重複しています。デビューの間違いです。",
+    "suggestions": [
+      "デビュー"
+    ]
   },
   {
     "id": "HIGAIWOKOUMURU",
@@ -18261,7 +20152,10 @@
         "regexp": true
       }
     ],
-    "message": "重複しています。被害を受けるの間違いです。"
+    "message": "重複しています。被害を受けるの間違いです。",
+    "suggestions": [
+      "被害を受ける"
+    ]
   },
   {
     "id": "IROGAHENNSYOKUSURU",
@@ -18292,7 +20186,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。変色するの間違いです。"
+    "message": "重複しています。変色するの間違いです。",
+    "suggestions": [
+      "変色する"
+    ]
   },
   {
     "id": "HONNRAIKARA",
@@ -18315,7 +20212,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。本来の間違いです。"
+    "message": "重複しています。本来の間違いです。",
+    "suggestions": [
+      "本来"
+    ]
   },
   {
     "id": "HANNKOWOOSU",
@@ -18346,7 +20246,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。捺印するの間違いです。"
+    "message": "重複しています。捺印するの間違いです。",
+    "suggestions": [
+      "捺印する"
+    ]
   },
   {
     "id": "KAHANNSUUWOKOERU",
@@ -18377,7 +20280,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。半数を超えるの間違いです。"
+    "message": "重複しています。半数を超えるの間違いです。",
+    "suggestions": [
+      "半数を超える"
+    ]
   },
   {
     "id": "OMOIGAKENAIHAPUNINNGU",
@@ -18400,7 +20306,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。ハプニングの間違いです。"
+    "message": "重複しています。ハプニングの間違いです。",
+    "suggestions": [
+      "ハプニング"
+    ]
   },
   {
     "id": "HEIKINNABERE-JI",
@@ -18423,7 +20332,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。平均の間違いです。"
+    "message": "重複しています。平均の間違いです。",
+    "suggestions": [
+      "平均"
+    ]
   },
   {
     "id": "KIRISUTOKYOUNOBOKUSI",
@@ -18454,7 +20366,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。牧師の間違いです。"
+    "message": "重複しています。牧師の間違いです。",
+    "suggestions": [
+      "牧師"
+    ]
   },
   {
     "id": "POTA-JYUSU-PU",
@@ -18477,7 +20392,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。ポタージュの間違いです。"
+    "message": "重複しています。ポタージュの間違いです。",
+    "suggestions": [
+      "ポタージュ"
+    ]
   },
   {
     "id": "MANNTENNNOHOSIZORA",
@@ -18508,7 +20426,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。満天の星の間違いです。"
+    "message": "重複しています。満天の星の間違いです。",
+    "suggestions": [
+      "満天の星"
+    ]
   },
   {
     "id": "MADAMIKAIKETU",
@@ -18531,7 +20452,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。未解決の間違いです。"
+    "message": "重複しています。未解決の間違いです。",
+    "suggestions": [
+      "未解決"
+    ]
   },
   {
     "id": "MIZOREMAJIRI",
@@ -18554,7 +20478,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。霙の間違いです。"
+    "message": "重複しています。霙の間違いです。",
+    "suggestions": [
+      "霙"
+    ]
   },
   {
     "id": "OMESIAGARININARU",
@@ -18593,7 +20520,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。召し上がるの間違いです。"
+    "message": "重複しています。召し上がるの間違いです。",
+    "suggestions": [
+      "召し上がる"
+    ]
   },
   {
     "id": "NIHONNNIRAINITISURU",
@@ -18624,7 +20554,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。来日するの間違いです。"
+    "message": "重複しています。来日するの間違いです。",
+    "suggestions": [
+      "来日する"
+    ]
   },
   {
     "id": "REKKYOUSYOKOKU",
@@ -18647,7 +20580,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。列強の間違いです。"
+    "message": "重複しています。列強の間違いです。",
+    "suggestions": [
+      "列強"
+    ]
   },
   {
     "id": "WADATINOATO",
@@ -18678,7 +20614,10 @@
         "regexp": false
       }
     ],
-    "message": "重複しています。轍の間違いです。"
+    "message": "重複しています。轍の間違いです。",
+    "suggestions": [
+      "轍"
+    ]
   },
   {
     "id": "ZUTUUGAITAI",
@@ -18709,7 +20648,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。頭が痛いの間違いです。"
+    "message": "文法ミスがあります。頭が痛いの間違いです。",
+    "suggestions": [
+      "頭が痛い"
+    ]
   },
   {
     "id": "OMONEZU",
@@ -18732,7 +20674,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。阿らずの間違いです。"
+    "message": "ら抜き言葉があります。阿らずの間違いです。",
+    "suggestions": [
+      "阿らず"
+    ]
   },
   {
     "id": "OBOERERU",
@@ -18755,7 +20700,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。覚えられるの間違いです。"
+    "message": "ら抜き言葉があります。覚えられるの間違いです。",
+    "suggestions": [
+      "覚えられる"
+    ]
   },
   {
     "id": "KURERU",
@@ -18778,7 +20726,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。来られるの間違いです。"
+    "message": "ら抜き言葉があります。来られるの間違いです。",
+    "suggestions": [
+      "来られる"
+    ]
   },
   {
     "id": "KIRERU",
@@ -18801,7 +20752,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。着られるの間違いです。"
+    "message": "ら抜き言葉があります。着られるの間違いです。",
+    "suggestions": [
+      "着られる"
+    ]
   },
   {
     "id": "KIMERERU",
@@ -18824,7 +20778,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。決められるの間違いです。"
+    "message": "ら抜き言葉があります。決められるの間違いです。",
+    "suggestions": [
+      "決められる"
+    ]
   },
   {
     "id": "TABERERU",
@@ -18847,7 +20804,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。食べられるの間違いです。"
+    "message": "ら抜き言葉があります。食べられるの間違いです。",
+    "suggestions": [
+      "食べられる"
+    ]
   },
   {
     "id": "DERERU",
@@ -18870,7 +20830,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。出られるの間違いです。"
+    "message": "ら抜き言葉があります。出られるの間違いです。",
+    "suggestions": [
+      "出られる"
+    ]
   },
   {
     "id": "NAGERERU",
@@ -18893,7 +20856,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。投げられるの間違いです。"
+    "message": "ら抜き言葉があります。投げられるの間違いです。",
+    "suggestions": [
+      "投げられる"
+    ]
   },
   {
     "id": "NIGERERU",
@@ -18916,7 +20882,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。逃げられるの間違いです。"
+    "message": "ら抜き言葉があります。逃げられるの間違いです。",
+    "suggestions": [
+      "逃げられる"
+    ]
   },
   {
     "id": "NERERU",
@@ -18939,7 +20908,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。寝られるの間違いです。"
+    "message": "ら抜き言葉があります。寝られるの間違いです。",
+    "suggestions": [
+      "寝られる"
+    ]
   },
   {
     "id": "MEKERERU",
@@ -18962,7 +20934,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。負けられるの間違いです。"
+    "message": "ら抜き言葉があります。負けられるの間違いです。",
+    "suggestions": [
+      "負けられる"
+    ]
   },
   {
     "id": "YOKERARERU",
@@ -18985,7 +20960,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。避けられるの間違いです。"
+    "message": "ら抜き言葉があります。避けられるの間違いです。",
+    "suggestions": [
+      "避けられる"
+    ]
   },
   {
     "id": "TOJIRERU",
@@ -19008,7 +20986,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。閉じられるの間違いです。"
+    "message": "ら抜き言葉があります。閉じられるの間違いです。",
+    "suggestions": [
+      "閉じられる"
+    ]
   },
   {
     "id": "NIRERU",
@@ -19031,7 +21012,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。煮られるの間違いです。"
+    "message": "ら抜き言葉があります。煮られるの間違いです。",
+    "suggestions": [
+      "煮られる"
+    ]
   },
   {
     "id": "ABIRERU",
@@ -19054,7 +21038,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。浴びられるの間違いです。"
+    "message": "ら抜き言葉があります。浴びられるの間違いです。",
+    "suggestions": [
+      "浴びられる"
+    ]
   },
   {
     "id": "ORIRERU",
@@ -19077,7 +21064,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。降りられるの間違いです。"
+    "message": "ら抜き言葉があります。降りられるの間違いです。",
+    "suggestions": [
+      "降りられる"
+    ]
   },
   {
     "id": "UKERERU",
@@ -19100,7 +21090,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。受けられるの間違いです。"
+    "message": "ら抜き言葉があります。受けられるの間違いです。",
+    "suggestions": [
+      "受けられる"
+    ]
   },
   {
     "id": "TUGERERU",
@@ -19123,7 +21116,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。告げられるの間違いです。"
+    "message": "ら抜き言葉があります。告げられるの間違いです。",
+    "suggestions": [
+      "告げられる"
+    ]
   },
   {
     "id": "MAZERERU",
@@ -19146,7 +21142,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。混ぜられるの間違いです。"
+    "message": "ら抜き言葉があります。混ぜられるの間違いです。",
+    "suggestions": [
+      "混ぜられる"
+    ]
   },
   {
     "id": "SUTERERU",
@@ -19169,7 +21168,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。捨てられるの間違いです。"
+    "message": "ら抜き言葉があります。捨てられるの間違いです。",
+    "suggestions": [
+      "捨てられる"
+    ]
   },
   {
     "id": "YUDERERU",
@@ -19192,7 +21194,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。茹でられるの間違いです。"
+    "message": "ら抜き言葉があります。茹でられるの間違いです。",
+    "suggestions": [
+      "茹でられる"
+    ]
   },
   {
     "id": "MOTOMERERU",
@@ -19215,7 +21220,10 @@
         "regexp": false
       }
     ],
-    "message": "ら抜き言葉があります。求められるの間違いです。"
+    "message": "ら抜き言葉があります。求められるの間違いです。",
+    "suggestions": [
+      "求められる"
+    ]
   },
   {
     "id": "IKERERU",
@@ -19238,7 +21246,10 @@
         "regexp": false
       }
     ],
-    "message": "レタス言葉があります。行けるの間違いです。"
+    "message": "レタス言葉があります。行けるの間違いです。",
+    "suggestions": [
+      "行ける"
+    ]
   },
   {
     "id": "KAKERERU",
@@ -19261,7 +21272,10 @@
         "regexp": false
       }
     ],
-    "message": "レタス言葉があります。書けるの間違いです。"
+    "message": "レタス言葉があります。書けるの間違いです。",
+    "suggestions": [
+      "書ける"
+    ]
   },
   {
     "id": "KIKERERU",
@@ -19284,7 +21298,10 @@
         "regexp": false
       }
     ],
-    "message": "レタス言葉があります。聞けるの間違いです。"
+    "message": "レタス言葉があります。聞けるの間違いです。",
+    "suggestions": [
+      "聞ける"
+    ]
   },
   {
     "id": "TURERERU",
@@ -19307,7 +21324,10 @@
         "regexp": false
       }
     ],
-    "message": "レタス言葉があります。釣れるの間違いです。"
+    "message": "レタス言葉があります。釣れるの間違いです。",
+    "suggestions": [
+      "釣れる"
+    ]
   },
   {
     "id": "NOMERERU",
@@ -19330,7 +21350,10 @@
         "regexp": false
       }
     ],
-    "message": "レタス言葉があります。飲めるの間違いです。"
+    "message": "レタス言葉があります。飲めるの間違いです。",
+    "suggestions": [
+      "飲める"
+    ]
   },
   {
     "id": "YOMERERU",
@@ -19353,7 +21376,10 @@
         "regexp": false
       }
     ],
-    "message": "レタス言葉があります。読めるの間違いです。"
+    "message": "レタス言葉があります。読めるの間違いです。",
+    "suggestions": [
+      "読める"
+    ]
   },
   {
     "id": "SUERERU",
@@ -19376,7 +21402,10 @@
         "regexp": false
       }
     ],
-    "message": "レタス言葉があります。吸えるの間違いです。"
+    "message": "レタス言葉があります。吸えるの間違いです。",
+    "suggestions": [
+      "吸える"
+    ]
   },
   {
     "id": "KASERERU",
@@ -19399,7 +21428,10 @@
         "regexp": false
       }
     ],
-    "message": "レタス言葉があります。貸せるの間違いです。"
+    "message": "レタス言葉があります。貸せるの間違いです。",
+    "suggestions": [
+      "貸せる"
+    ]
   },
   {
     "id": "KESERERU",
@@ -19422,7 +21454,10 @@
         "regexp": false
       }
     ],
-    "message": "レタス言葉があります。消せるの間違いです。"
+    "message": "レタス言葉があります。消せるの間違いです。",
+    "suggestions": [
+      "消せる"
+    ]
   },
   {
     "id": "TORERERU",
@@ -19445,7 +21480,10 @@
         "regexp": false
       }
     ],
-    "message": "レタス言葉があります。取れるの間違いです。"
+    "message": "レタス言葉があります。取れるの間違いです。",
+    "suggestions": [
+      "取れる"
+    ]
   },
   {
     "id": "YOBERERU",
@@ -19468,7 +21506,10 @@
         "regexp": false
       }
     ],
-    "message": "レタス言葉があります。呼べるの間違いです。"
+    "message": "レタス言葉があります。呼べるの間違いです。",
+    "suggestions": [
+      "呼べる"
+    ]
   },
   {
     "id": "OKERERU",
@@ -19491,7 +21532,10 @@
         "regexp": false
       }
     ],
-    "message": "レタス言葉があります。置けるの間違いです。"
+    "message": "レタス言葉があります。置けるの間違いです。",
+    "suggestions": [
+      "置ける"
+    ]
   },
   {
     "id": "URERERU",
@@ -19514,7 +21558,10 @@
         "regexp": false
       }
     ],
-    "message": "レタス言葉があります。売れるの間違いです。"
+    "message": "レタス言葉があります。売れるの間違いです。",
+    "suggestions": [
+      "売れる"
+    ]
   },
   {
     "id": "UTAWASETE",
@@ -19545,7 +21592,10 @@
         "regexp": false
       }
     ],
-    "message": "文法ミスがあります。歌わさせての間違いです。"
+    "message": "文法ミスがあります。歌わさせての間違いです。",
+    "suggestions": [
+      "歌わさせて"
+    ]
   },
   {
     "id": "OKASASERU",
@@ -19576,7 +21626,10 @@
         "regexp": false
       }
     ],
-    "message": "さ入れ言葉があります。置かせるの間違いです。"
+    "message": "さ入れ言葉があります。置かせるの間違いです。",
+    "suggestions": [
+      "置かせる"
+    ]
   },
   {
     "id": "ARUKASASERU",
@@ -19607,7 +21660,10 @@
         "regexp": false
       }
     ],
-    "message": "さ入れ言葉があります。歩かせるの間違いです。"
+    "message": "さ入れ言葉があります。歩かせるの間違いです。",
+    "suggestions": [
+      "歩かせる"
+    ]
   },
   {
     "id": "TORASASERU",
@@ -19638,7 +21694,10 @@
         "regexp": false
       }
     ],
-    "message": "さ入れ言葉があります。取らせるの間違いです。"
+    "message": "さ入れ言葉があります。取らせるの間違いです。",
+    "suggestions": [
+      "取らせる"
+    ]
   },
   {
     "id": "YASUMASASERU",
@@ -19669,7 +21728,10 @@
         "regexp": false
       }
     ],
-    "message": "さ入れ言葉があります。休ませるの間違いです。"
+    "message": "さ入れ言葉があります。休ませるの間違いです。",
+    "suggestions": [
+      "休ませる"
+    ]
   },
   {
     "id": "KIRARERU",
@@ -19692,7 +21754,10 @@
         "regexp": false
       }
     ],
-    "message": "ら入れ言葉があります。切れるの間違いです。"
+    "message": "ら入れ言葉があります。切れるの間違いです。",
+    "suggestions": [
+      "切れる"
+    ]
   },
   {
     "id": "KATARARERU",
@@ -19715,7 +21780,10 @@
         "regexp": false
       }
     ],
-    "message": "ら入れ言葉があります。語れるの間違いです。"
+    "message": "ら入れ言葉があります。語れるの間違いです。",
+    "suggestions": [
+      "語れる"
+    ]
   },
   {
     "id": "KAWARARERU",
@@ -19738,7 +21806,10 @@
         "regexp": false
       }
     ],
-    "message": "ら入れ言葉があります。変われるの間違いです。"
+    "message": "ら入れ言葉があります。変われるの間違いです。",
+    "suggestions": [
+      "変われる"
+    ]
   },
   {
     "id": "SYABERARERU",
@@ -19761,7 +21832,10 @@
         "regexp": false
       }
     ],
-    "message": "ら入れ言葉があります。喋れるの間違いです。"
+    "message": "ら入れ言葉があります。喋れるの間違いです。",
+    "suggestions": [
+      "喋れる"
+    ]
   },
   {
     "id": "SUBERARERU",
@@ -19784,7 +21858,10 @@
         "regexp": false
       }
     ],
-    "message": "ら入れ言葉があります。滑れるの間違いです。"
+    "message": "ら入れ言葉があります。滑れるの間違いです。",
+    "suggestions": [
+      "滑れる"
+    ]
   },
   {
     "id": "HASIRARERU",
@@ -19807,6 +21884,9 @@
         "regexp": false
       }
     ],
-    "message": "ら入れ言葉があります。走れるの間違いです。"
+    "message": "ら入れ言葉があります。走れるの間違いです。",
+    "suggestions": [
+      "走れる"
+    ]
   }
 ]

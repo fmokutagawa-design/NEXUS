@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { loadProjectHandle } from '../utils/indexedDBUtils';
 
 export function usePersistentData({
@@ -23,6 +23,8 @@ export function usePersistentData({
   setPendingFileSelect,
   fileSystem
 }) {
+  const restoredActiveFileRef = useRef(null);
+
   useEffect(() => {
     // ウィンドウモードでファイル指定がある場合、保存テキストの復元をスキップ
     // （対象ファイルはプロジェクト読み込み後に pendingFileSelect で開く）
@@ -46,6 +48,18 @@ export function usePersistentData({
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings);
+
+        // 本文とルビの書体はメイン画面を正とする。別窓専用設定に古い
+        // フォントが残っていても、画面ごとに書体が食い違わないようにする。
+        if (isWindowMode) {
+          try {
+            const mainSettings = JSON.parse(localStorage.getItem('novel-editor-settings') || '{}');
+            if (mainSettings.fontFamily) parsed.fontFamily = mainSettings.fontFamily;
+            if (mainSettings.rubyFontFamily) parsed.rubyFontFamily = mainSettings.rubyFontFamily;
+          } catch (error) {
+            console.warn('[settings] main window fonts could not be restored:', error);
+          }
+        }
 
         // 1. Theme/Style Migration
         if (!parsed.colorTheme) {
@@ -119,7 +133,8 @@ export function usePersistentData({
             setIsProjectMode(true);
 
             // Restore last active file AFTER project is ready
-            if (data.activeFile) {
+            if (data.activeFile && restoredActiveFileRef.current !== data.activeFile) {
+              restoredActiveFileRef.current = data.activeFile;
               // Wait slightly for useMaterials to settle
               setTimeout(() => {
                 handleOpenFile(data.activeFile, data.activeFile.split(/[/\\]/).pop());
@@ -175,12 +190,8 @@ export function usePersistentData({
       if (filePath && isNative) {
         (async () => {
           try {
-            const content = await fileSystem.readFile(filePath);
-            setText(content);
-            setActiveFileHandle(filePath);
-            setActiveTab('editor');
-            // タイトル表示用にファイル名を設定
             const fileName = filePath.split('/').pop().split('\\').pop();
+            await handleOpenFile(filePath, fileName);
             document.title = `${fileName} - NEXUS`;
           } catch (err) {
             console.error('Failed to read file in window mode:', err);

@@ -49,7 +49,7 @@ export function createSplitPlan(text, sourceFileName, options = {}) {
 
     const { baseName, extension } = splitFileName(sourceFileName);
 
-    const effectiveBoundaries = [
+    const effectiveBoundaries = candidates[0]?.offset === 0 ? [...candidates] : [
         {
             offset: 0,
             type: null,

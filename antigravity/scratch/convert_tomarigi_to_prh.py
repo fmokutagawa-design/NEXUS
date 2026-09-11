@@ -32,6 +32,8 @@ def convert_tomarigi_xml_to_prh(base_dir, output_file):
                 continue
                 
             pattern = key_elem.text
+            if len(pattern) == 1:
+                continue
             
             # Skip if already added
             if pattern in seen_patterns:

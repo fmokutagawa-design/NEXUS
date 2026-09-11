@@ -8,8 +8,8 @@ import { electronFileSystem } from './fileSystem.electron.js';
 import { browserFileSystem } from './fileSystem.browser.js';
 
 // --- Environment detection ---
-export const isElectron = !!(window.api && window.api.isElectron);
-export const isTauri = !!(window.__TAURI_INTERNALS__);
+export const isElectron = typeof window !== 'undefined' && !!(window.api && window.api.isElectron);
+export const isTauri = typeof window !== 'undefined' && !!(window.__TAURI_INTERNALS__);
 export const isNative = isElectron || isTauri;
 
 // --- Backend selection ---

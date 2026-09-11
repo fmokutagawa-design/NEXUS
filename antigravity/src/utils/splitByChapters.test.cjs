@@ -114,6 +114,14 @@ async function main() {
         expect('proposed file name without suffix if possible? No, it adds 01 by default', plan.segments[0].proposedFileName === 'test_01_冒頭.txt');
     }
 
+    async function testHeadingAtStartDoesNotCreateEmptySegment() {
+        console.log('testHeadingAtStartDoesNotCreateEmptySegment');
+        const text = '第一章　帰還\n本文1\nこれは第二章ではない本文\n第十二章　応答\n本文2';
+        const plan = createSplitPlan(text, 'test.txt');
+        expect('heading at offset zero creates no empty prologue', plan.segments.length === 2);
+        expect('first segment starts with first heading', plan.segments[0].content.startsWith('第一章'));
+    }
+
     async function testRemoveFirstSegmentIsNoop() {
         console.log('testRemoveFirstSegmentIsNoop');
         const text = '序文。\n■第1章 A';
@@ -147,6 +155,7 @@ async function main() {
         testGetContextAroundOffset,
         testCreateSplitPlanBasic,
         testCreateSplitPlanNoBoundary,
+        testHeadingAtStartDoesNotCreateEmptySegment,
         testCreateSplitPlanMultipleChapters,
         testRemoveSegment,
         testRemoveFirstSegmentIsNoop,

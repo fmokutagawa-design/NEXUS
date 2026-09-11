@@ -22,7 +22,7 @@ const Toggle = ({ active, onClick, label }) => (
 
 const Toolbar = ({
     settings, setSettings, presets = [], onSavePreset, onLoadPreset, onDeletePreset,
-    isDarkMode, setIsDarkMode, showMetadata, setShowMetadata, showOutline, onToggleOutline,
+    isDarkMode, setIsDarkMode, showMetadata, setShowMetadata,
     // AI Props
     aiModel, setAiModel, localModels = [], selectedLocalModel, setSelectedLocalModel, isLocalConnected, checkLocalConnection
 }) => {
@@ -38,6 +38,25 @@ const Toolbar = ({
     const [visibleCount, setVisibleCount] = useState(40);
     const [lastScrollTop, setLastScrollTop] = useState(0); // スクロール位置の記憶
     const [fontTarget, setFontTarget] = useState('fontFamily'); // 'fontFamily' or 'rubyFontFamily'
+    const [fontMenuPosition, setFontMenuPosition] = useState({ top: 8, left: 8, width: 320 });
+
+    const openFontMenu = (target, event) => {
+        if (isFontMenuOpen && fontTarget === target) {
+            setIsFontMenuOpen(false);
+            return;
+        }
+        const rect = event.currentTarget.getBoundingClientRect();
+        const width = Math.min(340, Math.max(240, window.innerWidth - 16));
+        const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+        const menuHeight = Math.min(400, window.innerHeight - 16);
+        const below = rect.bottom + 6;
+        const top = below + menuHeight <= window.innerHeight
+            ? below
+            : Math.max(8, rect.top - menuHeight - 6);
+        setFontTarget(target);
+        setFontMenuPosition({ top, left, width });
+        setIsFontMenuOpen(true);
+    };
 
     const PRESET_FONTS = [
         { label: '明朝 (標準)', value: 'var(--font-mincho)' },
@@ -178,6 +197,7 @@ const Toolbar = ({
                     </div>
                     <div className="control-item span-full" style={{ borderTop: '1px solid #eee', paddingTop: '6px', marginTop: '2px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)', gap: '4px' }}>
                         <Toggle active={settings.showGrid !== false} onClick={() => handleChange('showGrid', settings.showGrid === false)} label="枠線" />
+                        <Toggle active={settings.showWhitespace === true} onClick={() => handleChange('showWhitespace', settings.showWhitespace !== true)} label="空白表示" />
                         <Toggle active={settings.showLineNumbers !== false} onClick={() => handleChange('showLineNumbers', settings.showLineNumbers === false)} label="行番号" />
                         <Toggle active={settings.strictManuscriptMode || false} onClick={() => handleChange('strictManuscriptMode', !settings.strictManuscriptMode)} label="厳密マス" />
                     </div>
@@ -212,7 +232,7 @@ const Toolbar = ({
                     <div className="control-item" style={{ position: 'relative' }}>
                         <label>書体</label>
                         <div 
-                            onClick={() => { setFontTarget('fontFamily'); setIsFontMenuOpen(!isFontMenuOpen); }}
+                            onClick={(event) => openFontMenu('fontFamily', event)}
                             style={{ 
                                 fontSize: '10px', width: '100%', padding: '4px 8px', 
                                 border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px', 
@@ -228,7 +248,7 @@ const Toolbar = ({
                     <div className="control-item" style={{ position: 'relative' }}>
                         <label>ルビ書体</label>
                         <div 
-                            onClick={() => { setFontTarget('rubyFontFamily'); setIsFontMenuOpen(!isFontMenuOpen); }}
+                            onClick={(event) => openFontMenu('rubyFontFamily', event)}
                             style={{ 
                                 fontSize: '10px', width: '100%', padding: '4px 8px', 
                                 border: '1px solid rgba(0,0,0,0.1)', borderRadius: '4px', 
@@ -245,11 +265,11 @@ const Toolbar = ({
                         {isFontMenuOpen && (
                             <div 
                                 style={{ 
-                                    position: 'absolute', bottom: '100%', left: 0, width: '320px', 
+                                    position: 'fixed', top: `${fontMenuPosition.top}px`, left: `${fontMenuPosition.left}px`, width: `${fontMenuPosition.width}px`,
                                     maxHeight: '400px', background: isDarkMode ? '#2c3e50' : '#fff', 
                                     boxShadow: '0 -4px 16px rgba(0,0,0,0.25)', borderRadius: '8px', 
                                     zIndex: 2000, display: 'flex', flexDirection: 'column',
-                                    border: '1px solid var(--border-color)', marginBottom: '8px'
+                                    border: '1px solid var(--border-color)'
                                 }}
                                 onMouseEnter={() => {
                                     // メニューが開いた際に前回の位置を復元（ライフサイクル的にここが確実）
@@ -325,7 +345,7 @@ const Toolbar = ({
                                                     
                                                     systemItems.push({
                                                         label: label,
-                                                        value: f.ps,
+                                                        value: `"${String(f.ps || item.family).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`,
                                                         isPreset: false,
                                                         isJp: item.isJp,
                                                         subLabel: f.ps,
