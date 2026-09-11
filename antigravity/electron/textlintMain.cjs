@@ -2,6 +2,7 @@ const { ipcMain } = require('electron');
 const path = require('path');
 const { createLinter, loadTextlintrc } = require('textlint');
 const { TextlintLintableRuleDescriptor } = require('@textlint/kernel');
+const { keepMessageForDialogue } = require('./dialogueFilter.cjs');
 
 let linter = null;
 
@@ -50,6 +51,7 @@ function setupTextlintHandlers() {
             const techniques = profile.techniques || {};
             const profileFilteredMessages = results.messages.filter(message => {
                 const ruleId = String(message.ruleId || '');
+                if (!keepMessageForDialogue(message, text, techniques.relax_dialogue === true)) return false;
                 if (disabledRules.some(pattern => pattern.endsWith('*')
                     ? ruleId.startsWith(pattern.slice(0, -1))
                     : ruleId === pattern)) return false;
