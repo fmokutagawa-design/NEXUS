@@ -1,8 +1,8 @@
 {
-  "name": "antigravity",
+  "name": "nexus",
   "version": "1.1.0",
   "description": "Next Gen Writing App",
-  "author": "Antigravity Team",
+  "author": "NEXUS Team",
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
@@ -62,7 +62,7 @@
   },
   "build": {
     "appId": "com.nexus.antigravity",
-    "productName": "Antigravity",
+    "productName": "NEXUS",
     "asar": true,
     "directories": {
       "output": "release"
@@ -111,7 +111,7 @@
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Antigravity"
+      "shortcutName": "NEXUS"
     }
   }
 }
