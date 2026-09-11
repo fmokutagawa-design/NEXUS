@@ -1,6 +1,7 @@
 import re
 import json
 import os
+from html import escape
 
 class Proofreader:
     """
@@ -58,7 +59,11 @@ class Proofreader:
                 results.append({
                     "original": word,
                     "suggested": suggestion,
-                    "reason": message + ("（地の文）" if narration_only else "")
+                    "reason": message + ("（地の文）" if narration_only else ""),
+                    "start": idx,
+                    "engine": "NEXUS",
+                    "rule_id": "nexus/redundancy",
+                    "severity": 1,
                 })
                 start = idx + len(word)
         return results
@@ -216,11 +221,67 @@ class Proofreader:
         kanji_count = len(re.findall(r'[一-龠々]', text))
         return (kanji_count / len(text)) * 100
 
-    def proofread(self, text, mode='all', materials_context=None, chapter_number=None):
+    def check_document_structure(self, text, profile=None):
+        """RedPen相当の文書・段落構造検査（小説向けの保守的設定）。"""
+        profile = profile or {}
+        thresholds = profile.get("thresholds", {})
+        long_paragraph = int(thresholds.get("long_paragraph", 1000))
+        blank_lines = max(2, int(thresholds.get("blank_lines", 3)))
+        results = []
+
+        for match in re.finditer(rf"\n{{{blank_lines + 1},}}", text):
+            results.append({
+                "original": match.group(0), "suggested": "空行数を確認",
+                "reason": f"空行が{len(match.group(0)) - 1}行以上連続しています。意図した場面転換か確認してください。",
+                "start": match.start(), "engine": "RedPen", "rule_id": "redpen/excessive-blank-lines", "severity": 1,
+            })
+
+        offset = 0
+        paragraphs = text.split("\n")
+        prose_paragraphs = []
+        for paragraph in paragraphs:
+            stripped = paragraph.strip()
+            if len(stripped) > long_paragraph:
+                results.append({
+                    "original": stripped[:20] + "…", "suggested": "段落を分割",
+                    "reason": f"段落が{len(stripped)}文字あります。構造上の分割を検討してください。",
+                    "start": offset + max(0, paragraph.find(stripped)), "engine": "RedPen",
+                    "rule_id": "redpen/paragraph-length", "severity": 1,
+                })
+            if stripped and not stripped.startswith(("#", "「", "『", "［＃")):
+                prose_paragraphs.append(paragraph)
+            offset += len(paragraph) + 1
+
+        # Markdown見出しを利用する原稿では、見出しレベルの飛びだけを検出する。
+        previous_level = None
+        for match in re.finditer(r"(?m)^(#{1,6})\s+.+$", text):
+            level = len(match.group(1))
+            if previous_level is not None and level > previous_level + 1:
+                results.append({
+                    "original": match.group(0), "suggested": f"見出しレベル{previous_level + 1}",
+                    "reason": f"見出しレベルが{previous_level}から{level}へ飛んでいます。",
+                    "start": match.start(), "engine": "RedPen", "rule_id": "redpen/section-level", "severity": 1,
+                })
+            previous_level = level
+
+        # 会話文を除く段落が十分ある場合だけ、字下げ方式の混在を通知する。
+        if len(prose_paragraphs) >= 5:
+            indented = sum(paragraph.startswith("　") for paragraph in prose_paragraphs)
+            unindented = len(prose_paragraphs) - indented
+            if indented >= 2 and unindented >= 2:
+                results.append({
+                    "original": "文書全体", "suggested": "段落字下げを統一",
+                    "reason": f"地の文の字下げが混在しています（字下げあり{indented}／なし{unindented}）。",
+                    "engine": "RedPen", "rule_id": "redpen/paragraph-indent", "severity": 1,
+                })
+        return results
+
+    def proofread(self, text, mode='all', materials_context=None, chapter_number=None, profile=None):
         """
         校正監査を実行
         """
         corrections = []
+        profile = profile or {}
         
         # 会話文と地の文を分離
         narration_text, dialogue_ranges = self.split_dialogue_and_narration(text)
@@ -236,12 +297,10 @@ class Proofreader:
             # 高速リテラルスキャン（地の文）
             corrections.extend(self._run_fast_scan(narration_text, narration_only=True))
             
-            # 文体チェック（地の文のみ）
             narration_sentences = re.split(r'(?<=[。？！])\s*', narration_text)
             narration_sentences = [s for s in narration_sentences if s.strip()]
-            style_issue = self.check_stylistic_consistency(narration_sentences)
-            if style_issue:
-                corrections.append(style_issue)
+            # 文体混在・文長・指示詞多用は、位置を正確に返せるtextlint／
+            # RedPen／Tomarigi系統へ一本化する。
             
             # 小説特化ルール（地の文のみ）
             for pattern, suggestion, message in self.novel_specific_rules:
@@ -251,15 +310,6 @@ class Proofreader:
                         "suggested": suggestion,
                         "reason": message + "（地の文）"
                     })
-
-            # 一文長すぎ、指示詞多用（地の文のみ）
-            for s in narration_sentences:
-                if len(s) > 100:
-                    corrections.append({"original": s[:15]+"...", "suggested": "分割", "reason": "一文が長すぎます（地の文）。"})
-                
-                kosoado = len(re.findall(r'これ|それ|あれ|この|その|あの', s))
-                if kosoado >= 3:
-                    corrections.append({"original": s[:20]+"...", "suggested": "名詞化", "reason": "指示詞が多用されています（地の文）。"})
 
             # 文末重複（地の文のみ）
             for i in range(len(narration_sentences) - 2):
@@ -273,11 +323,13 @@ class Proofreader:
             # (compiled_rules は空のまま保持)
 
             # 2. 全文に適用するルール
-            ratio = self.calculate_kanji_ratio(text)
-            if ratio > 40:
-                corrections.append({"original": "全体", "suggested": "ひらがな増", "reason": f"漢字率 {ratio:.1f}%: 小説としては堅苦しすぎます。"})
-            elif ratio < 15:
-                corrections.append({"original": "全体", "suggested": "漢字増", "reason": f"漢字率 {ratio:.1f}%: 小説としては幼すぎます。"})
+            # 短文では比率が大きく振れ、誤検出になるため作品単位の長さでのみ評価する。
+            if len(text) >= 200:
+                ratio = self.calculate_kanji_ratio(text)
+                if ratio > 40:
+                    corrections.append({"original": "全体", "suggested": "ひらがな増", "reason": f"漢字率 {ratio:.1f}%: 小説としては堅苦しすぎます。"})
+                elif ratio < 15:
+                    corrections.append({"original": "全体", "suggested": "漢字増", "reason": f"漢字率 {ratio:.1f}%: 小説としては幼すぎます。"})
 
             corrections.extend(self.check_successive_words(text))
 
@@ -285,17 +337,51 @@ class Proofreader:
                 if text.count(ob) != text.count(cb):
                     corrections.append({"original": f"{ob}{cb}", "suggested": "修正", "reason": "カッコの対応が取れていません。"})
 
+            corrections.extend(self.check_document_structure(text, profile))
+
         # --- Layer 2: 監査 (物語整合性) ---
         if mode in ['audit', 'all']:
             audit_results = self.audit_narrative(text, materials_context, chapter_number)
             corrections.extend(audit_results)
 
-        return corrections
+        # 統合ハブが同じ表記の複数箇所を区別できるよう、位置と出典を必ず付与する。
+        search_offsets = {}
+        for correction in corrections:
+            original = str(correction.get("original", ""))
+            if "start" not in correction and original and original not in ("全体", "テキスト全体"):
+                offset = search_offsets.get(original, 0)
+                found = text.find(original, offset)
+                if found >= 0:
+                    correction["start"] = found
+                    search_offsets[original] = found + max(1, len(original))
+            correction.setdefault("engine", "NEXUS")
+            correction.setdefault("rule_id", "nexus/style")
+            correction.setdefault("severity", 1)
+
+        whitelist = set(profile.get("whitelist", [])) | self.whitelist
+        disabled_rules = set(profile.get("disabled_rules", []))
+        techniques = profile.get("techniques", {})
+        filtered = []
+        for correction in corrections:
+            original = str(correction.get("original", ""))
+            rule_id = str(correction.get("rule_id", ""))
+            reason = str(correction.get("reason", ""))
+            if rule_id in disabled_rules or any(rule_id.startswith(prefix.rstrip("*")) for prefix in disabled_rules if prefix.endswith("*")):
+                continue
+            if any(word and word in original for word in whitelist):
+                continue
+            if techniques.get("allow_nominal_endings") and "体言止め" in reason:
+                continue
+            if techniques.get("allow_repetition") and rule_id in {"nexus/repetition", "redpen/successive-word"}:
+                continue
+            filtered.append(correction)
+
+        return filtered
 
     def to_xml(self, corrections):
         xml = ""
         for c in corrections:
-            xml += f"<correction>\n  <original>{c['original']}</original>\n"
-            xml += f"  <suggested>{c['suggested']}</suggested>\n"
-            xml += f"  <reason>{c['reason']}</reason>\n</correction>\n"
+            xml += f"<correction>\n  <original>{escape(str(c['original']))}</original>\n"
+            xml += f"  <suggested>{escape(str(c['suggested']))}</suggested>\n"
+            xml += f"  <reason>{escape(str(c['reason']))}</reason>\n</correction>\n"
         return xml

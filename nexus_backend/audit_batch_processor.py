@@ -3,7 +3,7 @@ import json
 import time
 import re
 from proofreader import Proofreader
-from story_state_extractor import StoryStateExtractor
+from deterministic_store import DeterministicStore
 
 class AuditBatchProcessor:
     """
@@ -11,7 +11,7 @@ class AuditBatchProcessor:
     """
     def __init__(self, target_dirs=None):
         self.pr = Proofreader()
-        self.extractor = StoryStateExtractor()
+        self.store = DeterministicStore()
         from config_loader import get_manuscript_dirs
         self.target_dirs = target_dirs or get_manuscript_dirs()
         self.report_path = os.path.join(os.path.dirname(__file__), "homework_list.json")
@@ -34,71 +34,44 @@ class AuditBatchProcessor:
     def run_full_audit(self):
         print("🚀 【校正監査モード】大規模監査を開始します...")
         
-        from ingest_novels import ingest_novels
-        ingest_novels(target_paths=self.target_dirs)
+        index_stats = self.store.index_roots(self.target_dirs)
+        print(f"📚 差分索引: 更新 {index_stats['updated']} / 変更なし {index_stats['unchanged']}")
         
         homework_list = []
         start_time = time.time()
         file_count = 0
 
-        # プロジェクトごとに処理
-        for target_dir in self.target_dirs:
-            if not os.path.exists(target_dir): continue
-
-            # ディレクトリからプロジェクトIDを推測
-            from knowledge_processor import KnowledgeProcessor
-            kp = KnowledgeProcessor()
-            # サンプルのファイルパスを作成してプロジェクトを判定
-            project_id = kp._determine_project(os.path.join(target_dir, "dummy.txt"))
-            
-            print(f"📁 プロジェクト [{project_id}] の監査を開始...")
-            states = self.extractor.extract_all_states(project_id=project_id)
-            print(f"✅ 設定資料から {len(states['characters'])} 名のキャラクター状態を把握しました。")
-
-            for root, _, files in os.walk(target_dir):
-                for file in files:
-                    if file.startswith('._') or not file.endswith(('.txt', '.md')):
-                        continue
-                    
-                    file_path = os.path.join(root, file)
-                    print(f"🔍 監査中: {file}")
-                    
-                    try:
-                        with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
-                            content = f.read()
-                        
-                        chapter_num = self._extract_chapter_number(file)
-                        
-                        # その時点でのコンテキストを作成
-                        current_materials_context = {
-                            "characters": {
-                                name: self.extractor.get_state_at_chapter(name, "characters", chapter_num or 999)
-                                for name in states["characters"]
-                            }
-                        }
-
-                        results = self.pr.proofread(
-                            content, 
-                            mode='all', 
-                            materials_context=current_materials_context,
-                            chapter_number=chapter_num
-                        )
-                        
-                        if results:
-                            for res in results:
-                                homework_list.append({
-                                    "file": file,
-                                    "full_path": file_path,
-                                    "project": project_id,
-                                    "original": res["original"],
-                                    "suggested": res["suggested"],
-                                    "reason": res["reason"],
-                                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-                                })
-                        
-                        file_count += 1
-                    except Exception as e:
-                        print(f"❌ エラー ({file}): {e}")
+        # 登録済みSQLiteを唯一の対象一覧として使う。設定パスがOS間で異なっても動作する。
+        indexed_files = [item for item in self.store.list_files() if item["doc_type"] == "MANUSCRIPT"]
+        for item in indexed_files:
+            file = item["file"]
+            file_path = item["full_path"]
+            project_id = item["project"]
+            print(f"🔍 監査中 [{project_id}]: {file}")
+            try:
+                with open(file_path, "r", encoding="utf-8", errors="replace") as stream:
+                    content = stream.read()
+                chapter_num = self._extract_chapter_number(file)
+                file_states = self.store.story_states(project_id=project_id)
+                results = self.pr.proofread(
+                    content,
+                    mode="all",
+                    materials_context=file_states,
+                    chapter_number=chapter_num,
+                )
+                for result in results:
+                    homework_list.append({
+                        "file": file,
+                        "full_path": file_path,
+                        "project": project_id,
+                        "original": result["original"],
+                        "suggested": result["suggested"],
+                        "reason": result["reason"],
+                        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    })
+                file_count += 1
+            except Exception as error:
+                print(f"❌ エラー ({file}): {error}")
 
         # 3. 結果の保存
         with open(self.report_path, "w", encoding="utf-8") as f:
