@@ -9,6 +9,12 @@ function runTomarigiReferenceRules(text, tokens, options = {}) {
     const whitelist = Array.isArray(options.whitelist) ? options.whitelist.filter(Boolean) : [];
     const kanjiEnabled = Array.isArray(options.enabled_rules) && options.enabled_rules.includes('tomarigi/kanji-level');
     const findings = [];
+    // Kuromoji positions count code points (1-based); slices and findings use
+    // UTF-16 offsets. Build the mapping once, including supplementary characters.
+    const utf16Offsets = [0];
+    for (const char of text) {
+        utf16Offsets.push(utf16Offsets[utf16Offsets.length - 1] + char.length);
+    }
     const add = (start, target, ruleId, message, candidates = []) => {
         if (!whitelist.some(word => target.includes(word))) {
             findings.push({ start, end: start + target.length, target, ruleId, message, candidates });
@@ -17,7 +23,7 @@ function runTomarigiReferenceRules(text, tokens, options = {}) {
 
     for (const token of tokens) {
         const surface = token.surface_form;
-        const start = token.word_position - 1;
+        const start = utf16Offsets[token.word_position - 1];
         if (typeof surface !== 'string' || !surface || !Number.isInteger(start) || start < 0 ||
             text.slice(start, start + surface.length) !== surface) continue;
         if (whitelist.some(word => surface.includes(word))) continue;

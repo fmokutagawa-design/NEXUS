@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
+const { getTokenizer } = require('kuromojin');
 const { runTomarigiReferenceRules } = require('./tomarigi-reference-rules.cjs');
 
 const token = (surface_form, reading, word_position = 1, pos_detail_1 = '一般') => ({
@@ -62,4 +63,37 @@ test('invalid token locations cannot produce misleading spans', () => {
     assert.deepEqual(runTomarigiReferenceRules('相性', [token('相性', 'アイショウ', 0)]), []);
     assert.deepEqual(runTomarigiReferenceRules('愛称', [token('相性', 'アイショウ')]), []);
     assert.deepEqual(runTomarigiReferenceRules('相性', [token('相性', 'アイショウ', 8)]), []);
+});
+
+for (const [text, expected] of [
+    ['😀相性', [[2, 4, '相性']]],
+    ['𠮷田との相性', [[5, 7, '相性']]],
+    ['😀相性。😀相性', [[2, 4, '相性'], [7, 9, '相性']]],
+]) {
+    test(`real tokenizer homonym offsets are UTF-16: ${text}`, async () => {
+        const tokenizer = await getTokenizer();
+        const tokens = Object.freeze(tokenizer.tokenize(text).map(item => Object.freeze(item)));
+        const findings = runTomarigiReferenceRules(text, tokens).filter(item => item.ruleId === homonym);
+        assert.deepEqual(findings.map(item => [item.start, item.end, item.target]), expected);
+        findings.forEach(item => {
+            assert.equal(text.slice(item.start, item.end), item.target);
+            assertAdvisory(item);
+        });
+    });
+}
+
+test('real tokenizer kanji offsets remain UTF-16 after supplementary characters', async () => {
+    const text = '😀丐';
+    const tokenizer = await getTokenizer();
+    const findings = runTomarigiReferenceRules(text, tokenizer.tokenize(text), { enabled_rules: [kanji] });
+    assert.deepEqual(findings.map(item => [item.start, item.end, item.target, item.ruleId]), [[2, 3, '丐', kanji]]);
+    findings.forEach(assertAdvisory);
+});
+
+test('real tokenizer numeral exception checks use UTF-16 positions after supplementary characters', async () => {
+    const text = '😀一人。三';
+    const tokenizer = await getTokenizer();
+    const findings = runTomarigiReferenceRules(text, tokenizer.tokenize(text)).filter(item => item.ruleId === numeral);
+    assert.deepEqual(findings.map(item => [item.start, item.end, item.target]), [[5, 6, '三']]);
+    findings.forEach(assertAdvisory);
 });

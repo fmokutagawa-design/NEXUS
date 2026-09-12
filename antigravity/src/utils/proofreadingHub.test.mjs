@@ -122,6 +122,21 @@ test('IPC normalizes advisory ID, strips marker, and omits prohibited fields', a
     assert.equal(issue.original, '相性');
     assert.doesNotMatch(proofreadingResultsToXml([issue]), /<suggested/);
 });
+for (const [text, start, end] of [['😀相性', 2, 4], ['𠮷田との相性', 5, 7]]) {
+    test(`IPC and advisory XML preserve UTF-16 offsets: ${text}`, async () => {
+        const results = await proofread(null, text);
+        const reference = results.find(issue => issue.ruleId === advisoryId);
+        assert(reference, 'expected homonym advisory after a supplementary character');
+        assert.equal(reference.index, start);
+        assert(!('fix' in reference) && !('suggested' in reference));
+        const [issue] = mergeProofreadingResults(text, [reference]);
+        assert.deepEqual([issue.start, issue.end, issue.original], [start, end, '相性']);
+        const xml = proofreadingResultsToXml([issue]);
+        assert(xml.includes(`start="${start}" end="${end}"`));
+        assert.doesNotMatch(xml, /<suggested\b|<correction\b/);
+        assert(!(await proofread(null, text, { whitelist: ['相性'] })).some(item => item.ruleId === advisoryId));
+    });
+}
 test('IPC whitelist and fine/outer disabled IDs retain exact and prefix behavior', async () => {
     for (const profile of [
         { whitelist: ['愛称'] }, { whitelist: ['愛'] },
