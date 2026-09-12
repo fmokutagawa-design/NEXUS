@@ -1,5 +1,6 @@
 const { RuleHelper } = require("textlint-rule-helper");
 const { getTokenizer } = require("kuromojin");
+const { runTomarigiReferenceRules } = require('./tomarigi-reference-rules.cjs');
 const fs = require("fs");
 const path = require("path");
 
@@ -25,7 +26,7 @@ try {
     console.error("Failed to load Tomarigi sentence-end rules:", e);
 }
 
-module.exports = function(context) {
+module.exports = function(context, options = {}) {
     const { Syntax, RuleError, report, getSource } = context;
     const ruleHelper = new RuleHelper(context);
 
@@ -38,6 +39,14 @@ module.exports = function(context) {
             const text = getSource(node);
             const tokenizer = await getTokenizer();
             const tokens = await tokenizer.tokenize(text);
+
+            for (const finding of runTomarigiReferenceRules(text, tokens, options)) {
+                // Internal identity is normalized before project filtering in textlintMain.
+                report(node, new RuleError(
+                    `【NEXUS_ADVISORY:${finding.ruleId}】【トマリギ】【対象:${finding.target}】${finding.message}`,
+                    { index: finding.start }
+                ));
+            }
 
             // LanguageToolのXML <or> を使う規則。旧変換器はor配下を落として
             // いたため、選択肢を保持した安全な正規表現として補完する。

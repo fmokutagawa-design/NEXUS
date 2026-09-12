@@ -2,6 +2,7 @@ const XML_ESCAPE = /[&<>]/g;
 const XML_ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;' };
 
 const escapeXml = (value) => String(value ?? '').replace(XML_ESCAPE, char => XML_ENTITIES[char]);
+const isReferenceRule = (ruleId) => /^tomarigi\/(homonym-reference|kanji-level|chinese-numeral)$/.test(ruleId);
 
 const engineOfRule = (ruleId = '') => {
     if (ruleId === 'prh') return 'prh表記辞書';
@@ -16,14 +17,18 @@ const classifyTextlintResult = (result, text) => {
     const message = String(result.message || '');
     const ltMatch = message.match(/\(Rule:\s*([^\)]+)\)/);
     let ruleId = result.ruleId || 'textlint';
-    if (ltMatch || message.includes('【LanguageTool】')) ruleId = `languagetool/${ltMatch?.[1] || ruleId}`;
-    else if (message.includes('【トマリギ】')) ruleId = `tomarigi/${ruleId}`;
-    else if (message.includes('【RedPen】')) ruleId = `redpen/${ruleId}`;
-    else if (['sentence-length', 'max-ten', 'no-mix-dearu-desumasu'].some(id => ruleId.includes(id))) ruleId = `redpen/${ruleId}`;
+    const advisory = isReferenceRule(ruleId);
+    // Reference IDs are already normalized by textlintMain.
+    if (!advisory) {
+        if (ltMatch || message.includes('【LanguageTool】')) ruleId = `languagetool/${ltMatch?.[1] || ruleId}`;
+        else if (message.includes('【トマリギ】')) ruleId = `tomarigi/${ruleId}`;
+        else if (message.includes('【RedPen】')) ruleId = `redpen/${ruleId}`;
+        else if (['sentence-length', 'max-ten', 'no-mix-dearu-desumasu'].some(id => ruleId.includes(id))) ruleId = `redpen/${ruleId}`;
+    }
 
     const start = Math.max(0, Number(result.index) || 0);
-    const fixStart = Number(result.fix?.range?.[0]);
-    const fixEnd = Number(result.fix?.range?.[1]);
+    const fixStart = advisory ? NaN : Number(result.fix?.range?.[0]);
+    const fixEnd = advisory ? NaN : Number(result.fix?.range?.[1]);
     const messageStart = Number(result.range?.[0]);
     const messageEnd = Number(result.range?.[1]);
     const targetMatch = message.match(/【対象:([^】]+)】/);
@@ -36,7 +41,7 @@ const classifyTextlintResult = (result, text) => {
     return {
         start, end: Math.min(text.length, start + length),
         original: text.slice(start, start + length) || '該当箇所',
-        suggested: result.fix?.text || (suggestedMatch ? suggestedMatch[1].trim() : ''),
+        ...(advisory ? { advisory: true } : { suggested: result.fix?.text || (suggestedMatch ? suggestedMatch[1].trim() : '') }),
         message: message.replace(/【対象:[^】]+】/, '').replace(/^【[^】]+】/, '').trim(),
         ruleId, engine: engineOfRule(ruleId), severity: Number(result.severity) || 1
     };
@@ -56,6 +61,7 @@ const normalizeBackendResult = (issue, text) => {
 };
 
 const sameFinding = (left, right) => {
+    if (Boolean(left.advisory) !== Boolean(right.advisory)) return false;
     const overlaps = left.start < right.end && right.start < left.end;
     const sameText = left.original === right.original && Math.abs(left.start - right.start) <= 2;
     const sameSuggestion = left.suggested && left.suggested === right.suggested;
@@ -84,13 +90,17 @@ export function mergeProofreadingResults(text, textlintResults = [], backendResu
         } else if (!existing.suggested && issue.suggested && !existing.conflict) existing.suggested = issue.suggested;
         existing.severity = Math.max(existing.severity, issue.severity);
     }
-    return merged.map(issue => ({ ...issue, confidence: issue.conflict ? '要確認' : issue.engines.length >= 2 ? '高' : issue.suggested ? '中' : '参考' }));
+    return merged.map(issue => ({ ...issue, confidence: issue.advisory ? '参考' : issue.conflict ? '要確認' : issue.engines.length >= 2 ? '高' : issue.suggested ? '中' : '参考' }));
 }
 
 export function proofreadingResultsToXml(issues) {
     return issues.map(issue => {
         const suggested = issue.conflict ? `候補が競合: ${(issue.suggestions || []).join(' / ')}` : issue.suggested || '内容を確認';
         const reason = `【${issue.confidence}｜${issue.engines.join('＋')}】${issue.messages.filter(Boolean).join(' / ')}`;
-        return `<correction confidence="${escapeXml(issue.confidence)}" start="${issue.start}" end="${issue.end}">\n  <original>${escapeXml(issue.original)}</original>\n  <suggested>${escapeXml(suggested)}</suggested>\n  <reason>${escapeXml(reason)}</reason>\n</correction>\n`;
+        const suggestionXml = issue.advisory ? '' : `  <suggested>${escapeXml(suggested)}</suggested>\n`;
+        // The existing UI scans correction records for suggested. A correction
+        // without it could borrow the next record's suggestion across boundaries.
+        const element = issue.advisory ? 'advisory' : 'correction';
+        return `<${element} confidence="${escapeXml(issue.confidence)}" start="${issue.start}" end="${issue.end}">\n  <original>${escapeXml(issue.original)}</original>\n${suggestionXml}  <reason>${escapeXml(reason)}</reason>\n</${element}>\n`;
     }).join('');
 }
