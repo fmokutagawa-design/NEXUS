@@ -56,6 +56,13 @@ def test_dump_contains_known_records():
     assert len(kanji_rows) == 6359, len(kanji_rows)
     assert len(homonym_rows) == 3760, len(homonym_rows)
 
+    kanji_texts = [line.split("\t")[1] for line in kanji_rows]
+    homonym_keys = [tuple(line.split("\t")[1:3]) for line in homonym_rows]
+    assert kanji_texts == sorted(kanji_texts), "KANJI rows are not in ordinal Text order"
+    assert homonym_keys == sorted(homonym_keys), (
+        "HOMONYM rows are not in ordinal Read/Text order"
+    )
+
     print(
         f"PASS: {len(kanji_rows):,} kanji records and "
         f"{len(homonym_rows):,} homonym items"
