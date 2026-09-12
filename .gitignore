@@ -6,3 +6,4 @@ __pycache__/
 nexus_backend/.venv/
 nexus_db/
 *.pyc
+.superpowers/
