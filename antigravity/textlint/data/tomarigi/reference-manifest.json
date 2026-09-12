@@ -1,0 +1,33 @@
+{
+  "counts": {
+    "chineseNumeralExceptions": 328,
+    "commonKanji": 2136,
+    "homonymGroups": 1550,
+    "homonymItems": 3760,
+    "inappropriatePosExceptions": {
+      "的": 490,
+      "超": 129
+    },
+    "kanji": 6359,
+    "sameKun": 181
+  },
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "path": "Tomarigi/plugins/t_chinesenumeral.dll",
+      "sha256": "f8de2bf4e3cd46a1e03f3c6a8d911de434f2c892f3768f3d423bd06c930829c3"
+    },
+    {
+      "path": "Tomarigi/plugins/t_homonym.dll",
+      "sha256": "b83868d80b5bed42b1adc93de2ed1daabf8095e8899e6c88c8b0279c32df569f"
+    },
+    {
+      "path": "Tomarigi/plugins/t_inappropriatepos.dll",
+      "sha256": "7a1595b2b1b13acb0a06149c5713159ac14edfd91c05ee0f01dac357fd80f4ea"
+    },
+    {
+      "path": "Tomarigi/saezuri.dll",
+      "sha256": "d2ec2528bd44e30f8f216ac7658937959f0a1340b75675fc9fef18fb008be930"
+    }
+  ]
+}
