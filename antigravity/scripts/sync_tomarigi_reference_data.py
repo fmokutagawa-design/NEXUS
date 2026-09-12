@@ -307,7 +307,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         output_directory.mkdir(parents=True, exist_ok=True)
         for filename, value in documents.items():
-            (output_directory / filename).write_text(stable_json(value), encoding="utf-8")
+            (output_directory / filename).write_bytes(stable_json(value).encode("utf-8"))
 
     print(json.dumps(_counts(data), ensure_ascii=False, sort_keys=True))
     return 0

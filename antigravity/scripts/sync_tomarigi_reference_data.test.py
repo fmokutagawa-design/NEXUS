@@ -114,10 +114,49 @@ def test_check_reports_drift_without_writing() -> None:
         assert not (repository / "antigravity/textlint/data/tomarigi").exists()
 
 
+def test_generation_writes_lf_bytes_when_text_mode_would_translate() -> None:
+    sync = load_sync_module()
+    with tempfile.TemporaryDirectory() as temporary_directory:
+        repository = Path(temporary_directory)
+        for relative_path in SOURCE_PATHS:
+            destination = repository / relative_path
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(REPOSITORY_ROOT / relative_path, destination)
+
+        dumper = Path("antigravity/scripts/tomarigi_resource_dump.cs")
+        (repository / dumper).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(REPOSITORY_ROOT / dumper, repository / dumper)
+
+        original_write_text = Path.write_text
+
+        def write_text_with_windows_newlines(
+            path: Path,
+            data: str,
+            encoding: str | None = None,
+            errors: str | None = None,
+            newline: str | None = None,
+        ) -> int:
+            del errors, newline
+            return path.write_bytes(data.replace("\n", "\r\n").encode(encoding or "utf-8"))
+
+        Path.write_text = write_text_with_windows_newlines
+        try:
+            assert sync.main(["--repo", str(repository)]) == 0
+        finally:
+            Path.write_text = original_write_text
+
+        output_directory = repository / "antigravity/textlint/data/tomarigi"
+        for output in output_directory.glob("*.json"):
+            content = output.read_bytes()
+            assert b"\r\n" not in content, output
+            assert content.endswith(b"\n"), output
+
+
 if __name__ == "__main__":
     try:
         test_counts_determinism_and_generated_files()
         test_check_reports_drift_without_writing()
+        test_generation_writes_lf_bytes_when_text_mode_would_translate()
     except Exception:
         print("FAIL: Tomarigi reference data sync test", flush=True)
         traceback.print_exc()
