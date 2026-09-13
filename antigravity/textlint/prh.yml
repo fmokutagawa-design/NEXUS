@@ -1227,8 +1227,6 @@ rules:
   pattern: "流石"
 - expected: "ロマン"
   pattern: "浪漫"
-- expected: "しばらく"
-  pattern: "漸く"
 - expected: "あく"
   pattern: "灰汁"
 - expected: "しかし"
