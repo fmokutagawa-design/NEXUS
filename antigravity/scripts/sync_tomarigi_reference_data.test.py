@@ -148,6 +148,8 @@ def test_counts_determinism_and_generated_files() -> None:
     assert {key: manifest[key] for key in ("schemaVersion", "sources", "counts")} == expected_manifest()
 
     for path in DATA_DIRECTORY.glob("*.json"):
+        if path.name.startswith("._"):
+            continue
         assert path.read_bytes() == encode(json.loads(path.read_text(encoding="utf-8"))).encode(
             "utf-8"
         )

@@ -8,6 +8,10 @@ import { perfNow, perfLog, perfMeasure } from '../utils/perfProbe';
 import PositionWorker from '../utils/positionWorker?worker';
 import { textToDocument, documentToText, updateDocument } from '../utils/documentModel';
 import { cleanRuby, compressBlankLines, convertToFullWidth } from '../utils/formatText';
+import {
+  cleanVerticalContentWidth,
+  measureDetachedCleanVerticalWidth,
+} from '../utils/cleanEditorGeometry.mjs';
 
 
 /**
@@ -1362,10 +1366,44 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
       : '"palt" 0, "halt" 0, "kern" 0, "vkrn" 0, "chws" 0, "liga" 0, "clig" 0, "calt" 0, "vert" 0, "vrt2" 0',
   }, [isCleanMode, cleanFontFamily, settings.isVertical, settings.fontFamily, metrics.letterSpacing, metrics.cell]);
 
+  const cleanVerticalWidth = useMemo(() => {
+    if (!isCleanMode || !settings.isVertical) return null;
+    const fontSize = parseInt(settings.fontSize) || 16;
+    const verticalChrome = 28 + 40;
+    const verticalPadding = 80;
+    return cleanVerticalContentWidth(debouncedText, {
+      fontSize,
+      contentHeight: Math.max(fontSize, window.innerHeight - verticalChrome - verticalPadding),
+      horizontalPadding: 64,
+    });
+  }, [isCleanMode, settings.isVertical, settings.fontSize, debouncedText]);
+
+  const [measuredCleanWidth, setMeasuredCleanWidth] = useState(null);
+  useLayoutEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta || !isCleanMode || !settings.isVertical) {
+      setMeasuredCleanWidth(null);
+      return;
+    }
+
+    const container = ta.closest('.editor-container');
+    // 編集中の textarea 自体を縮めると、Chromium が横スクロール位置を
+    // 文頭へクランプする。画面外の複製要素だけを使って組版幅を測る。
+    const measured = measureDetachedCleanVerticalWidth({
+      textarea: ta,
+      containerClientWidth: container?.clientWidth,
+      viewportWidth: window.innerWidth,
+      appendTarget: document.body,
+    });
+    setMeasuredCleanWidth(measured);
+  }, [isCleanMode, settings.isVertical, settings.fontSize, settings.fontFamily, debouncedText, fileId]);
+
   // ★ textarea の style オブジェクトをメモ化（キー入力ごとの新規オブジェクト生成を回避）
   const textareaStyle = useMemo(() => isCleanMode ? {
     fontSize: `${settings.fontSize || 16}px`,
-    width: settings.isVertical ? `${Math.max(5000, metrics.gridW + 200)}px` : '100%',
+    width: settings.isVertical
+      ? `max(100%, ${measuredCleanWidth ?? cleanVerticalWidth}px)`
+      : '100%',
     height: '100%',
     maxWidth: settings.isVertical ? 'none'
       : (settings.charsPerLine ? `${settings.charsPerLine * (parseInt(settings.fontSize) || 16) * 1.2 + 64}px` : 'none'),
@@ -1403,7 +1441,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
     overflow: 'hidden',
     resize: 'none',
     ...fontStyle
-  }, [isCleanMode, settings.fontSize, settings.isVertical, settings.charsPerLine, metrics, fontStyle]);
+  }, [isCleanMode, settings.fontSize, settings.isVertical, settings.charsPerLine, metrics, fontStyle, cleanVerticalWidth, measuredCleanWidth]);
 
   // --- メモ化: シンタックスハイライト要素 ---
   const highlightElements = useMemo(() => {
