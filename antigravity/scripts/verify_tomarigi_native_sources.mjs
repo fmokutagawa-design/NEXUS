@@ -27,6 +27,8 @@ function isValidLock(lock) {
 
   return Object.entries(lock.archives).every(([name, sha256]) => (
     name.length > 0
+    && name !== '.'
+    && name !== '..'
     && path.posix.basename(name) === name
     && path.win32.basename(name) === name
     && typeof sha256 === 'string'

@@ -116,6 +116,19 @@ test('rejects archive names that are not basename-only', (t) => {
   }
 });
 
+test('rejects dot archive names as invalid lock entries', (t) => {
+  const directory = makeTemp(t);
+  for (const name of ['.', '..']) {
+    const result = verifyArchives(directory, {
+      schemaVersion: 1,
+      archives: { [name]: emptySha256 },
+    });
+    assert.equal(result.ok, false);
+    assert.deepEqual(result.files, []);
+    assert.match(result.errors[0], /Invalid Tomarigi native source lock/);
+  }
+});
+
 test('rejects an archive symlink that escapes the source directory', (t) => {
   const directory = makeTemp(t);
   const outsideDirectory = makeTemp(t, 'tomarigi-native-outside-');
