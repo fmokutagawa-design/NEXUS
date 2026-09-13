@@ -170,6 +170,7 @@ def test_check_reports_drift_without_writing() -> None:
             cwd=REPOSITORY_ROOT / "antigravity",
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         assert result.returncode == 1, result.stdout + result.stderr
