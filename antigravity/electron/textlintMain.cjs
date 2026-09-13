@@ -2,6 +2,12 @@ const { ipcMain } = require('electron');
 const path = require('path');
 const { createLinter, loadTextlintrc } = require('textlint');
 const { TextlintLintableRuleDescriptor } = require('@textlint/kernel');
+const { datasets } = require('../textlint/data/tomarigi/reference-manifest.json');
+const advisorySources = {
+    'tomarigi/homonym-reference': datasets.homonymGroups,
+    'tomarigi/kanji-level': datasets.kanji,
+    'tomarigi/chinese-numeral': datasets.chineseNumeralExceptions,
+};
 
 // Only two immutable configurations are needed. Never change shared rule options
 // in response to a project request; concurrent projects must remain isolated.
@@ -59,7 +65,15 @@ function setupTextlintHandlers() {
             // ファイル名は仮のものを指定
             const results = await linter.lintText(text, "document.txt");
             
-            const whitelist = Array.isArray(profile.whitelist) ? profile.whitelist.filter(Boolean) : [];
+            const whitelist = Array.isArray(profile.whitelist) ? profile.whitelist.filter(word => typeof word === 'string' && word.length > 0) : [];
+            // Request-local UTF-16 spans: a whole word can cover multiple kanji
+            // findings/tokens. Never put project whitelist state in the cache.
+            const whitelistedSpans = [];
+            for (const word of whitelist) {
+                for (let start = text.indexOf(word); start !== -1; start = text.indexOf(word, start + 1)) {
+                    whitelistedSpans.push([start, start + word.length]);
+                }
+            }
             const disabledRules = Array.isArray(profile.disabled_rules) ? profile.disabled_rules : [];
             const techniques = profile.techniques || {};
             const normalizedMessages = results.messages.map(message => {
@@ -78,7 +92,11 @@ function setupTextlintHandlers() {
                 if (techniques.allow_repetition && (message.message.includes('同じ語') || ruleId.includes('doubled'))) return false;
                 const target = message.message.match(/【対象:([^】]+)】/)?.[1]
                     || text.slice(message.index || 0, (message.index || 0) + 1);
-                return !whitelist.some(word => target.includes(word));
+                if (whitelist.some(word => target.includes(word))) return false;
+                const start = message.index;
+                return !(message.advisory && Number.isInteger(start) &&
+                    text.slice(start, start + target.length) === target &&
+                    whitelistedSpans.some(([from, to]) => from <= start && start + target.length <= to));
             });
 
             const uniqueMessages = profileFilteredMessages.filter((message, index, messages) =>
@@ -95,6 +113,7 @@ function setupTextlintHandlers() {
                 column: msg.column,
                 severity: msg.severity,
                 ruleId: msg.ruleId,
+                ...(msg.advisory ? advisorySources[msg.ruleId] : {}),
                 ...(!msg.advisory && msg.fix !== undefined ? { fix: msg.fix } : {}),
                 range: msg.range,
                 index: msg.index

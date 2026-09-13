@@ -1,5 +1,5 @@
-const XML_ESCAPE = /[&<>]/g;
-const XML_ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;' };
+const XML_ESCAPE = /[&<>"']/g;
+const XML_ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' };
 
 const escapeXml = (value) => String(value ?? '').replace(XML_ESCAPE, char => XML_ENTITIES[char]);
 const isReferenceRule = (ruleId) => /^tomarigi\/(homonym-reference|kanji-level|chinese-numeral)$/.test(ruleId);
@@ -41,7 +41,10 @@ const classifyTextlintResult = (result, text) => {
     return {
         start, end: Math.min(text.length, start + length),
         original: text.slice(start, start + length) || '該当箇所',
-        ...(advisory ? { advisory: true } : { suggested: result.fix?.text || (suggestedMatch ? suggestedMatch[1].trim() : '') }),
+        ...(advisory ? {
+            advisory: true,
+            sources: result.source ? [{ source: result.source, sourceVersion: result.sourceVersion, versionSource: result.versionSource }] : [],
+        } : { suggested: result.fix?.text || (suggestedMatch ? suggestedMatch[1].trim() : '') }),
         message: message.replace(/【対象:[^】]+】/, '').replace(/^【[^】]+】/, '').trim(),
         ruleId, engine: engineOfRule(ruleId), severity: Number(result.severity) || 1
     };
@@ -82,6 +85,13 @@ export function mergeProofreadingResults(text, textlintResults = [], backendResu
         }
         if (!existing.engines.includes(issue.engine)) existing.engines.push(issue.engine);
         if (!existing.ruleIds.includes(issue.ruleId)) existing.ruleIds.push(issue.ruleId);
+        for (const metadata of issue.sources || []) {
+            if (!existing.sources.some(item => item.source.path === metadata.source.path &&
+                item.source.resource === metadata.source.resource && item.source.key === metadata.source.key &&
+                item.sourceVersion === metadata.sourceVersion && item.versionSource === metadata.versionSource)) {
+                existing.sources.push(metadata);
+            }
+        }
         if (issue.message && !existing.messages.includes(issue.message)) existing.messages.push(issue.message);
         if (issue.suggested && existing.suggested && issue.suggested !== existing.suggested) {
             existing.conflict = true;
@@ -98,9 +108,17 @@ export function proofreadingResultsToXml(issues) {
         const suggested = issue.conflict ? `候補が競合: ${(issue.suggestions || []).join(' / ')}` : issue.suggested || '内容を確認';
         const reason = `【${issue.confidence}｜${issue.engines.join('＋')}】${issue.messages.filter(Boolean).join(' / ')}`;
         const suggestionXml = issue.advisory ? '' : `  <suggested>${escapeXml(suggested)}</suggested>\n`;
+        const metadataXml = issue.advisory
+            ? `  <ruleIds>${(issue.ruleIds || [issue.ruleId]).map(id => `<ruleId>${escapeXml(id)}</ruleId>`).join('')}</ruleIds>\n` +
+              `  <sources>${(issue.sources || []).map(({ source, sourceVersion, versionSource }) =>
+                  `<source><path>${escapeXml(source.path)}</path><resource>${escapeXml(source.resource)}</resource>` +
+                  (source.key === undefined ? '' : `<key>${escapeXml(source.key)}</key>`) +
+                  `<sourceVersion>${escapeXml(sourceVersion)}</sourceVersion><versionSource>${escapeXml(versionSource)}</versionSource></source>`
+              ).join('')}</sources>\n`
+            : '';
         // The existing UI scans correction records for suggested. A correction
         // without it could borrow the next record's suggestion across boundaries.
         const element = issue.advisory ? 'advisory' : 'correction';
-        return `<${element} confidence="${escapeXml(issue.confidence)}" start="${issue.start}" end="${issue.end}">\n  <original>${escapeXml(issue.original)}</original>\n${suggestionXml}  <reason>${escapeXml(reason)}</reason>\n</${element}>\n`;
+        return `<${element} confidence="${escapeXml(issue.confidence)}" start="${issue.start}" end="${issue.end}">\n  <original>${escapeXml(issue.original)}</original>\n${suggestionXml}${metadataXml}  <reason>${escapeXml(reason)}</reason>\n</${element}>\n`;
     }).join('');
 }

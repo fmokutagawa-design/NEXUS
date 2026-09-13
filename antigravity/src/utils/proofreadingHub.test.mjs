@@ -55,6 +55,42 @@ test('advisory XML omits suggested entirely', () => {
     assert.doesNotMatch(xml, /<suggested\b/);
     assert.match(xml, /参考候補: 愛称/);
 });
+test('advisory XML escapes every rule ID and source metadata field', () => {
+    const xml = proofreadingResultsToXml([{
+        advisory: true, start: 0, end: 2, original: '相性', confidence: '参考',
+        engines: ['Tomarigi'], messages: ['確認'],
+        ruleIds: ['tomarigi/a&b', 'tomarigi/<"test\'>'],
+        sources: [{
+            source: { path: 'Tomarigi/a&b.dll', resource: '<resource>', key: '"key\'' },
+            sourceVersion: '1&2', versionSource: '<version.dll>',
+        }],
+    }]);
+    assert.match(xml, /<ruleId>tomarigi\/a&amp;b<\/ruleId>/);
+    assert.match(xml, /<ruleId>tomarigi\/&lt;&quot;test&apos;&gt;<\/ruleId>/);
+    assert.match(xml, /<path>Tomarigi\/a&amp;b.dll<\/path>/);
+    assert.match(xml, /<resource>&lt;resource&gt;<\/resource>/);
+    assert.match(xml, /<key>&quot;key&apos;<\/key>/);
+    assert.match(xml, /<sourceVersion>1&amp;2<\/sourceVersion>/);
+    assert.match(xml, /<versionSource>&lt;version.dll&gt;<\/versionSource>/);
+    assert.doesNotMatch(xml, /<suggested\b|<correction\b/);
+});
+test('merging overlapping advisories retains both rule IDs and distinct source metadata', () => {
+    const sourceA = { path: 'a.dll', resource: 'a.resources', key: 'a' };
+    const sourceB = { path: 'b.dll', resource: 'b.resources' };
+    const a = { ...advisoryInput, source: sourceA, sourceVersion: '1.0', versionSource: 'a.dll' };
+    const b = { ...advisoryInput, ruleId: 'tomarigi/kanji-level', source: sourceB, sourceVersion: '2.0', versionSource: 'b.dll' };
+    const [issue] = mergeProofreadingResults('相性', [a, b, a]);
+    assert.deepEqual(issue.ruleIds, [advisoryId, 'tomarigi/kanji-level']);
+    assert.deepEqual(issue.sources, [
+        { source: sourceA, sourceVersion: '1.0', versionSource: 'a.dll' },
+        { source: sourceB, sourceVersion: '2.0', versionSource: 'b.dll' },
+    ]);
+    const xml = proofreadingResultsToXml([issue]);
+    assert.match(xml, /<ruleId>tomarigi\/homonym-reference<\/ruleId>/);
+    assert.match(xml, /<ruleId>tomarigi\/kanji-level<\/ruleId>/);
+    assert.equal((xml.match(/<source>/g) || []).length, 2);
+    assert.doesNotMatch(xml, /<suggested\b|<correction\b/);
+});
 test('the existing UI parser cannot pair an advisory target with a later correction', () => {
     // Execute the consuming UI's actual regex without importing React or altering
     // editor code. Its wildcard spans records if a correction lacks suggested.
@@ -122,6 +158,26 @@ test('IPC normalizes advisory ID, strips marker, and omits prohibited fields', a
     assert.equal(issue.original, '相性');
     assert.doesNotMatch(proofreadingResultsToXml([issue]), /<suggested/);
 });
+for (const [text, id, source, version] of [
+    ['相性', advisoryId, { path: 'Tomarigi/saezuri.dll', resource: 'saezuri.Properties.Resources.resources', key: 'homonymDB' }, '1.0.0.0'],
+    ['丐', 'tomarigi/kanji-level', { path: 'Tomarigi/saezuri.dll', resource: 'saezuri.Properties.Resources.resources', key: 'kanjiDB' }, '1.0.0.0'],
+    ['三', 'tomarigi/chinese-numeral', { path: 'Tomarigi/plugins/t_chinesenumeral.dll', resource: 't_chinesenumeral.t_chinesenumeraldata.resources', key: 'kanjiword' }, '0.9.0.0'],
+]) {
+    test(`IPC to XML retains generated dictionary provenance: ${id}`, async () => {
+        const result = (await proofread(null, text, { enabled_rules: ['tomarigi/kanji-level'] })).find(item => item.ruleId === id);
+        assert(result);
+        assert.deepEqual(result.source, source);
+        assert.equal(result.sourceVersion, version);
+        assert.equal(result.versionSource, source.path);
+        const [issue] = mergeProofreadingResults(text, [result]);
+        const xml = proofreadingResultsToXml([issue]);
+        assert(xml.includes(`<ruleId>${id}</ruleId>`));
+        assert(xml.includes(`<path>${source.path}</path>`));
+        assert(xml.includes(`<resource>${source.resource}</resource>`));
+        assert(xml.includes(`<sourceVersion>${version}</sourceVersion>`));
+        assert.doesNotMatch(xml, /<suggested\b|<correction\b/);
+    });
+}
 for (const [text, start, end] of [['😀相性', 2, 4], ['𠮷田との相性', 5, 7]]) {
     test(`IPC and advisory XML preserve UTF-16 offsets: ${text}`, async () => {
         const results = await proofread(null, text);
@@ -160,6 +216,33 @@ test('IPC kanji opt-in is explicit, request-local, and disabled_rules wins', asy
     const results = await Promise.all(profiles.map(profile => proofread(null, '丐', profile)));
     assert.deepEqual(results.map(items => items.some(item => item.ruleId === id)), [false, true, false, false, false, false, false]);
     assert(results.flat().every(issue => !('fix' in issue) && !('suggested' in issue)));
+});
+
+for (const prefix of ['前', '😀', '𠮷田\n']) {
+    test(`IPC whole-word whitelist covers contained kanji only at matched spans: ${prefix}`, async () => {
+        const text = `${prefix}薔薇。薔。薇。`;
+        const id = 'tomarigi/kanji-level';
+        const enabled = { enabled_rules: [id] };
+        const [plain, excluded, plainAgain] = await Promise.all([
+            proofread(null, text, enabled),
+            proofread(null, text, { ...enabled, whitelist: ['薔薇'] }),
+            proofread(null, text, enabled),
+        ]);
+        const positions = results => results.filter(item => item.ruleId === id && /【対象:[薔薇]】/.test(item.message)).map(item => item.index);
+        assert.deepEqual(positions(plain), [0, 1, 3, 5].map(offset => prefix.length + offset));
+        assert.deepEqual(positions(excluded), [3, 5].map(offset => prefix.length + offset));
+        assert.deepEqual(positions(plainAgain), positions(plain));
+        const repeated = await proofread(null, `${prefix}薔薇薔薇`, { ...enabled, whitelist: ['薔薇'] });
+        assert(!repeated.some(item => item.ruleId === id && /【対象:[薔薇]】/.test(item.message)));
+    });
+}
+test('IPC does not suppress an advisory that only partially overlaps a whitelist span', async () => {
+    const results = await proofread(null, '相性確認', { whitelist: ['性確認'] });
+    assert(results.some(item => item.ruleId === advisoryId));
+});
+test('IPC never exposes the quarantined source mapping as a PRH fix', async () => {
+    const results = await proofread(null, '漸く到着した。');
+    assert(!results.some(item => item.ruleId === 'prh' && item.fix?.text === 'しばらく'));
 });
 
 const descriptor = await loadTextlintrc({ configFilePath: path.resolve('.textlintrc.js') });

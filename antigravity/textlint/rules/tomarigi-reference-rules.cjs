@@ -22,6 +22,8 @@ function runTomarigiReferenceRules(text, tokens, options = {}) {
     };
 
     for (const token of tokens) {
+        if (token === null || typeof token !== 'object' || Array.isArray(token) ||
+            !Number.isInteger(token.word_position) || token.word_position <= 0) continue;
         const surface = token.surface_form;
         const start = utf16Offsets[token.word_position - 1];
         if (typeof surface !== 'string' || !surface || !Number.isInteger(start) || start < 0 ||

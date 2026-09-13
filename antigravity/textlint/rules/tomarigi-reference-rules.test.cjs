@@ -65,6 +65,19 @@ test('invalid token locations cannot produce misleading spans', () => {
     assert.deepEqual(runTomarigiReferenceRules('相性', [token('相性', 'アイショウ', 8)]), []);
 });
 
+for (const position of ['1', true, false, 1n, null, undefined, 0, -1, 1.5, NaN, Infinity, {}, [1]]) {
+    test(`word_position rejects ${typeof position}:${String(position)} without coercion or throwing`, () => {
+        assert.deepEqual(runTomarigiReferenceRules('相性', [{ ...token('相性', 'アイショウ'), word_position: position }]), []);
+    });
+}
+for (const malformed of [null, undefined, 1n, '相性', true, 1, [], {}]) {
+    test(`malformed token ${typeof malformed}:${String(malformed)} is ignored while valid tokens still work`, () => {
+        const results = runTomarigiReferenceRules('相性', [malformed, token('相性', 'アイショウ')]);
+        assert.equal(results.length, 1);
+        assert.equal(results[0].ruleId, homonym);
+    });
+}
+
 for (const [text, expected] of [
     ['😀相性', [[2, 4, '相性']]],
     ['𠮷田との相性', [[5, 7, '相性']]],
