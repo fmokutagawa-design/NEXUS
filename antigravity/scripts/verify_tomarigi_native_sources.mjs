@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFileSync, statSync } from 'node:fs';
+import { readFileSync, realpathSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -11,14 +11,51 @@ function loadDefaultLock() {
   return JSON.parse(readFileSync(defaultLockPath, 'utf8'));
 }
 
-export function verifyArchives(directory, lock = loadDefaultLock()) {
+function isValidLock(lock) {
+  if (
+    !lock
+    || typeof lock !== 'object'
+    || Array.isArray(lock)
+    || lock.schemaVersion !== 1
+    || !lock.archives
+    || typeof lock.archives !== 'object'
+    || Array.isArray(lock.archives)
+    || Object.keys(lock.archives).length === 0
+  ) {
+    return false;
+  }
+
+  return Object.entries(lock.archives).every(([name, sha256]) => (
+    name.length > 0
+    && path.posix.basename(name) === name
+    && path.win32.basename(name) === name
+    && typeof sha256 === 'string'
+    && /^[a-f0-9]{64}$/.test(sha256)
+  ));
+}
+
+export function verifyArchives(directory, suppliedLock) {
   const files = [];
   const errors = [];
 
   if (!directory) {
     return { ok: false, files, errors: ['Source directory is required.'] };
   }
-  if (lock?.schemaVersion !== 1 || !lock.archives || typeof lock.archives !== 'object') {
+
+  let lock = suppliedLock;
+  if (arguments.length < 2) {
+    try {
+      lock = loadDefaultLock();
+    } catch (error) {
+      return {
+        ok: false,
+        files,
+        errors: [`Unable to load Tomarigi native source lock (${error.message})`],
+      };
+    }
+  }
+
+  if (!isValidLock(lock)) {
     return { ok: false, files, errors: ['Invalid Tomarigi native source lock.'] };
   }
 
@@ -28,6 +65,12 @@ export function verifyArchives(directory, lock = loadDefaultLock()) {
     try {
       if (!statSync(archivePath).isFile()) {
         throw new Error('not a regular file');
+      }
+      const sourcePath = realpathSync(directory);
+      const resolvedArchivePath = realpathSync(archivePath);
+      const relativeArchivePath = path.relative(sourcePath, resolvedArchivePath);
+      if (relativeArchivePath.startsWith(`..${path.sep}`) || path.isAbsolute(relativeArchivePath)) {
+        throw new Error('archive resolves outside source directory');
       }
       contents = readFileSync(archivePath);
     } catch (error) {
@@ -62,5 +105,14 @@ function runCli() {
   }
 }
 
-const invokedPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';
+function invokedFileUrl(argvPath) {
+  if (!argvPath) return '';
+  try {
+    return pathToFileURL(realpathSync(path.resolve(argvPath))).href;
+  } catch {
+    return pathToFileURL(path.resolve(argvPath)).href;
+  }
+}
+
+const invokedPath = invokedFileUrl(process.argv[1]);
 if (import.meta.url === invokedPath) runCli();
