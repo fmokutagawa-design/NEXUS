@@ -59,7 +59,7 @@ esac`);
 if [ "\${1-}" = '--version' ]; then echo 'cabocha of 0.69'; exit 0; fi
 [ "\${2-}" = '-d' ] && [ "\${3-}" = '${dic}' ] || exit 64
 cat >/dev/null
-printf '* 0 1D 0/1 0.000000\\n太郎は\\t名詞,固有名詞\\n* 1 -1D 0/1 0.000000\\n走った。\\t動詞\\nEOS\\n'`);
+printf '* 0 2D 0/1 0.000000\\n太郎は\\t名詞,固有名詞\\n* 1 2D 0/1 0.000000\\n花子が読んでいる本を次郎に\\t名詞,一般\\n* 2 -1D 0/1 0.000000\\n渡した。\\t動詞\\nEOS\\n'`);
   return install;
 }
 
@@ -177,6 +177,7 @@ test('diagnostic accepts exact versions, successful probes, and only documented 
     { mecab: "[ \"\${1-}\" = --version ] && echo 'mecab of 0.996' && exit 0; echo 'charset:\tUTF-8'; exit 1" },
     { mecab: `[ "\${1-}" = --version ] && echo 'mecab of 0.996' && exit 0; printf 'filename:\\t${path.join(good, 'lib', 'mecab', 'dic', 'ipadic', 'sys.dic')}\\nversion:\\t102\\ncharset:\\tUTF-8\\ntype:\\t0\\nsize:\\t392126\\nleft size:\\t1316\\nright size:\\t1316\\n'; exit 2` },
     { cabocha: "[ \"\${1-}\" = --version ] && echo 'cabocha of 0.69' && exit 0; exit 1" },
+    { cabocha: "[ \"\${1-}\" = --version ] && echo 'cabocha of 0.69' && exit 0; cat >/dev/null; echo 'junk * 0 bogusD bogusEOS'" },
   ];
   for (const overrides of badCases) {
     const install = makeDiagnosticInstall(t, overrides);

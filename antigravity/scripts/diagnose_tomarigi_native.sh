@@ -47,7 +47,17 @@ set +e
 parse=$(printf '%s\n' "$sample" | "$INSTALL_DIR/bin/cabocha" -f1 -d "$DIC_DIR"); parse_status=$?
 set -e
 [ "$parse_status" -eq 0 ] || { echo "error: CaboCha parse failed with status $parse_status" >&2; exit "$parse_status"; }
-case "$parse" in *"* 0 "*D*EOS*) ;; *) echo "error: Japanese dependency parse failed" >&2; exit 65;; esac
+printf '%s\n' "$parse" | awk -F '\t' -v expected="$sample" '
+  BEGIN { chunks = 0; tokens = 0; ended = 0; invalid = 0; reconstructed = "" }
+  $0 == "EOS" { if (ended) invalid = 1; ended = 1; next }
+  ended { invalid = 1; next }
+  /^\* [0-9]+ (-1|[0-9]+)D [0-9]+\/[0-9]+ [-+]?[0-9]+([.][0-9]+)?$/ { chunks++; next }
+  index($0, "\t") > 1 { reconstructed = reconstructed substr($0, 1, index($0, "\t") - 1); tokens++; next }
+  { invalid = 1 }
+  END {
+    if (invalid || !ended || chunks < 1 || tokens < 1 || reconstructed != expected) exit 1
+  }
+' || { echo "error: Japanese dependency parse failed" >&2; exit 65; }
 
 architecture=$(uname -m)
 case "$architecture" in x86_64) architecture_status=supported;; *) architecture_status=unverified;; esac
