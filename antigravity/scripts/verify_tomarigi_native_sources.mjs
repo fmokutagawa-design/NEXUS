@@ -1,0 +1,66 @@
+import { createHash } from 'node:crypto';
+import { readFileSync, statSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const defaultLockPath = fileURLToPath(
+  new URL('../native/tomarigi-native-lock.json', import.meta.url),
+);
+
+function loadDefaultLock() {
+  return JSON.parse(readFileSync(defaultLockPath, 'utf8'));
+}
+
+export function verifyArchives(directory, lock = loadDefaultLock()) {
+  const files = [];
+  const errors = [];
+
+  if (!directory) {
+    return { ok: false, files, errors: ['Source directory is required.'] };
+  }
+  if (lock?.schemaVersion !== 1 || !lock.archives || typeof lock.archives !== 'object') {
+    return { ok: false, files, errors: ['Invalid Tomarigi native source lock.'] };
+  }
+
+  for (const [name, expectedSha256] of Object.entries(lock.archives)) {
+    const archivePath = path.join(directory, name);
+    let contents;
+    try {
+      if (!statSync(archivePath).isFile()) {
+        throw new Error('not a regular file');
+      }
+      contents = readFileSync(archivePath);
+    } catch (error) {
+      files.push({ name, path: archivePath, verified: false });
+      errors.push(`${name}: missing or unreadable archive (${error.message})`);
+      continue;
+    }
+
+    const actualSha256 = createHash('sha256').update(contents).digest('hex');
+    const verified = actualSha256 === expectedSha256;
+    files.push({ name, path: archivePath, sha256: actualSha256, verified });
+    if (!verified) {
+      errors.push(
+        `${name}: SHA-256 mismatch (expected ${expectedSha256}, got ${actualSha256})`,
+      );
+    }
+  }
+
+  return { ok: errors.length === 0, files, errors };
+}
+
+function runCli() {
+  const directory = process.argv[2];
+  const result = verifyArchives(directory);
+
+  for (const file of result.files) {
+    if (file.verified) console.log(`verified ${file.name} SHA-256 ${file.sha256}`);
+  }
+  if (!result.ok) {
+    for (const error of result.errors) console.error(`error: ${error}`);
+    process.exitCode = 1;
+  }
+}
+
+const invokedPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';
+if (import.meta.url === invokedPath) runCli();

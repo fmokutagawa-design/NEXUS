@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "archives": {
+    "mecab-0.996.tar.gz": "e073325783135b72e666145c781bb48fada583d5224fb2490fb6c1403ba69c59",
+    "mecab-ipadic-2.7.0-20070610.tar.gz": "77a678efddb6f932b4c87fdd299458c3122591044102517e526587a0582ff9d3",
+    "CRF++-0.58.tar.gz": "9d1c0a994f25a5025cede5e1d3a687ec98cd4949bfb2aae13f2a873a13259cb2",
+    "cabocha-0.69.tar.bz2": "9db896d7f9d83fc3ae34908b788ae514ae19531eb89052e25f061232f6165992"
+  }
+}
