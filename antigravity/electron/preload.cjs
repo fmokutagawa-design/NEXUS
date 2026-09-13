@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('api', {
     },
     textlint: {
         proofread: (text, profile = {}) => ipcRenderer.invoke('textlint:proofread', text, profile),
+        proofreadAdvanced: (text, profile = {}) => ipcRenderer.invoke('native-japanese:analyze', text, profile),
         scanProjectTerms: (targetPath) => ipcRenderer.invoke('proofreading:scanProjectTerms', toPath(targetPath)),
         saveProjectTerms: (targetPath, words) => ipcRenderer.invoke('proofreading:saveProjectTerms', toPath(targetPath), words)
     },

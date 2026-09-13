@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ollamaService } from '../utils/ollamaService';
 import './AuditReportWindow.css';
 
@@ -10,6 +10,9 @@ const AuditReportWindow = ({ isOpen, onClose, currentText, activeFile, onJumpToI
   const [progress, setProgress] = useState("");
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [fileFilter, setFileFilter] = useState('all');
+  const [advancedStatus, setAdvancedStatus] = useState('idle');
+  const currentTextRef = useRef(currentText);
+  currentTextRef.current = currentText;
 
   const fetchReport = async () => {
     setLoading(true);
@@ -62,6 +65,38 @@ const AuditReportWindow = ({ isOpen, onClose, currentText, activeFile, onJumpToI
       setTextlintReport(formatted);
     } catch (e) {
       console.error('textlint failed:', e);
+    }
+  };
+
+  const runAdvancedAnalysis = async () => {
+    if (!currentText || !window.api?.textlint?.proofreadAdvanced || advancedStatus === 'running') return;
+    const requestedText = currentText;
+    setAdvancedStatus('running');
+    try {
+      const result = await window.api.textlint.proofreadAdvanced(requestedText);
+      if (currentTextRef.current !== requestedText) {
+        setAdvancedStatus('stale');
+        return;
+      }
+      setAdvancedStatus(result.status);
+      if (result.status !== 'ok') return;
+      const activePath = typeof activeFile === 'string' ? activeFile : (activeFile?.path || activeFile?.handle || '');
+      const activeName = typeof activeFile === 'string' ? activeFile.split(/[/\\]/).pop() : (activeFile?.name || String(activePath).split(/[/\\]/).pop());
+      setTextlintReport(previous => [
+        ...previous.filter(item => item.engine !== 'native-japanese'),
+        ...(result.findings || []).map(item => ({
+          file: activeName || '現在のファイル', full_path: activePath,
+          original: requestedText.slice(item.start, item.end) || '該当箇所',
+          suggested: item.message || '文の構造を確認してください',
+          reason: `[MeCab/CaboCha] ${item.message || item.ruleId}`,
+          line: requestedText.slice(0, item.start).split('\n').length,
+          index: item.start, category: '校正', currentFileResult: true,
+          timestamp: new Date().toLocaleTimeString(), engine: 'native-japanese'
+        }))
+      ]);
+    } catch (error) {
+      console.error('advanced Japanese analysis failed:', error);
+      setAdvancedStatus('error');
     }
   };
 
@@ -173,6 +208,9 @@ const AuditReportWindow = ({ isOpen, onClose, currentText, activeFile, onJumpToI
           >
             {isRunning ? "実行中..." : "監査実行"}
           </button>
+          <button onClick={runAdvancedAnalysis} className="refresh-btn" disabled={advancedStatus === 'running'}>
+            {advancedStatus === 'running' ? '高度解析中...' : '高度な日本語解析'}
+          </button>
           <button onClick={onClose} className="close-btn">×</button>
         </div>
       </div>
@@ -183,6 +221,10 @@ const AuditReportWindow = ({ isOpen, onClose, currentText, activeFile, onJumpToI
           <span>{progress}</span>
         </div>
       )}
+      {advancedStatus === 'not-installed' && <div className="audit-progress-banner">高度な日本語解析は未導入です。通常校正は利用できます。</div>}
+      {advancedStatus === 'timeout' && <div className="audit-progress-banner">高度な日本語解析が時間切れになりました。本文は変更されていません。</div>}
+      {advancedStatus === 'stale' && <div className="audit-progress-banner">解析中に本文が変わったため、古い結果を破棄しました。</div>}
+      {advancedStatus === 'error' && <div className="audit-progress-banner">高度な日本語解析に失敗しました。本文は変更されていません。</div>}
 
       <div className="audit-filter-bar">
         <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>

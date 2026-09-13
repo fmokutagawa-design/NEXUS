@@ -11,6 +11,8 @@ const {
 } = require('./atomicWrite.cjs');
 const { setupTextlintHandlers } = require('./textlintMain.cjs');
 const { setupProjectLexiconHandlers } = require('./projectLexicon.cjs');
+const { createNativeJapaneseRunner } = require('./nativeJapaneseRunner.cjs');
+const { setupNativeJapaneseHandler } = require('./nativeJapaneseMain.cjs');
 
 const isDev = !app.isPackaged;
 
@@ -234,6 +236,14 @@ app.whenReady().then(() => {
     console.log('--- NEXUS Main Process Ready ---');
     setupTextlintHandlers();
     setupProjectLexiconHandlers();
+    const nativeRoot = process.env.NEXUS_NATIVE_JAPANESE_ROOT || path.join(app.getPath('userData'), 'native-japanese');
+    setupNativeJapaneseHandler({
+        ipcMain,
+        runner: createNativeJapaneseRunner({
+            binDir: path.join(nativeRoot, 'bin'),
+            dicDir: path.join(nativeRoot, 'lib', 'mecab', 'dic', 'ipadic'),
+        }),
+    });
     startBridgeServer();
     createWindow();
 
