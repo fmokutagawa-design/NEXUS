@@ -20,6 +20,12 @@ SOURCE_PATHS = (
     Path("Tomarigi/plugins/t_homonym.dll"),
     Path("Tomarigi/plugins/t_inappropriatepos.dll"),
     Path("Tomarigi/saezuri.dll"),
+    Path("Tomarigi/plugins/t_punctuationmark.xml"),
+    Path("Tomarigi/plugins/t_punctuationmark.dll"),
+    Path("Tomarigi/plugins/t_alphanumeralkanasize.xml"),
+    Path("Tomarigi/plugins/t_alphanumeralkanasize.dll"),
+    Path("Tomarigi/plugins/t_sentenceendstyle.xml"),
+    Path("Tomarigi/plugins/t_sentenceendstyle.dll"),
 )
 
 
@@ -37,17 +43,20 @@ def load_sync_module():
 
 def expected_manifest() -> dict[str, object]:
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "sources": [
             {
                 "path": path.as_posix(),
                 "sha256": hashlib.sha256((REPOSITORY_ROOT / path).read_bytes()).hexdigest(),
             }
-            for path in SOURCE_PATHS
+            for path in sorted(SOURCE_PATHS)
         ],
         "counts": {
             "kanji": 6359,
             "commonKanji": 2136,
+            "radicals": 265,
+            "kanjiReadings": 18819,
+            "settings": 9,
             "homonymGroups": 1550,
             "homonymItems": 3760,
             "sameKun": 181,
@@ -55,6 +64,56 @@ def expected_manifest() -> dict[str, object]:
             "inappropriatePosExceptions": {"的": 490, "超": 129},
         },
     }
+
+
+def test_kanji_details_preserve_source_fields():
+    data = load_sync_module().build_reference_data(REPOSITORY_ROOT)
+    records = {row["text"]: row for row in data["kanji"]}
+    assert records["亜"].get("radicalId") == 8, records["亜"]
+    assert records["亜"]["readings"] == {"OnS": ["ア"], "KunS": [], "On": [], "Kun": ["つ-ぐ"]}
+    assert records["薔"]["readings"]["On"] == ["バ", "ショウ", "ショク", "ソウ"]
+    assert records["愛"]["parts"] == "夂"
+    assert all(row["similar"] == "" for row in data["kanji"])
+    assert len(data["radicals"]) == 265
+    assert next(row for row in data["radicals"] if row["id"] == 8) == {
+        "id": 8, "text": "二", "reading": "に", "strokeCount": 2,
+    }
+    # These four source records reference ID 0, which has no radical definition.
+    assert {row["text"] for row in data["kanji"] if row["radicalId"] == 0} == {"𠮟", "塡", "剝", "頰"}
+    assert not any(row["id"] == 0 for row in data["radicals"])
+
+
+def test_settings_preserve_exact_xml_values():
+    data = load_sync_module().build_reference_data(REPOSITORY_ROOT)
+    assert data.get("settings") == {
+        "punctuation": {"PunctuationmarkTypeA": "3", "PunctuationmarkTypeB": "3", "ColoringStr": "Wheat"},
+        "width": {"AlphaType": "1", "NumeralType": "1", "KanaType": "1", "ColoringStr": "RosyBrown"},
+        "sentenceStyle": {"EndType": "1", "ColoringStr": "MediumAquamarine"},
+    }
+
+
+def test_manifest_identifies_resources_and_real_assembly_versions():
+    sync = load_sync_module()
+    manifest = sync._manifest(REPOSITORY_ROOT, sync.build_reference_data(REPOSITORY_ROOT))
+    assert "datasets" in manifest, "missing dataset provenance"
+    datasets = manifest["datasets"]
+    assert datasets["kanji"] == {
+        "source": {"path": "Tomarigi/saezuri.dll", "resource": "saezuri.Properties.Resources.resources", "key": "kanjiDB"},
+        "sourceVersion": "1.0.0.0", "versionSource": "Tomarigi/saezuri.dll",
+    }
+    assert datasets["radicals"] == datasets["kanji"]
+    assert datasets["homonymGroups"]["source"]["key"] == "homonymDB"
+    assert datasets["sameKun"]["source"] == {
+        "path": "Tomarigi/plugins/t_homonym.dll", "resource": "t_homonym.homonym.resources", "key": "同訓",
+    }
+    assert datasets["chineseNumeralExceptions"]["source"]["resource"] == "t_chinesenumeral.t_chinesenumeraldata.resources"
+    assert datasets["inappropriatePosExceptions"]["source"]["resource"] == "t_inappropriatepos.t_inappropriateposdata.resources"
+    for name in ["sameKun", "chineseNumeralExceptions", "inappropriatePosExceptions", "punctuation", "width", "sentenceStyle"]:
+        assert datasets[name]["sourceVersion"] == "0.9.0.0"
+    assert datasets["punctuation"]["source"] == {"path": "Tomarigi/plugins/t_punctuationmark.xml", "resource": "Setting"}
+    assert datasets["punctuation"]["versionSource"] == "Tomarigi/plugins/t_punctuationmark.dll"
+    assert datasets["width"]["source"]["path"] == "Tomarigi/plugins/t_alphanumeralkanasize.xml"
+    assert datasets["sentenceStyle"]["source"]["path"] == "Tomarigi/plugins/t_sentenceendstyle.xml"
 
 
 def test_counts_determinism_and_generated_files() -> None:
@@ -71,7 +130,9 @@ def test_counts_determinism_and_generated_files() -> None:
     assert len(data["inappropriatePosExceptions"]["超"]) == 129
     assert encode(data) == encode(sync.build_reference_data(REPOSITORY_ROOT))
 
-    assert json.loads((DATA_DIRECTORY / "kanji.json").read_text(encoding="utf-8")) == data["kanji"]
+    assert json.loads((DATA_DIRECTORY / "kanji.json").read_text(encoding="utf-8")) == {
+        "kanji": data["kanji"], "radicals": data["radicals"],
+    }
     assert json.loads((DATA_DIRECTORY / "homonyms.json").read_text(encoding="utf-8")) == {
         "homonymGroups": data["homonymGroups"],
         "sameKun": data["sameKun"],
@@ -79,10 +140,12 @@ def test_counts_determinism_and_generated_files() -> None:
     assert json.loads((DATA_DIRECTORY / "usage-exceptions.json").read_text(encoding="utf-8")) == {
         "chineseNumeralExceptions": data["chineseNumeralExceptions"],
         "inappropriatePosExceptions": data["inappropriatePosExceptions"],
+        "settings": data["settings"],
     }
-    assert json.loads(
+    manifest = json.loads(
         (DATA_DIRECTORY / "reference-manifest.json").read_text(encoding="utf-8")
-    ) == expected_manifest()
+    )
+    assert {key: manifest[key] for key in ("schemaVersion", "sources", "counts")} == expected_manifest()
 
     for path in DATA_DIRECTORY.glob("*.json"):
         assert path.read_bytes() == encode(json.loads(path.read_text(encoding="utf-8"))).encode(
@@ -151,15 +214,32 @@ def test_generation_writes_lf_bytes_when_text_mode_would_translate() -> None:
             assert b"\r\n" not in content, output
             assert content.endswith(b"\n"), output
 
+        first = {path.name: path.read_bytes() for path in output_directory.glob("*.json")}
+        assert sync.main(["--repo", str(repository)]) == 0
+        assert {path.name: path.read_bytes() for path in output_directory.glob("*.json")} == first
+        assert sync.main(["--repo", str(repository), "--check"]) == 0
+        changed = output_directory / "usage-exceptions.json"
+        changed.write_bytes(first[changed.name].replace(b'"AlphaType": "1"', b'"AlphaType": "9"'))
+        before_check = {path.name: path.read_bytes() for path in output_directory.glob("*.json")}
+        assert before_check != first
+        assert sync.main(["--repo", str(repository), "--check"]) == 1
+        assert {path.name: path.read_bytes() for path in output_directory.glob("*.json")} == before_check
+
 
 if __name__ == "__main__":
-    try:
-        test_counts_determinism_and_generated_files()
-        test_check_reports_drift_without_writing()
-        test_generation_writes_lf_bytes_when_text_mode_would_translate()
-    except Exception:
-        print("FAIL: Tomarigi reference data sync test", flush=True)
-        traceback.print_exc()
+    failures = 0
+    for test in [test_kanji_details_preserve_source_fields, test_settings_preserve_exact_xml_values,
+                 test_manifest_identifies_resources_and_real_assembly_versions,
+                 test_counts_determinism_and_generated_files, test_check_reports_drift_without_writing,
+                 test_generation_writes_lf_bytes_when_text_mode_would_translate]:
+        try:
+            test()
+            print(f"PASS: {test.__name__}", flush=True)
+        except Exception:
+            failures += 1
+            print(f"FAIL: {test.__name__}", flush=True)
+            traceback.print_exc()
+    if failures:
         raise SystemExit(1)
 
     print("PASS: deterministic Tomarigi reference data and read-only --check")

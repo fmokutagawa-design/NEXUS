@@ -29,6 +29,7 @@ def run_dump():
             check=True,
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
 
         environment = os.environ.copy()
@@ -38,14 +39,18 @@ def run_dump():
             cwd=REPOSITORY_ROOT,
             check=True,
             capture_output=True,
-            text=True,
             env=environment,
         )
+        repeated = subprocess.run(
+            ["mono", str(executable)], cwd=REPOSITORY_ROOT, check=True,
+            capture_output=True, env=environment,
+        )
+        assert result.stdout == repeated.stdout, "repeated raw dump bytes differ"
         return result.stdout
 
 
 def test_dump_contains_known_records():
-    rows = run_dump()
+    rows = run_dump().decode("utf-8")
     assert "KANJI\t亜\t" in rows
     assert "HOMONYM\tアイショウ\t愛称\t" in rows
     assert "HOMONYM\tアイショウ\t相性\t" in rows
@@ -58,10 +63,22 @@ def test_dump_contains_known_records():
 
     kanji_texts = [line.split("\t")[1] for line in kanji_rows]
     homonym_keys = [tuple(line.split("\t")[1:3]) for line in homonym_rows]
-    assert kanji_texts == sorted(kanji_texts), "KANJI rows are not in ordinal Text order"
-    assert homonym_keys == sorted(homonym_keys), (
+    ordinal = lambda value: value.encode("utf-16-be", errors="surrogatepass")
+    assert kanji_texts == sorted(kanji_texts, key=ordinal), "KANJI rows are not in ordinal Text order"
+    assert homonym_keys == sorted(homonym_keys, key=lambda pair: tuple(map(ordinal, pair))), (
         "HOMONYM rows are not in ordinal Read/Text order"
     )
+
+    # Source-inspected values; retain all four distinct reading lists and raw
+    # empty Similar, not a guessed collection of visually similar characters.
+    assert "KANJI\t亜\tTrue\t7\t1\t7\t8\t\t" in lines
+    assert "READING\t亜\tOnS\tア" in lines
+    assert "READING\t亜\tKun\tつ-ぐ" in lines
+    assert "RADICAL\t1\t一\tいち\t1" in lines
+    assert sum(line.startswith("RADICAL\t") for line in lines) == 265
+    assert sum(line.startswith("READING\t") for line in lines) == 18819
+    radical_ids = [int(line.split("\t")[1]) for line in lines if line.startswith("RADICAL\t")]
+    assert radical_ids == sorted(radical_ids)
 
     print(
         f"PASS: {len(kanji_rows):,} kanji records and "

@@ -14,7 +14,7 @@ function loadGeneratedData() {
 
     return {
         homonymGroups: homonymData.homonymGroups,
-        kanji: kanjiData,
+        kanji: kanjiData.kanji,
         usageExceptions: usageExceptionData.inappropriatePosExceptions,
     };
 }

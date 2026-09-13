@@ -11,6 +11,9 @@ function testGeneratedReferenceData() {
     );
     assert.equal(index.classifyKanji("丐").isCommon, false);
     assert.equal(index.isUsageException("的", "圧倒的"), true);
+    assert.deepEqual(index.classifyKanji("亜").readings, {
+        OnS: ["ア"], KunS: [], On: [], Kun: ["つ-ぐ"],
+    });
 }
 
 function testReadOnlyLookupBoundaries() {
@@ -40,6 +43,10 @@ function testReadOnlyLookupBoundaries() {
     assert.equal(index.isUsageException("的", "通常語"), false);
     assert.equal(index.isUsageException("不明", "例外語"), false);
     assert.equal("fix" in index, false);
+    assert.deepEqual(Object.keys(index).sort(), ["classifyKanji", "findHomonymCandidates", "isUsageException"]);
+    for (const method of ["suggested", "suggest", "replace", "write", "save", "applyFix"]) {
+        assert.equal(method in index, false);
+    }
 }
 
 testGeneratedReferenceData();

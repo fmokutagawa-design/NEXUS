@@ -8,18 +8,25 @@ from collections import defaultdict
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import xml.etree.ElementTree as ET
 
 
+SETTINGS_FILES = {
+    "punctuation": Path("Tomarigi/plugins/t_punctuationmark.xml"),
+    "width": Path("Tomarigi/plugins/t_alphanumeralkanasize.xml"),
+    "sentenceStyle": Path("Tomarigi/plugins/t_sentenceendstyle.xml"),
+}
 SOURCE_PATHS = (
     Path("Tomarigi/plugins/t_chinesenumeral.dll"),
     Path("Tomarigi/plugins/t_homonym.dll"),
     Path("Tomarigi/plugins/t_inappropriatepos.dll"),
     Path("Tomarigi/saezuri.dll"),
-)
+) + tuple(SETTINGS_FILES.values()) + tuple(path.with_suffix(".dll") for path in SETTINGS_FILES.values())
 RESOURCE_FILES = {
     "sameKun": (
         Path("Tomarigi/plugins/t_homonym.dll"),
@@ -77,6 +84,7 @@ def _read_resource_file(source_root: Path, dll: Path, resource_name: str) -> dic
             check=True,
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
         resource_path = work_directory / resource_name
         if not resource_path.is_file():
@@ -89,6 +97,7 @@ def _read_resource_file(source_root: Path, dll: Path, resource_name: str) -> dic
             check=True,
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
         resources: dict[str, str] = {}
         for line in text_path.read_text(encoding="utf-8-sig").splitlines():
@@ -125,6 +134,7 @@ def _dump_embedded_dictionaries(source_root: Path) -> str:
             check=True,
             capture_output=True,
             text=True,
+            encoding="utf-8",
         )
         environment = os.environ.copy()
         environment["MONO_PATH"] = str(saezuri_dll.parent)
@@ -140,12 +150,13 @@ def _dump_embedded_dictionaries(source_root: Path) -> str:
         return result.stdout
 
 
-def _parse_dump(rows: str) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+def _parse_dump(rows: str) -> tuple[list[dict[str, object]], list[dict[str, object]], list[dict[str, object]]]:
     kanji: list[dict[str, object]] = []
+    radicals: list[dict[str, object]] = []
     homonyms: dict[str, list[dict[str, object]]] = defaultdict(list)
     for line in rows.splitlines():
         fields = line.split("\t")
-        if fields[0] == "KANJI" and len(fields) == 6:
+        if fields[0] == "KANJI" and len(fields) == 9:
             kanji.append(
                 {
                     "text": _unescape_tsv(fields[1]),
@@ -153,8 +164,19 @@ def _parse_dump(rows: str) -> tuple[list[dict[str, object]], list[dict[str, obje
                     "learnLevel": int(fields[3]),
                     "jisLevel": int(fields[4]),
                     "strokeCount": int(fields[5]),
+                    "radicalId": int(fields[6]),
+                    "parts": _unescape_tsv(fields[7]),
+                    "similar": _unescape_tsv(fields[8]),
+                    "readings": {kind: [] for kind in ("OnS", "KunS", "On", "Kun")},
                 }
             )
+        elif fields[0] == "READING" and len(fields) == 4:
+            if not kanji or kanji[-1]["text"] != _unescape_tsv(fields[1]) or fields[2] not in kanji[-1]["readings"]:
+                raise ValueError(f"Reading without matching kanji/kind: {line!r}")
+            kanji[-1]["readings"][fields[2]].append(_unescape_tsv(fields[3]))
+        elif fields[0] == "RADICAL" and len(fields) == 5:
+            radicals.append({"id": int(fields[1]), "text": _unescape_tsv(fields[2]),
+                             "reading": _unescape_tsv(fields[3]), "strokeCount": int(fields[4])})
         elif fields[0] == "HOMONYM" and len(fields) == 5:
             reading = _unescape_tsv(fields[1])
             homonyms[reading].append(
@@ -182,7 +204,8 @@ def _parse_dump(rows: str) -> tuple[list[dict[str, object]], list[dict[str, obje
         }
         for reading, items in sorted(homonyms.items())
     ]
-    return kanji, groups
+    radicals.sort(key=lambda row: row["id"])
+    return kanji, groups, radicals
 
 
 def _nonempty_lines(value: str) -> list[str]:
@@ -191,7 +214,7 @@ def _nonempty_lines(value: str) -> list[str]:
 
 def build_reference_data(source_root: Path) -> dict[str, object]:
     source_root = source_root.resolve()
-    kanji, homonym_groups = _parse_dump(_dump_embedded_dictionaries(source_root))
+    kanji, homonym_groups, radicals = _parse_dump(_dump_embedded_dictionaries(source_root))
 
     same_kun_dll, same_kun_resource, same_kun_key = RESOURCE_FILES["sameKun"]
     same_kun_value = _read_resource_file(
@@ -225,10 +248,17 @@ def build_reference_data(source_root: Path) -> dict[str, object]:
 
     return {
         "kanji": kanji,
+        "radicals": radicals,
         "homonymGroups": homonym_groups,
         "sameKun": same_kun,
         "chineseNumeralExceptions": chinese_numeral_exceptions,
         "inappropriatePosExceptions": inappropriate_pos_exceptions,
+        # Keep the original field names and string values. These are reference
+        # settings, not new runtime rules or an inferred mapping of enum values.
+        "settings": {
+            name: {child.tag: child.text or "" for child in ET.parse(source_root / path).getroot()}
+            for name, path in sorted(SETTINGS_FILES.items())
+        },
     }
 
 
@@ -246,6 +276,9 @@ def _counts(data: dict[str, object]) -> dict[str, object]:
     return {
         "kanji": len(kanji),
         "commonKanji": sum(bool(row["isCommon"]) for row in kanji),
+        "radicals": len(data["radicals"]),
+        "kanjiReadings": sum(len(values) for row in kanji for values in row["readings"].values()),
+        "settings": sum(len(values) for values in data["settings"].values()),
         "homonymGroups": len(homonym_groups),
         "homonymItems": sum(len(row["items"]) for row in homonym_groups),
         "sameKun": len(same_kun),
@@ -256,9 +289,43 @@ def _counts(data: dict[str, object]) -> dict[str, object]:
     }
 
 
+def _assembly_version(path: Path) -> str:
+    result = subprocess.run(["monodis", "--assembly", str(path)], check=True,
+                            capture_output=True, encoding="utf-8")
+    match = re.search(r"^Version:\s+(\d+\.\d+\.\d+\.\d+)\s*$", result.stdout, re.MULTILINE)
+    if not match:
+        raise ValueError(f"Assembly version not found in {path}")
+    return match[1]
+
+
+def _dataset_sources(source_root: Path) -> dict[str, object]:
+    versions = {path: _assembly_version(source_root / path) for path in SOURCE_PATHS if path.suffix == ".dll"}
+
+    def provenance(path, resource, key=None):
+        version_source = path.with_suffix(".dll")
+        return {
+            "source": {"path": path.as_posix(), "resource": resource, **({"key": key} if key is not None else {})},
+            "sourceVersion": versions[version_source],
+            "versionSource": version_source.as_posix(),
+        }
+
+    saezuri = Path("Tomarigi/saezuri.dll")
+    datasets = {
+        "kanji": provenance(saezuri, "saezuri.Properties.Resources.resources", "kanjiDB"),
+        "radicals": provenance(saezuri, "saezuri.Properties.Resources.resources", "kanjiDB"),
+        "homonymGroups": provenance(saezuri, "saezuri.Properties.Resources.resources", "homonymDB"),
+    }
+    for name, (dll, resource, key) in RESOURCE_FILES.items():
+        datasets[name] = provenance(dll, resource, key)
+    for name, path in SETTINGS_FILES.items():
+        datasets[name] = provenance(path, "Setting")
+    return datasets
+
+
 def _manifest(source_root: Path, data: dict[str, object]) -> dict[str, object]:
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
+        "datasets": _dataset_sources(source_root),
         "sources": [
             {"path": path.as_posix(), "sha256": digest(source_root / path)}
             for path in sorted(SOURCE_PATHS)
@@ -269,7 +336,7 @@ def _manifest(source_root: Path, data: dict[str, object]) -> dict[str, object]:
 
 def _documents(source_root: Path, data: dict[str, object]) -> dict[str, object]:
     return {
-        "kanji.json": data["kanji"],
+        "kanji.json": {"kanji": data["kanji"], "radicals": data["radicals"]},
         "homonyms.json": {
             "homonymGroups": data["homonymGroups"],
             "sameKun": data["sameKun"],
@@ -277,6 +344,7 @@ def _documents(source_root: Path, data: dict[str, object]) -> dict[str, object]:
         "usage-exceptions.json": {
             "chineseNumeralExceptions": data["chineseNumeralExceptions"],
             "inappropriatePosExceptions": data["inappropriatePosExceptions"],
+            "settings": data["settings"],
         },
         "reference-manifest.json": _manifest(source_root, data),
     }

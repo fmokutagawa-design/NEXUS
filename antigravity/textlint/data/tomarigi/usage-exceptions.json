@@ -953,5 +953,22 @@
       "超高速度撮影",
       "超高速度輪転機"
     ]
+  },
+  "settings": {
+    "punctuation": {
+      "ColoringStr": "Wheat",
+      "PunctuationmarkTypeA": "3",
+      "PunctuationmarkTypeB": "3"
+    },
+    "sentenceStyle": {
+      "ColoringStr": "MediumAquamarine",
+      "EndType": "1"
+    },
+    "width": {
+      "AlphaType": "1",
+      "ColoringStr": "RosyBrown",
+      "KanaType": "1",
+      "NumeralType": "1"
+    }
   }
 }

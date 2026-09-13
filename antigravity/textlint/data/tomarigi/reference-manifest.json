@@ -9,10 +9,100 @@
       "超": 129
     },
     "kanji": 6359,
-    "sameKun": 181
+    "kanjiReadings": 18819,
+    "radicals": 265,
+    "sameKun": 181,
+    "settings": 9
   },
-  "schemaVersion": 1,
+  "datasets": {
+    "chineseNumeralExceptions": {
+      "source": {
+        "key": "kanjiword",
+        "path": "Tomarigi/plugins/t_chinesenumeral.dll",
+        "resource": "t_chinesenumeral.t_chinesenumeraldata.resources"
+      },
+      "sourceVersion": "0.9.0.0",
+      "versionSource": "Tomarigi/plugins/t_chinesenumeral.dll"
+    },
+    "homonymGroups": {
+      "source": {
+        "key": "homonymDB",
+        "path": "Tomarigi/saezuri.dll",
+        "resource": "saezuri.Properties.Resources.resources"
+      },
+      "sourceVersion": "1.0.0.0",
+      "versionSource": "Tomarigi/saezuri.dll"
+    },
+    "inappropriatePosExceptions": {
+      "source": {
+        "path": "Tomarigi/plugins/t_inappropriatepos.dll",
+        "resource": "t_inappropriatepos.t_inappropriateposdata.resources"
+      },
+      "sourceVersion": "0.9.0.0",
+      "versionSource": "Tomarigi/plugins/t_inappropriatepos.dll"
+    },
+    "kanji": {
+      "source": {
+        "key": "kanjiDB",
+        "path": "Tomarigi/saezuri.dll",
+        "resource": "saezuri.Properties.Resources.resources"
+      },
+      "sourceVersion": "1.0.0.0",
+      "versionSource": "Tomarigi/saezuri.dll"
+    },
+    "punctuation": {
+      "source": {
+        "path": "Tomarigi/plugins/t_punctuationmark.xml",
+        "resource": "Setting"
+      },
+      "sourceVersion": "0.9.0.0",
+      "versionSource": "Tomarigi/plugins/t_punctuationmark.dll"
+    },
+    "radicals": {
+      "source": {
+        "key": "kanjiDB",
+        "path": "Tomarigi/saezuri.dll",
+        "resource": "saezuri.Properties.Resources.resources"
+      },
+      "sourceVersion": "1.0.0.0",
+      "versionSource": "Tomarigi/saezuri.dll"
+    },
+    "sameKun": {
+      "source": {
+        "key": "同訓",
+        "path": "Tomarigi/plugins/t_homonym.dll",
+        "resource": "t_homonym.homonym.resources"
+      },
+      "sourceVersion": "0.9.0.0",
+      "versionSource": "Tomarigi/plugins/t_homonym.dll"
+    },
+    "sentenceStyle": {
+      "source": {
+        "path": "Tomarigi/plugins/t_sentenceendstyle.xml",
+        "resource": "Setting"
+      },
+      "sourceVersion": "0.9.0.0",
+      "versionSource": "Tomarigi/plugins/t_sentenceendstyle.dll"
+    },
+    "width": {
+      "source": {
+        "path": "Tomarigi/plugins/t_alphanumeralkanasize.xml",
+        "resource": "Setting"
+      },
+      "sourceVersion": "0.9.0.0",
+      "versionSource": "Tomarigi/plugins/t_alphanumeralkanasize.dll"
+    }
+  },
+  "schemaVersion": 2,
   "sources": [
+    {
+      "path": "Tomarigi/plugins/t_alphanumeralkanasize.dll",
+      "sha256": "50bc2f717ee4cd7e5afc8ab3531b903ce18df1fda096a7fc29d3d16876a515c3"
+    },
+    {
+      "path": "Tomarigi/plugins/t_alphanumeralkanasize.xml",
+      "sha256": "cab6c63751ae60d34b0620757aecb1068e53b387c65d8a1cd790497f2e28bd9b"
+    },
     {
       "path": "Tomarigi/plugins/t_chinesenumeral.dll",
       "sha256": "f8de2bf4e3cd46a1e03f3c6a8d911de434f2c892f3768f3d423bd06c930829c3"
@@ -24,6 +114,22 @@
     {
       "path": "Tomarigi/plugins/t_inappropriatepos.dll",
       "sha256": "7a1595b2b1b13acb0a06149c5713159ac14edfd91c05ee0f01dac357fd80f4ea"
+    },
+    {
+      "path": "Tomarigi/plugins/t_punctuationmark.dll",
+      "sha256": "63841da90b643f8d80f56b834e50c96e242cfd84708ca07c72b8c2f3e0b8d4c6"
+    },
+    {
+      "path": "Tomarigi/plugins/t_punctuationmark.xml",
+      "sha256": "7740665083fbd8a76e5e12e9d63ffe0724cda78a7225e19a5c20ac96d17bf761"
+    },
+    {
+      "path": "Tomarigi/plugins/t_sentenceendstyle.dll",
+      "sha256": "6630ad25234ef7724ce1f52ca695e3cc1b6a11ab09b24fba95c455bae6d3f82c"
+    },
+    {
+      "path": "Tomarigi/plugins/t_sentenceendstyle.xml",
+      "sha256": "68902514bec16ff985a3d1319e3648594fe5636551c15de6639ceb130058f6f9"
     },
     {
       "path": "Tomarigi/saezuri.dll",
