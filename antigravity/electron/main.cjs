@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog, shell, Menu } = require('electron');
 const path = require('path');
+const os = require('os');
 const fs = require('fs');
 const crypto = require('crypto');
 const {
@@ -12,7 +13,7 @@ const {
 const { setupTextlintHandlers } = require('./textlintMain.cjs');
 const { setupProjectLexiconHandlers } = require('./projectLexicon.cjs');
 const { createNativeJapaneseRunner } = require('./nativeJapaneseRunner.cjs');
-const { setupNativeJapaneseHandler } = require('./nativeJapaneseMain.cjs');
+const { resolveNativeRoot, setupNativeJapaneseHandler } = require('./nativeJapaneseMain.cjs');
 
 const isDev = !app.isPackaged;
 
@@ -236,7 +237,12 @@ app.whenReady().then(() => {
     console.log('--- NEXUS Main Process Ready ---');
     setupTextlintHandlers();
     setupProjectLexiconHandlers();
-    const nativeRoot = process.env.NEXUS_NATIVE_JAPANESE_ROOT || path.join(app.getPath('userData'), 'native-japanese');
+    const nativeRoot = resolveNativeRoot({
+        explicitRoot: process.env.NEXUS_NATIVE_JAPANESE_ROOT,
+        platform: process.platform,
+        homeDir: os.homedir(),
+        appUserData: app.getPath('userData'),
+    });
     setupNativeJapaneseHandler({
         ipcMain,
         runner: createNativeJapaneseRunner({

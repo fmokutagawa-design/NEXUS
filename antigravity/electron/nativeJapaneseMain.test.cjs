@@ -2,7 +2,13 @@
 
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const { acceptNativeResult, setupNativeJapaneseHandler, sha256 } = require('./nativeJapaneseMain.cjs');
+const { acceptNativeResult, resolveNativeRoot, setupNativeJapaneseHandler, sha256 } = require('./nativeJapaneseMain.cjs');
+
+test('uses a macOS install path without spaces', () => {
+  assert.equal(resolveNativeRoot({ platform: 'darwin', homeDir: '/Users/test', appUserData: '/ignored' }), '/Users/test/Library/NEXUS/native-japanese');
+  assert.equal(resolveNativeRoot({ platform: 'linux', homeDir: '/home/test', appUserData: '/data/NEXUS' }), '/data/NEXUS/native-japanese');
+  assert.equal(resolveNativeRoot({ explicitRoot: '/custom/native', platform: 'darwin', homeDir: '/Users/test', appUserData: '/ignored' }), '/custom/native');
+});
 
 test('accepts only results for the current text', () => {
   assert.equal(acceptNativeResult({ text: 'new', result: { textHash: sha256('old') } }).status, 'stale');

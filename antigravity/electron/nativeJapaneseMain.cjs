@@ -1,6 +1,13 @@
 'use strict';
 
 const { createHash } = require('node:crypto');
+const path = require('node:path');
+
+function resolveNativeRoot({ explicitRoot, platform, homeDir, appUserData }) {
+  if (explicitRoot) return explicitRoot;
+  if (platform === 'darwin') return path.join(homeDir, 'Library', 'NEXUS', 'native-japanese');
+  return path.join(appUserData, 'native-japanese');
+}
 
 function sha256(text) {
   return createHash('sha256').update(String(text), 'utf8').digest('hex');
@@ -34,4 +41,4 @@ function setupNativeJapaneseHandler({ ipcMain, runner }) {
   });
 }
 
-module.exports = { acceptNativeResult, classifyFailure, setupNativeJapaneseHandler, sha256 };
+module.exports = { acceptNativeResult, classifyFailure, resolveNativeRoot, setupNativeJapaneseHandler, sha256 };
