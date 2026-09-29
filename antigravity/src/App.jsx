@@ -6,6 +6,9 @@ import PrizePanel from './components/PrizePanel';
 import CandidateBox from './components/CandidateBox';
 import Editor from './components/Editor';
 import Preview from './components/Preview';
+import { resolvePreviewMode } from './utils/previewMode';
+import { getChapterNavigation } from './utils/chapterNavigation';
+import { buildHeadingNavigation } from './utils/headingNavigation';
 import Stats from './components/Stats';
 import AIAssistant from './components/AIAssistant';
 import ClipboardHistory from './components/ClipboardHistory';
@@ -87,11 +90,15 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { usePresets } from './hooks/usePresets';
 import { useSettingsSync } from './hooks/useSettingsSync';
 import { useStatePersistence } from './hooks/useStatePersistence';
-import { refreshKnownPrizeDeadlines } from './data/literaryPrizes';
+import literaryPrizes, { refreshKnownPrizeDeadlines } from './data/literaryPrizes';
+import { resolveSubmissionProfile } from './utils/submissionProfile';
 import { readManifest } from './utils/manifest';
+import { selectJumpFile } from './utils/segmentFileSelection.mjs';
 import { manuscriptCandidateScore } from './utils/workRegistry.js';
 import { assessReaderEdit, displayFileName, sameFileTarget } from './utils/readerEditSession.mjs';
 import { createRestoreReview } from './utils/restoreReview.mjs';
+import { executeReplacementTransaction } from './utils/replacementTransaction.mjs';
+import { resolveSearchJump } from './utils/searchJump.mjs';
 import { SidebarFilesTab } from './components/SidebarFilesTab';
 import SplitByChaptersModal from './components/SplitByChaptersModal';
 import ImportChaptersModal from './components/ImportChaptersModal';
@@ -131,7 +138,7 @@ function App() {
     charsPerLine: 0,
     linesPerPage: 0,
     isVertical: true,
-    orientation: 'landscape',
+    orientation: 'portrait',
     showGrid: true,
     showWhitespace: false,
     showLineNumbers: true, // New setting
@@ -235,6 +242,7 @@ function App() {
   const restoreReviewRef = useRef(null);
   const baselineFileHandleRef = useRef(null);
   const [readerResumeOffset, setReaderResumeOffset] = useState(null);
+  const pendingReaderEditJumpRef = useRef(null);
   const [projectSettings, setProjectSettings] = useState({
     targetPages: 300,     // 目標枚数 (400字詰め)
     chapters: 0,         // 章数 (0 = 自動)
@@ -267,9 +275,10 @@ function App() {
 
   const activeSubmission = useMemo(() => {
     const forWork = submissions.filter(item => item.workId === activeWorkId);
-    return forWork.find(item => item.id === selectedSubmissionId)
+    const selected = forWork.find(item => item.id === selectedSubmissionId)
       || [...forWork].sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999'))[0]
       || null;
+    return resolveSubmissionProfile(selected, literaryPrizes);
   }, [submissions, activeWorkId, selectedSubmissionId]);
 
   const nextSubmission = useMemo(() => {
@@ -492,6 +501,7 @@ function App() {
   const [lastSaved, setLastSaved] = useState(null);
   const lastSavedTextRef = useRef('');
   const externalConflictRef = useRef(false);
+  const managedWriteInProgressRef = useRef(false);
   const [externalConflict, setExternalConflict] = useState(null);
 
   useEffect(() => { readerEditReturnRef.current = readerEditReturn; }, [readerEditReturn]);
@@ -616,25 +626,42 @@ function App() {
         const { file, line, path, text: expectedText } = e.detail;
         console.log(`[JumpRequest] File: ${file}, Line: ${line}, Path: ${path}`);
 
-        const normalizePath = value => String(value || '').normalize('NFC').replace(/\\/g, '/').replace(/\/+$/, '');
-        const requestedPath = normalizePath(path);
-        const targetFile = allMaterialFiles.find(f => {
-            const candidatePath = normalizePath(f.path || f.handle);
-            return (requestedPath && candidatePath === requestedPath)
-                || f.name === file || f.name === `${file}.txt`;
-        });
+        const targetFile = selectJumpFile(allMaterialFiles, file, path);
 
         if (targetFile) {
-            await handleOpenFile(targetFile.handle, targetFile.name, { path: targetFile.path });
+            const targetHandle = targetFile.handle || targetFile.path;
+            const alreadyActive = sameFileTarget(activeFileHandleRef.current, targetHandle);
+            if (!alreadyActive) {
+                await handleOpenFile(targetFile.handle, targetFile.name, { path: targetFile.path });
+            }
 
             const tryJumpToLine = (attempts = 0) => {
                 const editor = editorRef.current;
                 const currentText = typeof textRef.current === 'string' ? textRef.current : '';
+                const loadedExpectedFile = sameFileTarget(activeFileHandleRef.current, targetHandle);
+
+                if (e.detail.source === 'search' && editor?.jumpToPosition && loadedExpectedFile) {
+                    const resolved = resolveSearchJump(currentText, {
+                        line,
+                        expectedLine: expectedText,
+                        query: e.detail.query,
+                        matchedText: e.detail.matchedText,
+                        column: e.detail.column,
+                        isRegex: e.detail.isRegex,
+                        caseSensitive: e.detail.caseSensitive,
+                    });
+                    if (resolved.status === 'found') {
+                        editor.jumpToPosition(resolved.start, resolved.end);
+                    } else {
+                        showToast('この検索結果は編集によって古くなりました。現在の本文でもう一度検索してください。', 'error');
+                    }
+                    return;
+                }
                 
                 const normalizedExpected = String(expectedText || '').trim();
-                const loadedExpectedFile = !normalizedExpected || currentText.includes(normalizedExpected);
+                const containsExpectedText = !normalizedExpected || currentText.includes(normalizedExpected);
 
-                if (editor?.jumpToPosition && currentText.length > 0 && loadedExpectedFile) {
+                if (editor?.jumpToPosition && currentText.length > 0 && loadedExpectedFile && containsExpectedText) {
                     // 行番号 → 文字位置に変換
                     const lines = currentText.split('\n');
                     let charPos = 0;
@@ -675,6 +702,30 @@ function App() {
   const activeFilePath = typeof activeFileHandle === 'string'
     ? activeFileHandle
     : (activeFileHandle?.path || activeFileHandle?.handle || '');
+
+  const handleExecuteReplacement = useCallback(async changes => {
+    return executeReplacementTransaction({
+      changes,
+      activeFilePath,
+      conflictActive: () => externalConflictRef.current,
+      setInProgress: value => { managedWriteInProgressRef.current = value; },
+      readFile: path => fileSystem.readFile(path),
+      writeFile: (path, content, options) => fileSystem.writeFile(path, content, {
+        disableJournal: settings?.enableJournaling === false,
+        ...options,
+      }),
+      syncActiveFile: async change => {
+        // onOpenFile は競合フラグを解除するため使わず、検証済み本文を直接基準化する。
+        textRef.current = change.after;
+        debouncedTextRef.current = change.after;
+        setText(change.after);
+        setDebouncedText(change.after);
+        lastSavedTextRef.current = change.after;
+        baselineFileHandleRef.current = activeFileHandleRef.current;
+        setLastSaved(new Date());
+      },
+    });
+  }, [activeFilePath, settings?.enableJournaling]);
 
   // 検索スコープの自動計算（開いているファイルの .nexus 親フォルダを特定）
   useEffect(() => {
@@ -821,7 +872,6 @@ function App() {
     handleMoveItem,
     handleArchiveVersion,
     handleDelete,
-    handleProjectReplace,
     handleRenameProject,
     handleMoveProject,
     handleResumeProject,
@@ -926,6 +976,47 @@ function App() {
     handleOpenSegmentFile,
   } = fileOps;
 
+  const chapterNavigation = useMemo(
+    () => getChapterNavigation(workTextData.chapterStatuses, activeFileHandle),
+    [workTextData.chapterStatuses, activeFileHandle]
+  );
+
+  const activeNexusPath = useMemo(() => {
+    const match = String(activeFilePath || '').replace(/\\/g, '/').match(/^(.+\.nexus)(?:\/|$)/);
+    return match?.[1] || '';
+  }, [activeFilePath]);
+
+  const chapterHeadings = useMemo(() => {
+    const headings = buildHeadingNavigation(workTextData.workText, workTextData.offsetMap);
+    const byFile = new Map();
+    headings.forEach(heading => {
+      const list = byFile.get(heading.file) || [];
+      list.push(heading);
+      byFile.set(heading.file, list);
+    });
+    return byFile;
+  }, [workTextData.workText, workTextData.offsetMap]);
+
+  const openEditorChapter = useCallback(async (chapter, localOffset = 0) => {
+    if (!chapter?.file) return;
+    if (chapterNavigation.current?.file === chapter.file) {
+      editorRef.current?.jumpToIndex?.(localOffset);
+      return;
+    }
+    await handleOpenSegmentFile(chapter.file, localOffset, activeNexusPath);
+  }, [handleOpenSegmentFile, activeNexusPath, chapterNavigation.current]);
+
+  const handleChapterNavigationChange = useCallback(event => {
+    const [kind, rawIndex, rawHeadingIndex] = event.target.value.split(':');
+    const chapter = workTextData.chapterStatuses[Number(rawIndex)];
+    if (kind === 'heading') {
+      const heading = chapterHeadings.get(chapter?.file)?.[Number(rawHeadingIndex)];
+      if (heading) openEditorChapter(chapter, heading.localOffset);
+      return;
+    }
+    openEditorChapter(chapter, 0);
+  }, [workTextData.chapterStatuses, chapterHeadings, openEditorChapter]);
+
   const openReader = useCallback(async () => {
     await workTextData.reloadWork();
     setReaderResumeOffset(null);
@@ -934,14 +1025,25 @@ function App() {
 
   const editFromReader = useCallback(async (resolved, globalOffset) => {
     const opened = await handleOpenSegmentFile(resolved.file, resolved.localOffset, resolved.nexusPath);
-    if (!opened) return;
+    if (!opened) return false;
+    pendingReaderEditJumpRef.current = { fileHandle: opened.fileHandle, offset: resolved.localOffset, content: opened.content };
     setReaderEditReturn({
       globalOffset,
       baselineText: opened.content,
       fileHandle: opened.fileHandle,
       fileName: displayFileName(opened.fileHandle, opened.fileName || resolved.file),
     });
+    setShowReader(false);
+    return true;
   }, [handleOpenSegmentFile]);
+
+  useEffect(() => {
+    const pending = pendingReaderEditJumpRef.current;
+    if (!pending || showReader || !sameFileTarget(pending.fileHandle, activeFileHandle)) return;
+    if (text !== pending.content || debouncedText !== pending.content) return;
+    pendingReaderEditJumpRef.current = null;
+    requestAnimationFrame(() => editorRef.current?.jumpToIndex?.(pending.offset));
+  }, [showReader, activeFileHandle, text, debouncedText]);
 
   const saveAndReturnToReader = useCallback(async () => {
     if (!readerEditReturn) return;
@@ -1017,6 +1119,7 @@ function App() {
     onExternalConflict: setExternalConflict,
     baselineFileHandleRef,
     saveReviewGateRef: restoreReviewRef,
+    managedWriteInProgressRef,
   });
 
 
@@ -1498,7 +1601,7 @@ function App() {
                         return (
                           <SearchPanel
                             allFiles={onlyFiles}
-                            onOpenFile={handleOpenFile}
+                            onExecuteReplace={handleExecuteReplacement}
                             activeWorkFolderPath={activeWorkFolderPath}
                             activeFilePath={activeFilePath}
                             searchQuery={projectSearchQuery}
@@ -1659,6 +1762,12 @@ function App() {
                       onDocxExport={handleDocxExport}
                       onMergedTextExport={handleMergedTextExport}
                       onBatchExport={handleBatchExport}
+                      submissionSummary={activeSubmission ? {
+                        name: activeSubmission.prizeName,
+                        charsPerLine: activeSubmission.editorFormat?.charsPerLine || effectiveSettings.charsPerLine || 20,
+                        linesPerPage: activeSubmission.editorFormat?.linesPerPage || effectiveSettings.linesPerPage || 20,
+                        isVertical: activeSubmission.editorFormat?.isVertical ?? effectiveSettings.isVertical !== false,
+                      } : null}
                       mode="output"
                       colorTheme={settings.colorTheme}
                     />
@@ -1921,7 +2030,15 @@ function App() {
                   fileId={activeFileHandle?.path || activeFileHandle?.name || String(activeFileHandle || 'default')}
                   value={editorValue}
                   onChange={handleTextChange}
-                  settings={effectiveSettings}
+                  settings={activeSubmission?.editorFormat && effectiveSettings.paperStyle === 'grid'
+                    ? {
+                        ...effectiveSettings,
+                        charsPerLine: activeSubmission.editorFormat.charsPerLine || effectiveSettings.charsPerLine,
+                        linesPerPage: activeSubmission.editorFormat.linesPerPage || effectiveSettings.linesPerPage,
+                        isVertical: activeSubmission.editorFormat.isVertical ?? effectiveSettings.isVertical,
+                      }
+                    : effectiveSettings}
+                  submissionLayout={activeSubmission?.editorFormat || null}
                   onSave={handleSaveFile}
                   isVertical={settings.isVertical}
                   onOpenLink={handleOpenLink}
@@ -1982,9 +2099,9 @@ function App() {
                 <Preview
                   text={text}
                   settings={activeSubmission?.editorFormat
-                    ? { ...effectiveSettings, ...activeSubmission.editorFormat }
-                    : effectiveSettings}
-                  mode={effectiveSettings.mode}
+                    ? { ...effectiveSettings, ...activeSubmission.editorFormat, orientation: activeSubmission.editorFormat.orientation || 'portrait' }
+                    : { ...effectiveSettings, orientation: 'portrait' }}
+                  mode={resolvePreviewMode(effectiveSettings)}
                   onOpenLink={handleOpenLink}
                   projectHandle={projectHandle}
                   workText={workTextData.workText}
@@ -1993,6 +2110,7 @@ function App() {
                   resolveOffset={workTextData.resolveOffset}
                   onOpenSegmentFile={handleOpenSegmentFile}
                   submissionMode={Boolean(activeSubmission)}
+                  submissionPageLimit={activeSubmission?.pageLimit || null}
                 />
               ) : activeTab === 'reference' ? (
                 /* Full-screen Reference Panel */
@@ -2084,6 +2202,48 @@ function App() {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {activeTab === 'editor' && workTextData.isNexusFile && chapterNavigation.current && (
+                  <nav className="chapter-navigator" aria-label="章ナビゲーション">
+                    <button
+                      className="footer-btn chapter-nav-button"
+                      type="button"
+                      disabled={!chapterNavigation.previous}
+                      onClick={() => openEditorChapter(chapterNavigation.previous)}
+                      title={chapterNavigation.previous ? `前の章：${chapterNavigation.previous.displayName || chapterNavigation.previous.file}` : '最初の章です'}
+                    >← 前の章</button>
+                    <select
+                      className="footer-select chapter-nav-select"
+                      value=""
+                      onChange={handleChapterNavigationChange}
+                      aria-label="章を選択"
+                      title="目次から章・見出しを直接開く"
+                    >
+                      <option value="" disabled>
+                        {chapterNavigation.current.displayName || chapterNavigation.current.file}
+                      </option>
+                      {workTextData.chapterStatuses.map((chapter, index) => {
+                        const headings = chapterHeadings.get(chapter.file) || [];
+                        return (
+                          <optgroup key={chapter.id || chapter.file} label={chapter.displayName || chapter.file}>
+                            <option value={`chapter:${index}`}>章の先頭</option>
+                            {headings.map((heading, headingIndex) => (
+                              <option key={`${heading.localOffset}-${headingIndex}`} value={`heading:${index}:${headingIndex}`}>
+                                {heading.label || '（名称なし見出し）'}
+                              </option>
+                            ))}
+                          </optgroup>
+                        );
+                      })}
+                    </select>
+                    <button
+                      className="footer-btn chapter-nav-button"
+                      type="button"
+                      disabled={!chapterNavigation.next}
+                      onClick={() => openEditorChapter(chapterNavigation.next)}
+                      title={chapterNavigation.next ? `次の章：${chapterNavigation.next.displayName || chapterNavigation.next.file}` : '最後の章です'}
+                    >次の章 →</button>
+                  </nav>
+                )}
                 <div className="tool-group">
                   <button
                     className="footer-btn"
@@ -2169,10 +2329,14 @@ function App() {
                     <button
                       className="footer-btn"
                       onClick={saveAndReturnToReader}
-                      title={`${readerEditReturn.fileName || '対象ファイル'}の変更内容を確認します`}
-                      style={{ marginLeft: '4px', background: 'rgba(39,174,96,0.15)', borderColor: '#27ae60' }}
+                      title={text === readerEditReturn.baselineText ? '編集せずリーダーに戻る' : `${readerEditReturn.fileName || '対象ファイル'}の変更内容を確認します`}
+                      style={text === readerEditReturn.baselineText
+                        ? { marginLeft: '4px' }
+                        : { marginLeft: '4px', background: 'rgba(39,174,96,0.15)', borderColor: '#27ae60' }}
                     >
-                      🔎 {readerEditReturn.fileName || '対象不明'} の変更を確認
+                      {text === readerEditReturn.baselineText
+                        ? '📖 リーダーに戻る'
+                        : `🔎 ${readerEditReturn.fileName || '対象不明'} の変更を確認`}
                     </button>
                   )}
 

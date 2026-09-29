@@ -459,97 +459,6 @@ export function useProjectActions({
     }
   }, [projectHandle, requestConfirm, refreshMaterials, showToast]);
 
-  // --- Project Replace (Search & Replace across files) ---
-  const handleProjectReplace = useCallback(async (changes) => {
-    console.log("handleProjectReplace called with", changes);
-    if (!changes || changes.length === 0) {
-      showToast("変更対象がありません。");
-      return;
-    }
-
-    const uniqueFiles = new Map();
-
-    for (const change of changes) {
-      if (!uniqueFiles.has(change.fileName)) {
-        uniqueFiles.set(change.fileName, { handle: change.fileHandle, changes: [] });
-      }
-      uniqueFiles.get(change.fileName).changes.push(change);
-    }
-
-    let successFileCount = 0;
-    let failFileCount = 0;
-    let skipLineCount = 0;
-    const errors = [];
-    const debugMismatches = [];
-    let firstMismatchDiff = '';
-
-    for (const [fileName, fileData] of uniqueFiles) {
-      try {
-        const { handle, changes: fileChanges } = fileData;
-
-        const fileObj = await fileSystem.readFile(handle);
-        const content = (typeof fileObj === 'string') ? fileObj : await fileObj.text();
-        const lines = content.split('\n');
-
-        let modified = false;
-
-        for (const change of fileChanges) {
-          const currentLine = lines[change.lineIndex];
-          const expectedLine = change.lineContent;
-
-          const cleanCurrent = currentLine ? currentLine.replace(/\r$/, '') : '';
-          const cleanExpected = expectedLine ? expectedLine.replace(/\r$/, '') : '';
-
-          if (cleanCurrent !== cleanExpected) {
-            const cleanNew = change.newContent ? change.newContent.replace(/\r$/, '') : '';
-            if (cleanCurrent === cleanNew) {
-              continue;
-            }
-
-            console.warn(`Mismatch in ${fileName} line ${change.lineIndex + 1}`);
-            console.warn(`Exp: ${JSON.stringify(cleanExpected)}`);
-            console.warn(`Got: ${JSON.stringify(cleanCurrent)}`);
-            debugMismatches.push(`${fileName}:${change.lineIndex + 1}`);
-            if (!firstMismatchDiff) {
-              firstMismatchDiff = `\nFile: ${fileName}:${change.lineIndex + 1}\nExp: [${cleanExpected}]\nGot: [${cleanCurrent}]`;
-            }
-            skipLineCount++;
-            continue;
-          }
-
-          if (lines[change.lineIndex] !== change.newContent) {
-            lines[change.lineIndex] = change.newContent;
-            modified = true;
-          }
-        }
-
-        if (modified) {
-          const newContent = lines.join('\n');
-          await fileSystem.writeFile(handle, newContent);
-          successFileCount++;
-
-          if (activeFileHandle && activeFileHandle.name === fileName) {
-            setText(newContent);
-          }
-        }
-
-      } catch (err) {
-        console.error(`Failed to replace in ${fileName}:`, err);
-        failFileCount++;
-        errors.push(`${fileName}: ${err.message}`);
-      }
-    }
-
-    let msg = `置換完了: ${successFileCount} ファイルを更新しました。`;
-    if (skipLineCount > 0) {
-      msg += `\n⚠ 安全のため ${skipLineCount} 箇所の変更がスキップされました。`;
-      msg += `\n(詳細: ${debugMismatches.join(', ')})`;
-    }
-    if (failFileCount > 0) msg += `\n❌ ${failFileCount} ファイルでエラーが発生しました。`;
-
-    showToast(msg);
-  }, [activeFileHandle, setText, showToast]);
-
   // --- Rename / Move Project ---
   const handleRenameProject = useCallback(async () => {
     if (!projectHandle) return;
@@ -885,7 +794,6 @@ export function useProjectActions({
     handleArchiveVersion,
     handleDelete,
     // Project-wide replace
-    handleProjectReplace,
     // Project rename/move
     handleRenameProject,
     handleMoveProject,

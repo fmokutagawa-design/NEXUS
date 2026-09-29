@@ -29,6 +29,7 @@ export function useAutoSave({
   onExternalConflict,
   baselineFileHandleRef,
   saveReviewGateRef,
+  managedWriteInProgressRef,
 }) {
   // Auto-save to active file in project mode
   // ★ debouncedText は Editor(500ms) + App(500ms) で既に約1秒遅延済み
@@ -43,6 +44,7 @@ export function useAutoSave({
   useEffect(() => {
     if (!isProjectMode || !activeFileHandle || debouncedText === undefined) return;
     if (externalConflictRef?.current) return;
+    if (managedWriteInProgressRef?.current) return;
     if (!assessSaveEligibility({
       activeFileHandle,
       baselineFileHandle: baselineFileHandleRef?.current,
@@ -75,7 +77,12 @@ export function useAutoSave({
 
     const doSave = async () => {
       const tStart = perfNow();
-      if (!isAutoSaveJobCurrent(saveJob, activeFileHandleRef.current, debouncedTextRef.current)) {
+      if (!isAutoSaveJobCurrent(
+        saveJob,
+        activeFileHandleRef.current,
+        debouncedTextRef.current,
+        externalConflictRef?.current || managedWriteInProgressRef?.current,
+      )) {
         perfMeasure('useAutoSave.doSave', tStart, { ok: false, skipped: 'stale-job' });
         return;
       }
@@ -131,7 +138,7 @@ export function useAutoSave({
       const timer = setTimeout(doSave, throttleMs - elapsed);
       return () => clearTimeout(timer);
     }
-  }, [debouncedText, isProjectMode, activeFileHandle, setLastSaved, lastSavedTextRef, showToast, activeFileHandleRef, debouncedTextRef, settings?.enableJournaling, externalConflictRef, onExternalConflict, baselineFileHandleRef, saveReviewGateRef]);
+  }, [debouncedText, isProjectMode, activeFileHandle, setLastSaved, lastSavedTextRef, showToast, activeFileHandleRef, debouncedTextRef, settings?.enableJournaling, externalConflictRef, onExternalConflict, baselineFileHandleRef, saveReviewGateRef, managedWriteInProgressRef]);
 
   // Auto-snapshot: 5分間隔 or 500文字以上の変更で自動スナップショット
   const lastSnapshotRef = useRef({ text: '', time: 0 });

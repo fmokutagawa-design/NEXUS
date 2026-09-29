@@ -302,6 +302,23 @@ body {
   background-position: 0 calc(0px - var(--ls-half, 0px));
 }
 
+/* 応募原稿編集: 30列ごとの太線がページ境界。通常の正方形グリッドは維持する。 */
+.editor-container.vertical.paper-manuscript.submission-editor .native-grid-editor {
+  background-image:
+    linear-gradient(to left,
+      transparent 0,
+      transparent calc(var(--submission-page-span) - 3px),
+      rgba(142, 68, 173, 0.75) calc(var(--submission-page-span) - 3px),
+      rgba(142, 68, 173, 0.75) var(--submission-page-span)),
+    linear-gradient(to bottom, var(--grid-line-strong) 1px, transparent 1px),
+    linear-gradient(to left, var(--grid-line-strong) 1px, transparent 1px);
+  background-size:
+    var(--submission-page-span) 100%,
+    var(--cell) var(--cell),
+    var(--cell) var(--cell);
+  background-position: right top, right top, right top;
+}
+
 /* 縦書き：大学ノート (縦線 = 行の区切り線) */
 .editor-container.vertical.paper-lined .native-grid-editor {
   background-image:
@@ -888,6 +905,36 @@ body.dark-mode .footer {
 
 .footer-font-select {
   max-width: 116px;
+}
+
+.chapter-navigator {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 0 4px;
+  border: 1px solid color-mix(in srgb, var(--accent-color) 35%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent-color) 8%, transparent);
+}
+
+.chapter-nav-button {
+  flex-shrink: 0;
+  padding-inline: 6px;
+  font-size: 11px;
+}
+
+.chapter-nav-button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.chapter-nav-select {
+  width: clamp(110px, 15vw, 240px);
+  max-width: 240px;
+  margin: 0;
+  border-color: transparent;
+  font-weight: 600;
 }
 
 .tool-group {

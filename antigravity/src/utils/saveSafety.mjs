@@ -8,3 +8,8 @@ export function assessSaveEligibility({ activeFileHandle, baselineFileHandle, re
   }
   return { allowed: true, reason: null };
 }
+
+export function shouldClearExternalConflict({ conflictActive, currentFileHandle, targetFileHandle }) {
+  if (!conflictActive) return true;
+  return !sameFileTarget(currentFileHandle, targetFileHandle);
+}

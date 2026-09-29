@@ -2,12 +2,15 @@ import React, { useCallback, useMemo, useRef, useEffect, useState } from 'react'
 import { parseRuby } from '../utils/textUtils';
 import { preprocessText, composeLines, parseAozoraStructure } from '../utils/typesetting';
 import { resolveSubmissionLayout, orientedPageMm } from '../utils/submissionLayout';
+import { calculateSubmissionGrid } from '../utils/submissionGrid';
+import { getSubmissionPageStatus } from '../utils/submissionPageStatus';
 import '../styles/Preview.css';
 
-const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandle, workText, isNexusFile, workTitle, resolveOffset, onOpenSegmentFile, submissionMode = false }) => {
+const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandle, workText, isNexusFile, workTitle, resolveOffset, onOpenSegmentFile, submissionMode = false, submissionPageLimit = null }) => {
     const submissionLayout = useMemo(() => resolveSubmissionLayout(settings), [settings]);
     // mode: 'manuscript' | 'plain'
     const [showFullWork, setShowFullWork] = useState(false);
+    const [rubyVisualization, setRubyVisualization] = useState(submissionMode);
     const effectiveShowFullWork = showFullWork || (submissionMode && isNexusFile);
 
     useEffect(() => {
@@ -23,6 +26,10 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
         return () => window.removeEventListener('nexus:print-full-work', printFullWork);
     }, [isNexusFile]);
     const showGrid = settings.showGrid !== false;
+
+    useEffect(() => {
+        if (submissionMode) setRubyVisualization(true);
+    }, [submissionMode]);
   
     // 表示するテキストを決定（コンポーネントレベルで1回だけ、useMemoで最適化）
     const displayText = useMemo(() => {
@@ -145,32 +152,46 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
         // CSS width/height INCLUDE padding. Content area = dims - padding.
         const availWidth = pageWidth - (marginLeft + marginRight);
         const availHeight = pageHeight - (marginTop + marginBottom);
+        const submissionGrid = submissionMode
+            ? calculateSubmissionGrid({
+                pageWidthMm: pageWidth,
+                pageHeightMm: pageHeight,
+                margins: submissionLayout.margins,
+                charsPerLine,
+                linesPerPage,
+            })
+            : null;
 
         // 3. Calculate Cell Dimensions (mm)
         // 原稿用紙: ルビ欄（行間）を確保しつつ、ページ全体を埋める
 
         // LINE direction (width): cells + line gaps must fill availWidth
         // lineGap = cellWidth * 0.5 (ルビ欄は文字幅の半分)
-        const lineGapRatio = 0.5;
+        // 応募テンプレートは本文領域を30列で等分する。ルビの余白を
+        // 列数へ混ぜず、Wordテンプレートと同じ列ピッチを基準にする。
+        const lineGapRatio = submissionMode ? 0 : 0.18;
         const widthDenom = linesPerPage + lineGapRatio * (linesPerPage - 1);
-        const cellWidthMm = availWidth / widthDenom;
+        const cellWidthMm = submissionGrid?.columnPitchMm ?? (availWidth / widthDenom);
         const lineGapMm = cellWidthMm * lineGapRatio;
 
         // CHARACTER direction (height): cells fill availHeight (calculated in px below)
 
         // 4. Convert to px
         const mmToPx = 3.78;
-        const cellWidthPx = cellWidthMm * mmToPx;
+        const cellWidthPx = submissionGrid?.columnPitchPx ?? (cellWidthMm * mmToPx);
         const lineGapPx = lineGapMm * mmToPx;
         // CSS has margin-top: -1px on .manuscript-cell + .manuscript-cell for border collapse.
         // With N cells, that removes (N-1)px from total height. Compensate:
-        const borderCollapseTotal = (charsPerLine - 1) * 1;
+        const borderCollapseTotal = submissionMode ? 0 : (charsPerLine - 1) * 1;
         const availHeightPx = availHeight * mmToPx;
-        const cellHeightPx = (availHeightPx + borderCollapseTotal) / charsPerLine;
+        const cellHeightPx = submissionGrid?.rowPitchPx ?? ((availHeightPx + borderCollapseTotal) / charsPerLine);
         const charGapPx = 0;
 
         // Font size: 小さい方の辺の75%
-        const fontSizePx = Math.min(cellWidthPx, cellHeightPx) * 0.75;
+        const templateFontPx = submissionMode && Number.isFinite(Number(submissionLayout.fontSizePt))
+            ? Number(submissionLayout.fontSizePt) * (96 / 72)
+            : null;
+        const fontSizePx = templateFontPx || Math.min(cellWidthPx, cellHeightPx) * 0.9;
 
         // --- Typesetting Logic ---
         // 1. Preprocess
@@ -211,6 +232,8 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
                 '--char-gap': `${charGapPx}px`,
                 '--cell-width': `${cellWidthPx}px`,
                 '--cell-height': `${cellHeightPx}px`,
+                '--submission-column-pitch': `${cellWidthPx}px`,
+                '--submission-row-pitch': `${cellHeightPx}px`,
                 // 後方互換性: cell-size は小さい方を使用
                 '--cell-size': `${Math.min(cellWidthPx, cellHeightPx)}px`
             },
@@ -221,7 +244,12 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
             cellWidthPx,
             cellHeightPx
         };
-    }, [displayText, submissionLayout]);
+    }, [displayText, submissionLayout, submissionMode]);
+
+    const submissionPageStatus = useMemo(
+        () => getSubmissionPageStatus(pages.length, submissionPageLimit),
+        [pages.length, submissionPageLimit]
+    );
 
     useEffect(() => {
         let secondFrame;
@@ -312,6 +340,86 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
             }
             return token.char || token.content;
         };
+
+        // 応募用の全体プレビューでは、1マスずつDOMを作らない。行単位の
+        // ネイティブ縦書き＋rubyで、40字×30行の改ページ結果だけを描画する。
+        const renderSubmissionLine = (line) => {
+            const parts = [];
+            let textBuffer = '';
+            const flushText = () => {
+                if (textBuffer) {
+                    parts.push(textBuffer);
+                    textBuffer = '';
+                }
+            };
+
+            line.forEach((token, index) => {
+                if (token.type === 'ruby') {
+                    flushText();
+                    parts.push(
+                        <ruby key={`ruby-${index}`} className="submission-ruby">
+                            <rb>{token.base}</rb><rt>{token.ruby}</rt>
+                        </ruby>
+                    );
+                    return;
+                }
+                if (token.type === 'tcy') {
+                    flushText();
+                    parts.push(<span key={`tcy-${index}`} className="tcy-digits">{token.content}</span>);
+                    return;
+                }
+                if (token.linkTarget) {
+                    flushText();
+                    parts.push(<span key={`link-${index}`} className="wiki-link">{token.char}</span>);
+                    return;
+                }
+                if (token.type === 'spacer') {
+                    textBuffer += '　'.repeat(token.length || 1);
+                    return;
+                }
+                textBuffer += token.char || token.content || '';
+            });
+            flushText();
+            return parts;
+        };
+
+        if (submissionMode) {
+            // 本文、罫線、行列番号の原点をこの一つの領域に固定する。
+            // 罫線を1マスずつDOM生成しないため、全編でも軽い。
+            const contentWidthPx = cellWidthPx * submissionLayout.linesPerPage;
+            const contentHeightPx = cellHeightPx * submissionLayout.charsPerLine;
+            return (
+                <div className="manuscript-wrapper submission-wrapper" style={styles} onClick={handleWorkClick}>
+                    {pages.map((page, pageIndex) => (
+                        <div key={pageIndex} className={`manuscript-page submission-page ${pageSizeClass} ${orientationClass}`} style={{ padding: paddingStyle }}>
+                            <div className="page-number">{submissionLayout.pageNumberStart + pageIndex}</div>
+                            <div
+                                className={`submission-content ${showGrid ? 'show-grid' : ''}`}
+                                style={{
+                                    width: `${contentWidthPx}px`,
+                                    height: `${contentHeightPx}px`,
+                                    gridTemplateColumns: `repeat(${submissionLayout.linesPerPage}, ${cellWidthPx}px)`,
+                                }}
+                            >
+                                <div className="submission-column-ruler" style={{ gridTemplateColumns: `repeat(${submissionLayout.linesPerPage}, ${cellWidthPx}px)` }} aria-hidden="true">
+                                    {Array.from({ length: submissionLayout.linesPerPage }, (_, index) => (
+                                        <span key={index}>{submissionLayout.linesPerPage - index}</span>
+                                    ))}
+                                </div>
+                                <div className="submission-row-ruler" style={{ gridTemplateRows: `repeat(${submissionLayout.charsPerLine}, ${cellHeightPx}px)` }} aria-hidden="true">
+                                    {Array.from({ length: submissionLayout.charsPerLine }, (_, index) => <span key={index}>{index + 1}</span>)}
+                                </div>
+                                {page.slice().reverse().map((line, lineIndex) => (
+                                    <div key={lineIndex} className="submission-line">
+                                        <span className="submission-line-content">{renderSubmissionLine(line)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
 
         return (
             <div
@@ -440,7 +548,9 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
                                                     }}
                                                     title={token.linkTarget ? `${token.linkTarget} を開く` : undefined}
                                                 >
-                                                    {token.type === 'ruby' ? (
+                                                    {token.type === 'ruby' && !rubyVisualization ? (
+                                                        <span className="ruby-source-notation">｜{token.base}《{token.ruby}》</span>
+                                                    ) : token.type === 'ruby' ? (
                                                         <>
                                                             {/* Base Text */}
                                                             {[...token.base].map((c, i) => (
@@ -448,9 +558,7 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
                                                             ))}
                                                             {/* Ruby Text (Justified) */}
                                                             <div className={`ruby-text ${token.ruby.length > token.base.length * 2 ? 'long-ruby' : ''}`}>
-                                                                {token.ruby.split('').map((c, i) => (
-                                                                    <span key={i} style={{ display: 'block' }}>{c}</span>
-                                                                ))}
+                                                                {token.ruby}
                                                             </div>
                                                         </>
                                                     ) : renderTokenContent(token)}
@@ -567,7 +675,7 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
     return (
         <div
             ref={containerRef}
-            className={`preview-container mode-${mode} ${settings.showGrid === false ? 'hide-grid' : ''}`}
+            className={`preview-container mode-${mode} ${settings.showGrid === false ? 'hide-grid' : ''} ${rubyVisualization ? 'ruby-preview-enabled' : 'ruby-preview-disabled'}`}
             style={{
                 fontFamily: settings.fontFamily,
                 '--chars-per-line': settings.charsPerLine || 20,
@@ -595,7 +703,7 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
                 fontFamily: '"Noto Sans JP", sans-serif',
                 border: '1px solid #ddd'
             }}>
-                {isNexusFile && (
+                {isNexusFile && !submissionMode && (
                     <button
                         onClick={() => setShowFullWork(v => !v)}
                         style={{
@@ -615,6 +723,24 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
                         {effectiveShowFullWork ? `📖 全体表示中${workTitle ? ` (${workTitle})` : ''}` : '📖 作品全体'}
                     </button>
                 )}
+                {submissionMode && (
+                    <span style={{ fontSize: '0.78rem', color: submissionPageStatus?.state === 'over' ? '#c0392b' : '#555', whiteSpace: 'nowrap' }}>
+                        全体 {pages.length}ページ{submissionPageStatus ? ` ／${submissionPageStatus.label}` : ''}
+                    </span>
+                )}
+                {mode === 'manuscript' && (
+                    <button
+                        onClick={() => setRubyVisualization(value => !value)}
+                        aria-pressed={rubyVisualization}
+                        style={{
+                            padding: '4px 10px', fontSize: '0.8rem',
+                            background: rubyVisualization ? '#8e44ad' : '#f0f0f0',
+                            color: rubyVisualization ? '#fff' : '#333',
+                            border: '1px solid #ccc', borderRadius: '16px', cursor: 'pointer'
+                        }}
+                        title="本文は変更せず、原稿用紙上のルビ表示だけを切り替えます"
+                    >ルビ反映</button>
+                )}
                 <button
                     id="preview-print-button"
                     onClick={() => {
@@ -631,7 +757,7 @@ const Preview = ({ text, settings, mode = 'manuscript', onOpenLink, projectHandl
                         const margin = submissionLayout.margins;
                         const contentW = paperW - (margin.left + margin.right) * mmToPx;
                         const contentH = paperH - (margin.top + margin.bottom) * mmToPx;
-                        const lineGapRatio = 0.5;
+                        const lineGapRatio = submissionMode ? 0.45 : 0.18;
                         const cellW = contentW / (linesPerPage + lineGapRatio * (linesPerPage - 1));
                         const lineGap = cellW * lineGapRatio;
                         const cellH = contentH / charsPerLine;

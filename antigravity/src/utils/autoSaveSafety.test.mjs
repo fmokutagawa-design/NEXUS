@@ -15,5 +15,10 @@ assert.equal(
   false,
   '同じファイルでも古い本文の保存予約は実行しない'
 );
+assert.equal(
+  isAutoSaveJobCurrent({ fileHandle: fifth, text: '第五章' }, fifth, '第五章', true),
+  false,
+  '検索置換などの管理書込み中は保存予約を実行しない'
+);
 
-console.log('autoSaveSafety: 3 passed');
+console.log('autoSaveSafety: 4 passed');

@@ -9,6 +9,11 @@ const positiveNumber = (value, fallback) => {
   return Number.isFinite(number) && number > 0 ? number : fallback;
 };
 
+const positiveIntegerOrNull = (value) => {
+  const number = Number(value);
+  return Number.isInteger(number) && number > 0 ? number : null;
+};
+
 export function resolveSubmissionLayout(settings = {}) {
   const pageSize = PAGE_MM[settings.pageSize] ? settings.pageSize : 'A4';
   const orientation = settings.orientation === 'landscape' ? 'landscape' : 'portrait';
@@ -20,12 +25,18 @@ export function resolveSubmissionLayout(settings = {}) {
     linesPerPage: Math.max(1, Math.round(positiveNumber(settings.linesPerPage, 20))),
     fontName: settings.fontFamily,
     fontSizePt: positiveNumber(settings.exportFontSizePt, 12),
+    pageNumberStart: Number.isInteger(Number(settings.pageNumberStart)) ? Number(settings.pageNumberStart) : 1,
+    // 提出先テンプレート固有のWord組版値。未指定ならexporterが汎用値を計算する。
+    linePitchTwips: positiveIntegerOrNull(settings.linePitchTwips),
+    headerTwips: positiveIntegerOrNull(settings.headerTwips),
+    footerTwips: positiveIntegerOrNull(settings.footerTwips),
+    columnSpaceTwips: positiveIntegerOrNull(settings.columnSpaceTwips),
     lineHeight: positiveNumber(settings.lineHeight, 1.5),
     margins: {
-      top: positiveNumber(settings.marginTopMm ?? settings.marginMm, 20),
-      right: positiveNumber(settings.marginRightMm ?? settings.marginMm, 20),
-      bottom: positiveNumber(settings.marginBottomMm ?? settings.marginMm, 20),
-      left: positiveNumber(settings.marginLeftMm ?? settings.marginMm, 20),
+      top: positiveNumber(settings.marginTopMm ?? settings.marginMm, 12),
+      right: positiveNumber(settings.marginRightMm ?? settings.marginMm, 12),
+      bottom: positiveNumber(settings.marginBottomMm ?? settings.marginMm, 12),
+      left: positiveNumber(settings.marginLeftMm ?? settings.marginMm, 12),
     },
     page: PAGE_MM[pageSize],
   };

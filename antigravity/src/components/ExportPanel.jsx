@@ -9,6 +9,7 @@ const ExportPanel = ({
   onBatchExport,
   mode = 'output',
   colorTheme,
+  submissionSummary = null,
 }) => {
   const isDark = colorTheme === 'dark';
   const colors = {
@@ -22,7 +23,7 @@ const ExportPanel = ({
 
   const outputActions = [
     { icon: '🧾', title: '結合TXT', description: '分割した全章を、作品の順番どおり1ファイルにまとめます', action: onMergedTextExport, tone: '#8e44ad' },
-    { icon: '📄', title: 'Word', description: '応募用の書式を反映した .docx を作成します', action: onDocxExport, tone: '#2563eb' },
+    { icon: '📄', title: '応募用Word', description: '応募用の書式とWordネイティブルビを反映した .docx を作成します', action: onDocxExport, tone: '#2563eb' },
     { icon: '🖨️', title: 'PDF・印刷', description: '作品全体を印刷プレビューで確認し、PDF保存または印刷します', action: onPrint || (() => window.print()), tone: '#dc6b2f' },
     { icon: '📚', title: 'EPUB', description: '縦書き対応の電子書籍ファイルを書き出します', action: onEpubExport, tone: '#16836d' },
   ].filter(item => item.action);
@@ -84,6 +85,12 @@ const ExportPanel = ({
           <div style={{ marginTop: '12px', padding: '10px 12px', borderRadius: '8px', background: colors.soft, color: isDark ? '#e9d5ff' : '#643076', fontSize: '10px', lineHeight: 1.55 }}>
             分割作品は、manifest.jsonに記録された章順で結合します。章が欠けている場合は不完全な出力を作らず中止します。
           </div>
+          {submissionSummary && (
+            <div style={{ marginTop: '8px', padding: '9px 12px', borderRadius: '8px', border: `1px solid ${colors.border}`, fontSize: '10px', lineHeight: 1.6 }}>
+              <strong>{submissionSummary.name}</strong><br />
+              {submissionSummary.charsPerLine}字×{submissionSummary.linesPerPage}行　{submissionSummary.isVertical ? '縦書き' : '横書き'}
+            </div>
+          )}
         </>
       )}
 

@@ -1,6 +1,7 @@
 // utils/readerParser.jsx
 import React from 'react';
 import { resolveFontName } from './typesetting';
+import { parseHeadingLine } from './headingNavigation';
 
 /* ====================================================
  * ブロックレベル解析
@@ -63,33 +64,15 @@ export function parseBlocks(text) {
         let isHeader = false;
         let headingMarker = '';
 
-        // 見出し（■ / ◇ マーカー含む）
-        // 原稿の字下げ（半角/全角空白・タブ・BOM）が見出し記号の前に
-        // あっても、目次から章を落とさない。
-        if (/^[\uFEFF \t\u3000]*[■◇]/.test(line)) {
-            heading = 'chapter';
+        // リーダーとエディタの目次で同じ見出し判定を使う。
+        const parsedHeading = parseHeadingLine(line);
+        if (parsedHeading) {
+            heading = parsedHeading.heading;
             isHeader = true;
-            const markerMatch = line.match(/^[\uFEFF \t\u3000]*[■◇]+/);
-            headingMarker = markerMatch ? markerMatch[0].trim() : '';
-            line = line.replace(/^[\uFEFF \t\u3000]*[■◇]+\s*/, '');
-            // 記号だけの行も章境界として残す。空の制御行として捨てない。
-            if (line.length === 0) line = headingMarker;
-        }
-        if (/［＃大見出し］/.test(line)) {
-            heading = 'large';
-            isHeader = true;
-            line = line.replace(/［＃大見出し］/g, '')
-                       .replace(/［＃大見出し終わり］/g, '');
-        } else if (/［＃中見出し］/.test(line)) {
-            heading = 'medium';
-            isHeader = true;
-            line = line.replace(/［＃中見出し］/g, '')
-                       .replace(/［＃中見出し終わり］/g, '');
-        } else if (/［＃小見出し］/.test(line)) {
-            heading = 'small';
-            isHeader = true;
-            line = line.replace(/［＃小見出し］/g, '')
-                       .replace(/［＃小見出し終わり］/g, '');
+            headingMarker = /^[\uFEFF \t\u3000]*[■◇]/.test(line)
+                ? (line.match(/^[\uFEFF \t\u3000]*[■◇]+/)?.[0]?.trim() || '')
+                : '';
+            line = parsedHeading.content;
         }
 
         // 中央揃え

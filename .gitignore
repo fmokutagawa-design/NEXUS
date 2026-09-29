@@ -4,6 +4,8 @@ node_modules/
 *.log
 __pycache__/
 nexus_backend/.venv/
+nexus_backend/homework_list.json
+nexus_backend/nexus_local.sqlite3
 nexus_db/
 *.pyc
 .superpowers/

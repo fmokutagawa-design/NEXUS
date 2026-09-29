@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { createSearchSignature, isCurrentSearchResponse } from '../utils/searchResultFreshness.mjs';
 
 const escapeRegExp = value => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const normalizeWhitespaceQuery = value => {
@@ -8,7 +9,7 @@ const normalizeWhitespaceQuery = value => {
     return text.replace(/␠/g, ' ').replace(/□/g, '　');
 };
 
-const SearchPanel = ({ allFiles, activeWorkFolderPath, activeFilePath, onOpenFile, searchQuery: initialQuery, requestConfirm, showToast }) => {
+const SearchPanel = ({ allFiles, activeWorkFolderPath, activeFilePath, onExecuteReplace, searchQuery: initialQuery, requestConfirm, showToast }) => {
     const [searchQuery, setSearchQuery] = useState(initialQuery?.term || '');
     const [replaceTerm, setReplaceTerm] = useState('');
     const [results, setResults] = useState([]);
@@ -19,6 +20,20 @@ const SearchPanel = ({ allFiles, activeWorkFolderPath, activeFilePath, onOpenFil
     const [txtOnly, setTxtOnly] = useState(true);
     const [replacePreview, setReplacePreview] = useState([]);
     const [isReplacing, setIsReplacing] = useState(false);
+    const latestSearchIdRef = useRef(0);
+    const currentSignature = useMemo(() => createSearchSignature(normalizeWhitespaceQuery(searchQuery), {
+        isRegex, caseSensitive, txtOnly
+    }), [searchQuery, isRegex, caseSensitive, txtOnly]);
+    const currentSignatureRef = useRef(currentSignature);
+    currentSignatureRef.current = currentSignature;
+
+    const invalidateResults = useCallback(() => {
+        latestSearchIdRef.current += 1;
+        setResults([]);
+        setReplacePreview([]);
+        setEngineName('');
+        setIsSearching(false);
+    }, []);
 
     const makePattern = useCallback((term, global = false) => {
         const normalizedTerm = normalizeWhitespaceQuery(term);
@@ -28,17 +43,21 @@ const SearchPanel = ({ allFiles, activeWorkFolderPath, activeFilePath, onOpenFil
 
     const performSearch = useCallback(async (term) => {
         const query = normalizeWhitespaceQuery(term);
+        const signature = createSearchSignature(query, { isRegex, caseSensitive, txtOnly });
+        const requestId = latestSearchIdRef.current + 1;
+        latestSearchIdRef.current = requestId;
         if (!query || !activeWorkFolderPath) { setResults([]); return; }
         setIsSearching(true);
         setReplacePreview([]);
         try {
             const isElectron = !!window.api;
             let rawResults = [];
+            let nextEngineName = '';
             if (isElectron && window.api.fs?.grep) {
                 rawResults = await window.api.fs.grep(activeWorkFolderPath, query, { useRegex: isRegex, caseSensitive, extensions: txtOnly ? ['.txt'] : undefined });
-                setEngineName('Grep（Electron）');
+                nextEngineName = 'Grep（Electron）';
             } else {
-                setEngineName('JS Scan（読み込み済みファイル）');
+                nextEngineName = 'JS Scan（読み込み済みファイル）';
                 const pattern = makePattern(query);
                 const scanned = [];
                 for (const file of (allFiles || [])) {
@@ -67,12 +86,22 @@ const SearchPanel = ({ allFiles, activeWorkFolderPath, activeFilePath, onOpenFil
                 path: res.path || '',
                 lineIndex: Number.isFinite(res.lineIndex) ? res.lineIndex : 0,
             })).sort((a, b) => a.path.localeCompare(b.path) || a.lineIndex - b.lineIndex);
+            if (!isCurrentSearchResponse({
+                responseId: requestId,
+                latestId: latestSearchIdRef.current,
+                responseSignature: signature,
+                currentSignature: currentSignatureRef.current,
+            })) return;
+            setEngineName(nextEngineName);
             setResults(mappedResults);
         } catch (err) {
+            if (requestId !== latestSearchIdRef.current) return;
             console.error('Search failed:', err);
             setResults([]);
             showToast?.(`検索に失敗しました: ${err.message || err}`, 'error');
-        } finally { setIsSearching(false); }
+        } finally {
+            if (requestId === latestSearchIdRef.current) setIsSearching(false);
+        }
     }, [activeWorkFolderPath, allFiles, isRegex, caseSensitive, txtOnly, makePattern, showToast]);
 
     useEffect(() => {
@@ -105,8 +134,23 @@ const SearchPanel = ({ allFiles, activeWorkFolderPath, activeFilePath, onOpenFil
     };
 
     const handleResultClick = useCallback((res) => {
-        window.dispatchEvent(new CustomEvent('nexus-jump-to-text', { detail: { file: res.name, line: res.lineIndex, path: res.path, text: res.lineContent } }));
-    }, []);
+        let match = null;
+        try { match = makePattern(searchQuery).exec(String(res.lineContent || '')); } catch { /* 検索時に通知済み */ }
+        window.dispatchEvent(new CustomEvent('nexus-jump-to-text', {
+            detail: {
+                source: 'search',
+                file: res.name,
+                line: res.lineIndex,
+                path: res.path,
+                text: res.lineContent,
+                query: normalizeWhitespaceQuery(searchQuery),
+                matchedText: match?.[0] || '',
+                column: match?.index ?? 0,
+                isRegex,
+                caseSensitive,
+            }
+        }));
+    }, [makePattern, searchQuery, isRegex, caseSensitive]);
 
     const buildReplacePreview = useCallback(async () => {
         if (!searchQuery || !results.length || !window.api?.fs?.readFile) return;
@@ -129,28 +173,19 @@ const SearchPanel = ({ allFiles, activeWorkFolderPath, activeFilePath, onOpenFil
     }, [searchQuery, results, replaceTerm, makePattern, showToast]);
 
     const executeReplace = useCallback(async () => {
-        if (!replacePreview.length || isReplacing || !window.api?.fs?.writeFile) return;
+        if (!replacePreview.length || isReplacing || !onExecuteReplace) return;
         const total = replacePreview.reduce((sum, f) => sum + f.count, 0);
         const confirmed = requestConfirm ? await requestConfirm('置換の確認', `${replacePreview.length}ファイル、合計${total}箇所を置換しますか？\n対象フォルダ: ${activeWorkFolderPath}`, true) : window.confirm(`${replacePreview.length}ファイルを置換しますか？`);
         if (!confirmed) return;
         setIsReplacing(true);
         try {
-            for (const change of replacePreview) {
-                const result = await window.api.fs.writeFile(change.path, change.after, { expectedContent: change.before });
-                if (result?.ok === false) throw new Error(`${change.name} の保存結果を確認できませんでした`);
-                const readBack = String(await window.api.fs.readFile(change.path));
-                if (readBack !== change.after) throw new Error(`${change.name} の保存後内容が一致しません`);
-            }
-            if (activeFilePath && replacePreview.some(change => change.path === activeFilePath)) {
-                const fileName = activeFilePath.split(/[/\\]/).pop();
-                await onOpenFile?.(activeFilePath, fileName);
-            }
+            await onExecuteReplace(replacePreview);
             setReplacePreview([]);
             showToast?.(`${total}箇所を置換し、保存内容を確認しました。`);
             await performSearch(searchQuery);
         } catch (error) { showToast?.(`置換に失敗しました: ${error.message}`, 'error'); }
         finally { setIsReplacing(false); }
-    }, [replacePreview, isReplacing, requestConfirm, activeWorkFolderPath, activeFilePath, onOpenFile, showToast, performSearch, searchQuery]);
+    }, [replacePreview, isReplacing, requestConfirm, activeWorkFolderPath, onExecuteReplace, showToast, performSearch, searchQuery]);
 
     return (
         <div className="search-panel-container" style={{ display: 'flex', flexDirection: 'column', height: '100%', color: '#111', background: 'var(--bg-dark)' }}>
@@ -161,7 +196,7 @@ const SearchPanel = ({ allFiles, activeWorkFolderPath, activeFilePath, onOpenFil
                 </div>
                 <div style={{ fontSize: '10px', color: '#666', marginBottom: '8px' }}>{folderHint}（初期値はこのファイルの親フォルダ）</div>
                 <div style={{ display: 'flex', gap: '4px', marginBottom: '5px' }}>
-                            <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && performSearch(searchQuery)} placeholder="作品内を検索（␠=半角空白、□=全角空白）..." style={{ flex: 1, background: '#fff', border: '1px solid #999', color: '#333', padding: '6px 10px', fontSize: '13px', borderRadius: '4px' }} />
+                            <input type="text" value={searchQuery} onChange={e => { setSearchQuery(e.target.value); invalidateResults(); }} onKeyDown={e => e.key === 'Enter' && performSearch(searchQuery)} placeholder="作品内を検索（␠=半角空白、□=全角空白）..." style={{ flex: 1, background: '#fff', border: '1px solid #999', color: '#333', padding: '6px 10px', fontSize: '13px', borderRadius: '4px' }} />
                     <button onClick={() => performSearch(searchQuery)} style={{ background: '#5b7bb5', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>検索</button>
                 </div>
                 <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
@@ -169,9 +204,9 @@ const SearchPanel = ({ allFiles, activeWorkFolderPath, activeFilePath, onOpenFil
                     <button onClick={buildReplacePreview} disabled={!searchQuery || !results.length} style={{ background: '#8a5a44', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', opacity: (!searchQuery || !results.length) ? .5 : 1 }}>置換プレビュー</button>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center', fontSize: '11px', color: '#111' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="checkbox" checked={isRegex} onChange={e => setIsRegex(e.target.checked)} style={{ margin: 0 }} />正規表現</label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="checkbox" checked={caseSensitive} onChange={e => setCaseSensitive(e.target.checked)} style={{ margin: 0 }} />大文字/小文字</label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="checkbox" checked={txtOnly} onChange={e => setTxtOnly(e.target.checked)} style={{ margin: 0 }} />TXTのみ</label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="checkbox" checked={isRegex} onChange={e => { setIsRegex(e.target.checked); invalidateResults(); }} style={{ margin: 0 }} />正規表現</label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="checkbox" checked={caseSensitive} onChange={e => { setCaseSensitive(e.target.checked); invalidateResults(); }} style={{ margin: 0 }} />大文字/小文字</label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}><input type="checkbox" checked={txtOnly} onChange={e => { setTxtOnly(e.target.checked); invalidateResults(); }} style={{ margin: 0 }} />TXTのみ</label>
                     <span style={{ marginLeft: 'auto', color: '#1e5aad' }}>{engineName}</span>
                 </div>
                 {!isSearching && searchQuery && <div style={{ fontSize: '11px', marginTop: '8px', color: '#1e5aad' }}>{results.length} 件のヒット</div>}

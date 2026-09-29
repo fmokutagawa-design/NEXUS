@@ -1,4 +1,5 @@
 import React from 'react';
+import { parseRubyTokens } from './rubyParser';
 
 /**
  * Parses Aozora Bunko format ruby: ｜漢字《かんじ》 or 漢字《かんじ》
@@ -9,43 +10,9 @@ import React from 'react';
  * Returns: Array<string | { base: string, ruby: string }>
  */
 export const parseRubyToTokens = (text) => {
-    const tokens = [];
-    // Regex for standard ruby: ｜Base《Ruby》
-    // Regex for simplified ruby: Kanji《Ruby》
-    // We need to iterate through the text and find matches.
-
-    // Combined regex:
-    // 1. ｜(Base)《(Ruby)》  -> Standard
-    // 2. ([一-龠々〆ヵヶ]+)《([^》]+)》 -> Simplified (Kanji only base)
-
-    const regex = /｜([^｜《]+)《([^》]+)》|([一-龠々〆ヵヶ]+)《([^》]+)》/g;
-
-    let lastIndex = 0;
-    let match;
-
-    while ((match = regex.exec(text)) !== null) {
-        // Add preceding text
-        if (match.index > lastIndex) {
-            tokens.push(match.input.substring(lastIndex, match.index));
-        }
-
-        if (match[1]) {
-            // Standard Ruby: ｜Base《Ruby》
-            tokens.push({ base: match[1], ruby: match[2] });
-        } else {
-            // Simplified Ruby: Kanji《Ruby》
-            tokens.push({ base: match[3], ruby: match[4] });
-        }
-
-        lastIndex = regex.lastIndex;
-    }
-
-    // Add remaining text
-    if (lastIndex < text.length) {
-        tokens.push(text.substring(lastIndex));
-    }
-
-    return tokens;
+    return parseRubyTokens(text).map(token => typeof token === 'string'
+        ? token
+        : { base: token.base, ruby: token.ruby });
 };
 
 /**

@@ -131,7 +131,15 @@ const literaryPrizes = [
         pageLimit: { min: 100, max: 200 },
         charLimit: null,
         formatNote: 'A4判 40字×30行 縦書き 100〜200ページ（Word推奨）',
-        editorFormat: { charsPerLine: 40, linesPerPage: 30 },
+        // 提出テンプレート template.docx の実設定。ほかの賞も同じeditorFormatで追加できる。
+        editorFormat: {
+            pageSize: 'A4', orientation: 'landscape', isVertical: true,
+            charsPerLine: 40, linesPerPage: 30,
+            marginTopMm: 30, marginRightMm: 30, marginBottomMm: 30, marginLeftMm: 30,
+            fontFamily: 'ＭＳ 明朝', exportFontSizePt: 10.5,
+            pageNumberStart: 0,
+            linePitchTwips: 447, headerTwips: 851, footerTwips: 992, columnSpaceTwips: 425,
+        },
         deadlineMonth: 9,
         estimatedDeadlineDay: 30,
         confirmedDeadline: '2026-09-30',

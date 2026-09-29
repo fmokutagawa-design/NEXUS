@@ -3,7 +3,8 @@ import { saveTextFile, loadTextFile } from '../utils/fileUtils';
 import { fileSystem, isNative } from '../utils/fileSystem';
 import { parseNote } from '../utils/metadataParser';
 import { findSegmentEntry, normalizeManifestFileName, readManifest, loadSegmentTexts } from '../utils/manifest';
-import { assessSaveEligibility } from '../utils/saveSafety.mjs';
+import { assessSaveEligibility, shouldClearExternalConflict } from '../utils/saveSafety.mjs';
+import { selectSegmentFile } from '../utils/segmentFileSelection.mjs';
 
 const sameFileName = (left, right) => normalizeManifestFileName(left) === normalizeManifestFileName(right);
 const pathEndsWithFile = (path, fileName) => normalizeManifestFileName(path).endsWith(normalizeManifestFileName(fileName));
@@ -208,7 +209,13 @@ export function useFileOperations({
 
       // 通常のファイル読み込み
       const content = await fileSystem.readFile(targetHandle);
-      if (externalConflictRef) externalConflictRef.current = false;
+      if (externalConflictRef && shouldClearExternalConflict({
+        conflictActive: externalConflictRef.current,
+        currentFileHandle: activeFileHandleRef?.current,
+        targetFileHandle: targetHandle,
+      })) {
+        externalConflictRef.current = false;
+      }
       if (activeFileHandleRef) activeFileHandleRef.current = targetHandle;
       setText(content);
       if (setDebouncedText) setDebouncedText(content);
@@ -269,11 +276,7 @@ export function useFileOperations({
 
   const handleOpenSegmentFile = useCallback(async (fileName, localOffset, nexusPath = '') => {
     const normalizedNexusPath = String(nexusPath || '').replace(/\\/g, '/').replace(/\/$/, '');
-    // まず既存の allMaterialFiles から検索
-    const found = allMaterialFiles?.find(f =>
-      (sameFileName(f.name, fileName) || (f.handle && typeof f.handle === 'string' && pathEndsWithFile(f.handle, fileName))) &&
-      (!normalizedNexusPath || String(f.handle || f.path || '').replace(/\\/g, '/').includes(`${normalizedNexusPath}/`))
-    );
+    const found = selectSegmentFile(allMaterialFiles, fileName, normalizedNexusPath);
 
     if (found) {
       return await handleOpenFile(found.handle, fileName, { position: localOffset, path: found.path });

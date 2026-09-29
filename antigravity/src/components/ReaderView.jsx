@@ -445,14 +445,17 @@ const ReaderView = ({ text, settings, onClose, cursorOffset = 0, onJumpToEditor,
                                     cursor: (onJumpToEditor || (showFullWork && onOpenSegmentFile)) ? 'pointer' : undefined,
                                 }}
                                 title={(onJumpToEditor || (showFullWork && onOpenSegmentFile)) ? 'ダブルクリックでこの位置を編集' : undefined}
-                                onDoubleClick={() => {
+                                onDoubleClick={async () => {
                                     if (showFullWork && resolveOffset && onOpenSegmentFile) {
                                         // 作品全体表示中: 該当章ファイルを開く
                                         const resolved = resolveOffset(block.textOffset ?? 0);
                                         if (resolved) {
-                                            if (onEditFromReader) onEditFromReader(resolved, block.textOffset ?? 0);
-                                            else onOpenSegmentFile(resolved.file, resolved.localOffset, resolved.nexusPath);
-                                            onClose(); // リーダーを閉じる
+                                            if (onEditFromReader) {
+                                                await onEditFromReader(resolved, block.textOffset ?? 0);
+                                            } else {
+                                                const opened = await onOpenSegmentFile(resolved.file, resolved.localOffset, resolved.nexusPath);
+                                                if (opened) onClose();
+                                            }
                                         }
                                     } else if (onJumpToEditor) {
                                         // 通常表示: 従来の Editor ジャンプ

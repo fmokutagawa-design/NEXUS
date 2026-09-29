@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import { downloadBlob } from './epubExporter.js';
+import { parseRubyTokens } from './rubyParser.js';
 
 /**
  * DOCX Exporter for Antigravity
@@ -55,44 +56,35 @@ function textToDocxParagraphs(text, fontName, fontSizePt) {
     processedLine = processedLine.replace(/\*\*([^*]+)\*\*/g, '$1');
 
     // ルビ処理 — ルビがある場合はOpenXMLのrubyマークアップを使用
-    const hasRuby = /《[^》]+》/.test(processedLine);
+    const rubyTokens = parseRubyTokens(processedLine);
+    const hasRuby = rubyTokens.some(token => typeof token !== 'string');
 
     if (hasRuby) {
       const parts = [];
-      let cursor = 0;
-      const rubyRegex = /[｜|]?([^｜|\n《]+)《([^》\n]+)》/g;
-      let m;
-
-      while ((m = rubyRegex.exec(processedLine)) !== null) {
-        // ルビ前のテキスト
-        if (m.index > cursor) {
-          const before = processedLine.slice(cursor, m.index);
+      for (const token of rubyTokens) {
+        if (typeof token === 'string') {
+          if (!token) continue;
           parts.push(
             `<w:r><w:rPr><w:rFonts w:eastAsia="${fontName}"/></w:rPr>` +
-            `<w:t xml:space="preserve">${escapeXml(before)}</w:t></w:r>`
+            `<w:t xml:space="preserve">${escapeXml(token)}</w:t></w:r>`
           );
+          continue;
         }
-        // ルビ付きテキスト
-        const base = m[1];
-        const ruby = m[2];
         parts.push(
           `<w:ruby>` +
           `<w:rubyPr><w:rubyAlign w:val="distributeSpace"/>` +
           `<w:hps w:val="${rubyHalfPoints}"/><w:hpsRaise w:val="${baseHalfPoints}"/><w:hpsBaseText w:val="${baseHalfPoints}"/></w:rubyPr>` +
           `<w:rubyBase><w:r><w:rPr><w:rFonts w:eastAsia="${fontName}"/></w:rPr>` +
-          `<w:t>${escapeXml(base)}</w:t></w:r></w:rubyBase>` +
+          `<w:t>${escapeXml(token.base)}</w:t></w:r></w:rubyBase>` +
           `<w:rt><w:r><w:rPr><w:rFonts w:eastAsia="${fontName}"/><w:sz w:val="${rubyHalfPoints}"/></w:rPr>` +
-          `<w:t>${escapeXml(ruby)}</w:t></w:r></w:rt>` +
+          `<w:t>${escapeXml(token.ruby)}</w:t></w:r></w:rt>` +
           `</w:ruby>`
         );
-        cursor = m.index + m[0].length;
       }
-      // 残り
-      if (cursor < processedLine.length) {
-        const after = processedLine.slice(cursor);
+      if (parts.length === 0) {
         parts.push(
           `<w:r><w:rPr><w:rFonts w:eastAsia="${fontName}"/></w:rPr>` +
-          `<w:t xml:space="preserve">${escapeXml(after)}</w:t></w:r>`
+          `<w:t xml:space="preserve"></w:t></w:r>`
         );
       }
 
@@ -127,6 +119,7 @@ function contentTypesXml() {
   <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
   <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
   <Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>
+  <Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/>
 </Types>`;
 }
 
@@ -142,7 +135,21 @@ function documentRelsXml() {
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
   <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/>
+  <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/>
 </Relationships>`;
+}
+
+function footerXml() {
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:ftr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:p><w:pPr><w:jc w:val="center"/></w:pPr>
+    <w:r><w:fldChar w:fldCharType="begin"/></w:r>
+    <w:r><w:instrText>PAGE \\* MERGEFORMAT</w:instrText></w:r>
+    <w:r><w:fldChar w:fldCharType="separate"/></w:r>
+    <w:r><w:t>1</w:t></w:r>
+    <w:r><w:fldChar w:fldCharType="end"/></w:r>
+  </w:p>
+</w:ftr>`;
 }
 
 function stylesXml(fontName, fontSizePt, linePitchTwips) {
@@ -182,7 +189,7 @@ function mmToTwips(mm) {
 }
 
 function documentXml(bodyContent, layout) {
-  const { isVertical, pageSize, orientation, margins, charsPerLine, linesPerPage, fontSizePt } = layout;
+  const { isVertical, pageSize, orientation, margins, charsPerLine, linesPerPage, pageNumberStart, headerTwips, footerTwips, columnSpaceTwips } = layout;
   const pageDims = {
     'A4': { w: 11906, h: 16838 },
     'B5': { w: 9979, h: 14175 },
@@ -201,10 +208,7 @@ function documentXml(bodyContent, layout) {
   };
   const usableWidth = pgW - marginTwips.left - marginTwips.right;
   const usableHeight = pgH - marginTwips.top - marginTwips.bottom;
-  const linePitchTwips = Math.max(1, Math.round((isVertical ? usableWidth : usableHeight) / linesPerPage));
-  const charAxisPoints = (isVertical ? usableHeight : usableWidth) / 20;
-  const desiredCharPitchPt = charAxisPoints / charsPerLine;
-  const charSpace = Math.max(0, Math.round((desiredCharPitchPt - fontSizePt) * 4096));
+  const linePitchTwips = layout.linePitchTwips || Math.max(1, Math.round((isVertical ? usableWidth : usableHeight) / linesPerPage));
 
   // 縦書き: textDirection="tbRl"
   const textDir = isVertical ? '<w:textDirection w:val="tbRl"/>' : '';
@@ -215,11 +219,14 @@ function documentXml(bodyContent, layout) {
   <w:body>
 ${bodyContent}
     <w:sectPr>
+      <w:footerReference w:type="default" r:id="rId3"/>
       <w:pgSz w:w="${pgW}" w:h="${pgH}"${orientAttr}/>
       <w:pgMar w:top="${marginTwips.top}" w:right="${marginTwips.right}" w:bottom="${marginTwips.bottom}" w:left="${marginTwips.left}"
-               w:header="720" w:footer="720"/>
+               w:header="${headerTwips || 720}" w:footer="${footerTwips || 720}"/>
       ${textDir}
-      <w:docGrid w:type="linesAndChars" w:linePitch="${linePitchTwips}" w:charSpace="${charSpace}"/>
+      <w:pgNumType w:start="${pageNumberStart}"/>
+      <w:cols w:space="${columnSpaceTwips || 720}"/>
+      <w:docGrid w:type="linesAndChars" w:linePitch="${linePitchTwips}"/>
     </w:sectPr>
   </w:body>
 </w:document>`;
@@ -239,6 +246,11 @@ export async function generateDocx({
   fontSizePt = 12,
   lineHeight = 1.5,
   margins = { top: 20, right: 20, bottom: 20, left: 20 },
+  pageNumberStart = 1,
+  linePitchTwips = null,
+  headerTwips = null,
+  footerTwips = null,
+  columnSpaceTwips = null,
 }) {
   const zip = new JSZip();
   fontName = normalizeWordFontName(fontName);
@@ -255,18 +267,19 @@ export async function generateDocx({
     ? pgH - mmToTwips(margins.top) - mmToTwips(margins.bottom)
     : pgW - mmToTwips(margins.left) - mmToTwips(margins.right);
   const desiredCharPitchPt = usableCharAxis / 20 / charsPerLine;
-  const effectiveFontSizePt = Math.min(fontSizePt, desiredCharPitchPt * 0.9);
-  const layout = { isVertical, pageSize, orientation, charsPerLine, linesPerPage, fontSizePt: effectiveFontSizePt, lineHeight, margins };
+  const effectiveFontSizePt = Math.min(fontSizePt, desiredCharPitchPt);
+  const layout = { isVertical, pageSize, orientation, charsPerLine, linesPerPage, fontSizePt: effectiveFontSizePt, lineHeight, margins, pageNumberStart, linePitchTwips, headerTwips, footerTwips, columnSpaceTwips };
   const bodyParagraphs = textToDocxParagraphs(content, fontName, effectiveFontSizePt);
 
   zip.file('word/document.xml', documentXml(bodyParagraphs, layout));
   const usableCrossAxis = isVertical
     ? pgW - mmToTwips(margins.left) - mmToTwips(margins.right)
     : pgH - mmToTwips(margins.top) - mmToTwips(margins.bottom);
-  const linePitchTwips = Math.max(1, Math.round(usableCrossAxis / linesPerPage));
+  const resolvedLinePitchTwips = linePitchTwips || Math.max(1, Math.round(usableCrossAxis / linesPerPage));
 
-  zip.file('word/styles.xml', stylesXml(fontName, effectiveFontSizePt, linePitchTwips));
+  zip.file('word/styles.xml', stylesXml(fontName, effectiveFontSizePt, resolvedLinePitchTwips));
   zip.file('word/settings.xml', settingsXml());
+  zip.file('word/footer1.xml', footerXml());
 
   const blob = await zip.generateAsync({
     type: 'blob',

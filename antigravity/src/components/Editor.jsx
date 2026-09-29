@@ -12,6 +12,7 @@ import {
   cleanVerticalContentWidth,
   measureDetachedCleanVerticalWidth,
 } from '../utils/cleanEditorGeometry.mjs';
+import { calculateSubmissionEditorMetrics } from '../utils/submissionEditorMetrics';
 
 
 /**
@@ -148,7 +149,7 @@ function computeTotalLines(text, maxPerLine) {
 
 import ReactDOM from 'react-dom';
 
-const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertRuby, onInsertLink, onSearchRequested, onLaunchAI, ghostText, setGhostText, corrections = [], onImageDrop, fileId = '' }, ref) => {
+const Editor = forwardRef(({ value, onChange, onCursorStats, settings, submissionLayout = null, onInsertRuby, onInsertLink, onSearchRequested, onLaunchAI, ghostText, setGhostText, corrections = [], onImageDrop, fileId = '' }, ref) => {
   const textareaRef = useRef(null);
   const [editorContextMenu, setEditorContextMenu] = React.useState(null);
 
@@ -386,8 +387,19 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
     // setDebouncedValue(value) -> debouncedDocument 側で処理されるため削除
   }, [fileId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const initialScrollTimerRef = useRef(null);
   // ファイル切替・縦横切替時の初期スクロール（文頭＝縦書き右端へ）
   useEffect(() => {
+    const timers = new Set();
+    const cancelInitialScroll = () => {
+      timers.forEach(clearTimeout);
+      timers.clear();
+    };
+    initialScrollTimerRef.current = cancelInitialScroll;
+    const schedule = (callback) => {
+      const timer = setTimeout(() => { timers.delete(timer); callback(); }, 50);
+      timers.add(timer);
+    };
     const container = textareaRef.current?.closest('.editor-container');
     if (!container) return;
     if (settings.isVertical) {
@@ -397,14 +409,15 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
           container.scrollLeft = container.scrollWidth;
         } else if (attempts < 10) {
           attempts++;
-          setTimeout(tryScroll, 50);
+          schedule(tryScroll);
         }
       };
-      setTimeout(tryScroll, 50);
+      schedule(tryScroll);
     } else {
       container.scrollTop = 0;
       container.scrollLeft = 0;
     }
+    return () => { cancelInitialScroll(); initialScrollTimerRef.current = null; };
   }, [fileId, settings.isVertical]);
 
 
@@ -445,19 +458,29 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
 
   // --- 1a. ベース寸法（設定のみ依存、valueに依存しない） ---
   const baseMetrics = useMemo(() => {
-    const fontSize = parseInt(settings.fontSize) || 18;
+    const requestedFontSize = parseInt(settings.fontSize) || 18;
     const isManuscript = settings.paperStyle === 'grid';
+    const isSubmissionEditor = Boolean(isManuscript && settings.isVertical && submissionLayout);
+    const submissionMetrics = isSubmissionEditor
+      ? calculateSubmissionEditorMetrics({
+          viewportHeight: window.innerHeight,
+          requestedFontSize,
+          charsPerLine: submissionLayout.charsPerLine,
+          linesPerPage: submissionLayout.linesPerPage,
+        })
+      : null;
+    const fontSize = submissionMetrics?.fontSize ?? requestedFontSize;
     const lineHeightRatio = isManuscript
       ? (settings.lineHeight || 1.65)
       : (settings.charSpacing || 1.4);
-    const cell = Math.floor(fontSize * lineHeightRatio);
+    const cell = submissionMetrics?.cell ?? Math.floor(fontSize * lineHeightRatio);
     const PADDING = 10;
 
     let maxPerLine;
     if (settings.isVertical) {
       const winH = window.innerHeight;
       const availableH = winH - (PADDING * 2) - 28 - 40;
-      maxPerLine = settings.charsPerLine || Math.floor(availableH / cell);
+      maxPerLine = submissionLayout?.charsPerLine || settings.charsPerLine || Math.floor(availableH / cell);
       if (maxPerLine < 5) maxPerLine = 20;
     } else {
       const winW = window.innerWidth;
@@ -467,7 +490,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
     }
 
     return { fontSize, cell, maxPerLine, padding: PADDING, letterSpacing: cell - fontSize };
-  }, [settings.fontSize, settings.lineHeight, settings.isVertical, settings.charsPerLine, settings.paperStyle, settings.charSpacing]);
+  }, [settings.fontSize, settings.lineHeight, settings.isVertical, settings.charsPerLine, settings.paperStyle, settings.charSpacing, submissionLayout]);
 
   // --- 共有 Web Worker（lineCount / positions を1つのWorkerで処理） ---
   const workerRef = useRef(null);
@@ -1311,6 +1334,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
     setCursorPosition: (position) => {
       const ta = textareaRef.current;
       if (!ta) return;
+      initialScrollTimerRef.current?.();
       ta.focus({ preventScroll: true });
       ta.setSelectionRange(position, position);
       requestAnimationFrame(() => scrollToCaretPosition(position));
@@ -1328,6 +1352,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
     jumpToIndex: (index) => {
       const ta = textareaRef.current;
       if (!ta) return;
+      initialScrollTimerRef.current?.();
       ta.focus({ preventScroll: true });
       ta.setSelectionRange(index, index);
       requestAnimationFrame(() => scrollToCaretPosition(index));
@@ -1338,6 +1363,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
   const paperClass = isCleanMode ? 'paper-clean' :
     settings.paperStyle === 'grid' ? 'paper-manuscript' :
       settings.paperStyle === 'lined' ? 'paper-lined' : 'paper-plain';
+  const isSubmissionEditor = Boolean(settings.paperStyle === 'grid' && settings.isVertical && submissionLayout);
 
   // フォントスタイル（メモ化 — レンダリングごとの新規オブジェクト生成を回避）
   // すべての用紙モードで設定画面の本文フォントを正とする。
@@ -1427,6 +1453,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
     '--grid-w': `${metrics.gridW}px`,
     '--grid-h': `${metrics.gridH}px`,
     '--ls-half': `${Math.round(metrics.letterSpacing / 2)}px`,
+    '--submission-page-span': `${metrics.cell * (submissionLayout?.linesPerPage || settings.linesPerPage || 30)}px`,
     width: settings.isVertical
       ? `${metrics.gridW + (metrics.padding * 2) + metrics.cell + 2}px`
       : `${metrics.gridW + (metrics.padding * 2) + 2}px`,
@@ -1441,7 +1468,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
     overflow: 'hidden',
     resize: 'none',
     ...fontStyle
-  }, [isCleanMode, settings.fontSize, settings.isVertical, settings.charsPerLine, metrics, fontStyle, cleanVerticalWidth, measuredCleanWidth]);
+  }, [isCleanMode, settings.fontSize, settings.isVertical, settings.charsPerLine, settings.linesPerPage, submissionLayout, metrics, fontStyle, cleanVerticalWidth, measuredCleanWidth]);
 
   // --- メモ化: シンタックスハイライト要素 ---
   const highlightElements = useMemo(() => {
@@ -1502,7 +1529,7 @@ const Editor = forwardRef(({ value, onChange, onCursorStats, settings, onInsertR
   }, [applyText, pushHistory, onImageDrop, onChange]);
 
   return (
-    <div lang="ja" className={`editor-container ${settings.isVertical ? 'vertical' : 'horizontal'} ${paperClass}`}>
+    <div lang="ja" className={`editor-container ${settings.isVertical ? 'vertical' : 'horizontal'} ${paperClass} ${isSubmissionEditor ? 'submission-editor' : ''}`}>
       {/* Underlay: skip in clean mode (proportional fonts can't align character-by-character) */}
       {/* Underlay: skip in massive text mode（座標キャッシュを作らないため） */}
       {!isCleanMode && !isMassiveText && (

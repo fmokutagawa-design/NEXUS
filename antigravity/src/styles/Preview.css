@@ -147,6 +147,98 @@
     flex-shrink: 0;
 }
 
+/* 応募用全体プレビュー: 罫線セルではなく、1行1要素で軽く描画する。 */
+.submission-page {
+    box-sizing: border-box;
+    overflow: hidden;
+    display: block;
+    writing-mode: horizontal-tb;
+}
+
+.submission-content {
+    position: relative;
+    display: grid;
+    grid-auto-rows: 100%;
+    align-items: stretch;
+    justify-items: stretch;
+    margin-left: auto;
+    direction: ltr;
+}
+
+.submission-content.show-grid {
+    background-image:
+        linear-gradient(to right, rgba(184, 134, 11, 0.28) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(184, 134, 11, 0.28) 1px, transparent 1px);
+    background-size: var(--submission-column-pitch) var(--submission-row-pitch);
+    background-origin: content-box;
+    background-clip: content-box;
+    background-position: right top;
+}
+
+.submission-line {
+    position: relative;
+    min-width: 0;
+    height: 100%;
+    overflow: visible;
+}
+
+.submission-line-content {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    font-size: var(--preview-font-size, 20px);
+    line-height: 1;
+    letter-spacing: calc(var(--submission-row-pitch) - var(--preview-font-size));
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.submission-column-ruler {
+    position: absolute;
+    top: -13px;
+    left: 0;
+    width: 100%;
+    display: grid;
+    grid-template-columns: inherit;
+    writing-mode: horizontal-tb;
+    font: 9px/1 var(--font-gothic);
+    color: #9a9a9a;
+    text-align: center;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.submission-row-ruler {
+    position: absolute;
+    top: 0;
+    left: -20px;
+    width: 16px;
+    height: 100%;
+    display: grid;
+    grid-template-rows: repeat(40, 1fr);
+    font: 8px/1 var(--font-gothic);
+    color: #9a9a9a;
+    writing-mode: horizontal-tb;
+    text-align: right;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.submission-ruby {
+    ruby-position: over;
+    ruby-align: center;
+    white-space: nowrap;
+}
+
+.submission-ruby rt {
+    font-size: 0.42em;
+    color: #343434;
+    letter-spacing: 0;
+}
+
 /* Collapse vertical borders */
 .manuscript-cell+.manuscript-cell {
     margin-top: -1px;
@@ -280,13 +372,10 @@
     width: max-content;
     /* Ensure it can be wider than the cell if needed, though usually vertical text is tall */
 
-    display: flex;
-    flex-direction: row;
-    /* Main Axis: Top-to-Bottom (Vertical) in writing-mode: vertical-rl */
-    align-items: center;
-    /* Cross Axis: Center (Horizontal) */
-    justify-content: space-around;
-    /* Distribute with 1-2-1 spacing (better than space-between) */
+    display: block;
+    writing-mode: vertical-rl;
+    /* Keep the ruby in one text node to avoid one DOM node per kana. */
+    text-align: center;
 
     line-height: 1;
     pointer-events: none;
