@@ -24,6 +24,7 @@ export default function SceneSketchBoard({ projectHandle }) {
   const [loaded, setLoaded] = useState(false);
   const [frameIndex, setFrameIndex] = useState(0);
   const [mode, setMode] = useState('move');
+  const [showTrails, setShowTrails] = useState(true);
   const [selected, setSelected] = useState(null);
   const [dragging, setDragging] = useState(null);
   const [instruction, setInstruction] = useState('');
@@ -213,6 +214,7 @@ export default function SceneSketchBoard({ projectHandle }) {
         <button style={mode === 'move' ? activeButton : smallButton} onClick={() => setMode('move')}>移動</button>
         <button style={mode === 'attack' ? activeButton : smallButton} onClick={() => { setSelected(null); setMode('attack'); }}>攻撃線</button>
         <button style={mode === 'knowledge' ? activeButton : smallButton} onClick={() => { setSelected(null); setMode('knowledge'); }}>情報線</button>
+        <button style={showTrails ? activeButton : smallButton} onClick={() => setShowTrails(!showTrails)}>移動軌跡</button>
       </div>
       <div style={{ display: 'flex', gap: 12, alignItems: 'stretch', minHeight: 330 }}>
         <div style={{ flex: 1, minWidth: 0, ...boxStyle, padding: 6 }}>
@@ -231,12 +233,21 @@ export default function SceneSketchBoard({ projectHandle }) {
             {visible.background ? <image href={visible.background} x="0" y="0" width="1000" height="600" preserveAspectRatio="xMidYMid meet" /> : null}
             {!visible.background && Array.from({ length: 9 }, (_, i) => <line key={'v' + i} x1={(i + 1) * 100} y1="0" x2={(i + 1) * 100} y2="600" stroke="#dce4ec" strokeWidth="1" />)}
             {!visible.background && Array.from({ length: 5 }, (_, i) => <line key={'h' + i} x1="0" y1={(i + 1) * 100} x2="1000" y2={(i + 1) * 100} stroke="#dce4ec" strokeWidth="1" />)}
+            {showTrails && safeIndex > 0 && visible.entities.map(entity => {
+              const before = visible.frames[safeIndex - 1].positions[entity.id];
+              const after = frame.positions[entity.id];
+              if (!before || !after || (before.x === after.x && before.y === after.y)) return null;
+              return <line key={'trail-' + entity.id} x1={before.x} y1={before.y} x2={after.x} y2={after.y}
+                stroke="#5c819c" strokeWidth="4" strokeDasharray="7 8" markerEnd="url(#nexus-scene-info)" />;
+            })}
             {frame.links.map((link, i) => {
               const a = frame.positions[link.from], b = frame.positions[link.to];
               if (!a || !b) return null;
               const color = link.kind === 'knowledge' ? '#4a84a3' : '#c4594a';
               return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
                 stroke={color} strokeWidth="4" strokeDasharray={link.kind === 'knowledge' ? '9 7' : undefined}
+                style={{ cursor: proposal ? 'default' : 'pointer' }}
+                onClick={() => { if (!proposal) updateFrame(item => ({ ...item, links: item.links.filter((_, n) => n !== i) })); }}
                 markerEnd={link.kind === 'knowledge' ? 'url(#nexus-scene-info)' : 'url(#nexus-scene-arrow)'} />;
             })}
             {visible.entities.map(entity => {
@@ -291,6 +302,18 @@ export default function SceneSketchBoard({ projectHandle }) {
                 });
                 setSelected(null);
               }}>このコマでは非表示</button>
+              <button style={{ ...smallButton, marginTop: 8 }} onClick={() => {
+                if (!window.confirm('すべてのコマからこの要素を削除しますか？')) return;
+                setDoc(previous => ({ ...previous,
+                  entities: previous.entities.filter(entity => entity.id !== selected),
+                  frames: previous.frames.map(item => {
+                    const positions = { ...item.positions };
+                    delete positions[selected];
+                    return { ...item, positions, links: item.links.filter(link => link.from !== selected && link.to !== selected) };
+                  })
+                }));
+                setSelected(null);
+              }}>すべてのコマから削除</button>
             </> : <span style={{ color: '#64748b' }}>人物を選んで名前・状態を編集します。</span>}
           </div>
           <div style={{ ...boxStyle, flex: 1 }}>
