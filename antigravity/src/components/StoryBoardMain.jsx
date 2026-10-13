@@ -7,6 +7,7 @@ import { StoryWizard } from './StoryWizard';
 import { StoryAnalysisPanel } from './StoryAnalysisPanel';
 import { StoryCardEditor } from './StoryCardEditor';
 import { StoryChronologyView } from './StoryChronologyView';
+import SceneSketchBoard from './SceneSketchBoard';
 import './StoryBoard.css';
 
 // --- Styled Components (as objects for now) ---
@@ -511,6 +512,7 @@ export const StoryBoard = ({ projectHandle, allFiles = [], onOpenFile, onCreateC
                                     fontSize: '0.85rem'
                                 }}
                             >📅 時系列</button>
+                            <button onClick={() => setViewMode('scene')} style={{ padding: '5px 12px', border: 'none', borderRadius: '14px', cursor: 'pointer', background: viewMode === 'scene' ? '#fff' : 'transparent', color: viewMode === 'scene' ? '#1565c0' : '#777', fontWeight: 700 }}>🗺️ シーン図</button>
                         </div>
 
                         {/* Template Switcher */}
@@ -594,7 +596,9 @@ export const StoryBoard = ({ projectHandle, allFiles = [], onOpenFile, onCreateC
                         />
                     )}
 
-                    {viewMode === 'chronology' ? (
+                    {viewMode === 'scene' ? (
+                        <SceneSketchBoard projectHandle={projectHandle} />
+                    ) : viewMode === 'chronology' ? (
                         <StoryChronologyView
                             boardData={boardData}
                             onCardClick={(card) => {
